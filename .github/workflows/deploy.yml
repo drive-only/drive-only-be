@@ -22,7 +22,7 @@ jobs:
           script: |
             cd /home/ubuntu/drive-only-be
             rm -rf src/main/resources/application.yml
-            git pull origin main
+            git pull origin develop
             echo "$APPLICATION_PROPERTIES" > src/main/resources/application.yml
             ./gradlew clean build
             sudo fuser -k -n tcp 8080 || true  
