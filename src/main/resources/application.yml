@@ -1,8 +1,0 @@
-spring:
-  application:
-    name: drive_only_server
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://driveonly-db.chawsmksyj5c.ap-northeast-2.rds.amazonaws.com:3306/driveonly_db
-    username: minjun
-    password: driveonly123!!
