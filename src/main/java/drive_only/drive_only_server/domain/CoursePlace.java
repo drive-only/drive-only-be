@@ -35,10 +35,13 @@ public class CoursePlace {
     protected CoursePlace() {
     }
 
-    public CoursePlace(String name, String placeType, String content, int sequence) {
+    public CoursePlace(String name, String placeType, String content, int sequence, Member member, Course course, Place place) {
         this.name = name;
         this.placeType = placeType;
         this.content = content;
         this.sequence = sequence;
+        this.member = member;
+        this.course = course;
+        this.place = place;
     }
 }
