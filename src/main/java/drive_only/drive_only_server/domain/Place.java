@@ -18,16 +18,20 @@ public class Place {
     private String useTime;
     private String restDate;
     private String phoneNum;
+    private Double lat;
+    private Double lng;
 
     protected Place() {
     }
 
-    public Place(String name, String address, String thumbNailUrl, String useTime, String restDate, String phoneNum) {
+    public Place(String name, String address, String thumbNailUrl, String useTime, String restDate, String phoneNum, Double lat, Double lng) {
         this.name = name;
         this.address = address;
         this.thumbNailUrl = thumbNailUrl;
         this.useTime = useTime;
         this.restDate = restDate;
         this.phoneNum = phoneNum;
+        this.lat = lat;
+        this.lng = lng;
     }
 }

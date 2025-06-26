@@ -20,8 +20,8 @@ public class Course {
     private Long id;
     private String title;
     private LocalDate createdDate;
-    private double recommendation;
-    private double difficulty;
+    private Double recommendation;
+    private Double difficulty;
     private int viewCount;
     private int likeCount;
     private int commentCount;
