@@ -39,5 +39,6 @@ public class PlaceDataInitResponse {
         private Double mapx;
         private Double mapy;
         private String tel;
+        private String title;
     }
 }
