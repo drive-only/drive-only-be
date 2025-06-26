@@ -36,14 +36,16 @@ public class Course {
     protected Course() {
     }
 
-    public Course(String title, LocalDate createdDate, double recommendation, double difficulty, int viewCount, int likeCount, int commentCount, boolean isReported) {
+    public Course(String title, Member member, LikedCourse likedCourse) {
         this.title = title;
-        this.createdDate = createdDate;
-        this.recommendation = recommendation;
-        this.difficulty = difficulty;
-        this.viewCount = viewCount;
-        this.likeCount = likeCount;
-        this.commentCount = commentCount;
-        this.isReported = isReported;
+        this.member = member;
+        this.likedCourse = likedCourse;
+        this.createdDate = LocalDate.now();
+        this.recommendation = 0.0;
+        this.difficulty = 0.0;
+        this.viewCount = 0;
+        this.likeCount = 0;
+        this.commentCount = 0;
+        this.isReported = false;
     }
 }
