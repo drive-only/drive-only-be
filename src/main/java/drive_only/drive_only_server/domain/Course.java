@@ -31,8 +31,7 @@ public class Course {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "liked_course_id")
+    @OneToMany(mappedBy = "course")
     private LikedCourse likedCourse;
 
     @OneToMany(mappedBy = "course")
