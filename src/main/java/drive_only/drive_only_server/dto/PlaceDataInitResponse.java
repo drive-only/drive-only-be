@@ -19,6 +19,7 @@ public class PlaceDataInitResponse {
     @Setter
     public static class Body {
         private Items items;
+        private int totalCount;
     }
 
     @Getter
