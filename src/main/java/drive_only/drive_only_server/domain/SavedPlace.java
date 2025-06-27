@@ -19,7 +19,6 @@ public class SavedPlace {
     private Place place;
 
     protected SavedPlace() {
-
     }
 
     public SavedPlace(Member member, Place place) {

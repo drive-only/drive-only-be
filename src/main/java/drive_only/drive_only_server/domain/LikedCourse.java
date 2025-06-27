@@ -5,6 +5,7 @@ import lombok.*;
 
 @Entity
 @Getter
+@Table(name = "liked_course")
 public class LikedCourse {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,7 +20,6 @@ public class LikedCourse {
     private Course course;
 
     protected LikedCourse() {
-
     }
 
     public LikedCourse(Member member, Course course) {

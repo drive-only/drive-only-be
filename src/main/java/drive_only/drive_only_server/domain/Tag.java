@@ -18,7 +18,6 @@ public class Tag {
     private Course course;
 
     protected Tag() {
-
     }
 
     public Tag(Course course) {
