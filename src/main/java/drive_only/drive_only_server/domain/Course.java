@@ -49,7 +49,7 @@ public class Course {
     private Member member;
 
     @OneToMany(mappedBy = "course")
-    private LikedCourse likedCourse;
+    private List<LikedCourse> likedCourses;
 
     @OneToMany(mappedBy = "course")
     private List<CoursePlace> coursePlaces;
@@ -57,10 +57,10 @@ public class Course {
     protected Course() {
     }
 
-    public Course(String title, Member member, LikedCourse likedCourse) {
+    public Course(String title, Member member, List<LikedCourse> likedCourses) {
         this.title = title;
         this.member = member;
-        this.likedCourse = likedCourse;
+        this.likedCourses = likedCourses;
         this.createdDate = LocalDate.now();
         this.recommendation = 0.0;
         this.difficulty = 0.0;
