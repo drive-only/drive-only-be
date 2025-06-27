@@ -1,5 +1,6 @@
 package drive_only.drive_only_server.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -7,22 +8,28 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.Getter;
 
 @Entity
 @Getter
+@Table(name = "course_place")
 public class CoursePlace {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
-    private String placeType;
-    private String content;
-    private int sequence;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
-    private Member member;
+    @Column(name = "name")
+    private String name;
+
+    @Column(name = "place_type")
+    private String placeType;
+
+    @Column(name = "content")
+    private String content;
+
+    @Column(name = "sequence")
+    private int sequence;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")
@@ -35,12 +42,11 @@ public class CoursePlace {
     protected CoursePlace() {
     }
 
-    public CoursePlace(String name, String placeType, String content, int sequence, Member member, Course course, Place place) {
+    public CoursePlace(String name, String placeType, String content, int sequence, Course course, Place place) {
         this.name = name;
         this.placeType = placeType;
         this.content = content;
         this.sequence = sequence;
-        this.member = member;
         this.course = course;
         this.place = place;
     }

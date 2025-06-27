@@ -1,5 +1,6 @@
 package drive_only.drive_only_server.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -12,12 +13,25 @@ public class Place {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "name")
     private String name;
+
+    @Column(name = "address")
     private String address;
+
+    @Column(name = "thumbnail_url")
     private String thumbNailUrl;
+
+    @Column(name = "use_time")
     private String useTime;
+
+    @Column(name = "rest_date")
     private String restDate;
+
+    @Column(name = "phone_num")
     private String phoneNum;
+
     private Double lat;
     private Double lng;
 
