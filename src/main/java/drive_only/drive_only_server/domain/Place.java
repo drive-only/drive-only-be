@@ -32,7 +32,10 @@ public class Place {
     @Column(name = "phone_num")
     private String phoneNum;
 
+    @Column(name = "lat")
     private Double lat;
+
+    @Column(name = "lng")
     private Double lng;
 
     protected Place() {
