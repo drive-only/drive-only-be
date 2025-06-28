@@ -2,15 +2,18 @@ package drive_only.drive_only_server.dto;
 
 import java.util.List;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class DetailIntroResponse {
     private Response response;
 
     @Getter
     @Setter
+    @NoArgsConstructor
     public static class Response {
         private Header header;
         private Body body;
@@ -18,6 +21,7 @@ public class DetailIntroResponse {
 
     @Getter
     @Setter
+    @NoArgsConstructor
     public static class Header {
         private String resultCode;
         private String resultMsg;
@@ -25,6 +29,7 @@ public class DetailIntroResponse {
 
     @Getter
     @Setter
+    @NoArgsConstructor
     public static class Body {
         private Items items;
         private int numOfRows;
@@ -34,12 +39,14 @@ public class DetailIntroResponse {
 
     @Getter
     @Setter
+    @NoArgsConstructor
     public static class Items {
         private List<Item> item;
     }
 
     @Getter
     @Setter
+    @NoArgsConstructor
     public static class Item {
         //공통정보
         private String contentid;
