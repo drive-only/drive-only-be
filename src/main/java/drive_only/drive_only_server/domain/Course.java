@@ -60,20 +60,35 @@ public class Course {
     protected Course() {
     }
 
-    public Course(String title, LocalDate createdDate, Double recommendation, Double difficulty, int viewCount,
-                  int likeCount, int commentCount, boolean isReported, Member member, List<CoursePlace> coursePlaces) {
-        this.title = title;
-        this.createdDate = createdDate;
-        this.recommendation = recommendation;
-        this.difficulty = difficulty;
-        this.viewCount = viewCount;
-        this.likeCount = likeCount;
-        this.commentCount = commentCount;
-        this.isReported = isReported;
-        this.member = member;
+    public static Course createCourse(String title, LocalDate createdDate, Double recommendation, Double difficulty, int viewCount,
+                                      int likeCount, int commentCount, boolean isReported, Member member, List<CoursePlace> coursePlaces) {
+        Course course = new Course();
+        course.title = title;
+        course.createdDate = createdDate;
+        course.recommendation = recommendation;
+        course.difficulty = difficulty;
+        course.viewCount = viewCount;
+        course.likeCount = likeCount;
+        course.commentCount = commentCount;
+        course.isReported = isReported;
+        course.setMember(member);
         for (CoursePlace coursePlace : coursePlaces) {
-            this.coursePlaces.add(coursePlace);
-            coursePlace.setCourse(this);
+            course.addCoursePlace(coursePlace);
         }
+        return course;
+    }
+
+    public void addCoursePlace(CoursePlace coursePlace) {
+        coursePlaces.add(coursePlace);
+        coursePlace.setCourse(this);
+    }
+
+    public void addLikedCourse(LikedCourse likedCourse) {
+        likedCourses.add(likedCourse);
+        likedCourse.setCourse(this);
+    }
+
+    public void setMember(Member member) {
+        this.member = member;
     }
 }

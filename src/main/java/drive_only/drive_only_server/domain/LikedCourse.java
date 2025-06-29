@@ -26,4 +26,8 @@ public class LikedCourse {
         this.member = member;
         this.course = course;
     }
+
+    public void setCourse(Course course) {
+        this.course = course;
+    }
 }
