@@ -45,7 +45,7 @@ public class PlaceDataService {
         }
     }
 
-    @Scheduled(cron = "0 15 4 * * *")
+    @Scheduled(cron = "0 25 4 * * *")
     public void syncPlaceDataFromTourApi() {
         log.info("관광지 동기화 시작: {}", LocalDateTime.now());
         for (int pageNo = 1; pageNo < totalPage; pageNo++) {
