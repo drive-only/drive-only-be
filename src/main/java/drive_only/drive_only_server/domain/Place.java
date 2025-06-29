@@ -17,6 +17,12 @@ public class Place {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "content_id")
+    private int contentId;
+
+    @Column(name = "content_type_id")
+    private int contentTypeId;
+
     @Column(name = "name")
     private String name;
 
@@ -41,7 +47,9 @@ public class Place {
     @Column(name = "lng")
     private Double lng;
 
-    public Place(String name, String address, String thumbNailUrl, String useTime, String restDate, String phoneNum, Double lat, Double lng) {
+    public Place(int contentId, int contentTypeId, String name, String address, String thumbNailUrl, String useTime, String restDate, String phoneNum, Double lat, Double lng) {
+        this.contentId = contentId;
+        this.contentTypeId = contentTypeId;
         this.name = name;
         this.address = address;
         this.thumbNailUrl = thumbNailUrl;
@@ -50,5 +58,19 @@ public class Place {
         this.phoneNum = phoneNum;
         this.lat = lat;
         this.lng = lng;
+    }
+
+    public void updateBasicInfo(String name, String address, String thumbNailUrl, String phoneNum, double lat, double lng) {
+        this.name = name;
+        this.address = address;
+        this.thumbNailUrl = thumbNailUrl;
+        this.phoneNum = phoneNum;
+        this.lat = lat;
+        this.lng = lng;
+    }
+
+    public void updateDetailInfo(String useTime, String restDate) {
+        this.useTime = useTime;
+        this.restDate = restDate;
     }
 }
