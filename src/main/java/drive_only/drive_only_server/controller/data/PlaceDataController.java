@@ -1,6 +1,6 @@
-package drive_only.drive_only_server.controller.init;
+package drive_only.drive_only_server.controller.data;
 
-import drive_only.drive_only_server.service.init.PlaceDataService;
+import drive_only.drive_only_server.service.data.PlaceDataService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

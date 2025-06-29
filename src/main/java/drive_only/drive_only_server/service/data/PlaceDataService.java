@@ -1,9 +1,9 @@
-package drive_only.drive_only_server.service.init;
+package drive_only.drive_only_server.service.data;
 
 import drive_only.drive_only_server.domain.Place;
-import drive_only.drive_only_server.dto.init.DetailIntroResponse;
-import drive_only.drive_only_server.dto.init.PlaceDataInitResponse;
-import drive_only.drive_only_server.dto.init.PlaceDataInitResponse.Item;
+import drive_only.drive_only_server.dto.data.DetailIntroResponse;
+import drive_only.drive_only_server.dto.data.PlaceDataInitResponse;
+import drive_only.drive_only_server.dto.data.PlaceDataInitResponse.Item;
 import drive_only.drive_only_server.repository.PlaceRepository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -45,7 +45,7 @@ public class PlaceDataService {
         }
     }
 
-    @Scheduled(cron = "0 43 4 * * *")
+    @Scheduled(cron = "0 50 4 * * *")
     public void syncPlaceDataFromTourApi() {
         log.info("관광지 동기화 시작: {}", LocalDateTime.now());
         for (int pageNo = 1; pageNo <= totalPage; pageNo++) {
