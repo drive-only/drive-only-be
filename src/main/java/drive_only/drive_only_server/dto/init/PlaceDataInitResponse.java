@@ -1,4 +1,4 @@
-package drive_only.drive_only_server.dto;
+package drive_only.drive_only_server.dto.init;
 
 import java.util.List;
 import lombok.Getter;

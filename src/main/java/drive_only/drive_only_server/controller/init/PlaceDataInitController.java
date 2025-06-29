@@ -1,6 +1,6 @@
-package drive_only.drive_only_server.controller;
+package drive_only.drive_only_server.controller.init;
 
-import drive_only.drive_only_server.service.PlaceDataInitService;
+import drive_only.drive_only_server.service.init.PlaceDataInitService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
