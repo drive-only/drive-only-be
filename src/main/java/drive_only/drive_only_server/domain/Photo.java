@@ -18,7 +18,6 @@ public class Photo {
     private CoursePlace coursePlace;
 
     protected Photo() {
-
     }
 
     public Photo(CoursePlace coursePlace) {

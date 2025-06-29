@@ -26,7 +26,6 @@ public class Member {
     private String provider;
 
     protected Member() {
-
     }
 
     public Member(String email, String nickname, String profileImageUrl, String provider) {

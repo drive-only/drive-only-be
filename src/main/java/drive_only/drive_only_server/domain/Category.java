@@ -22,7 +22,6 @@ public class Category {
     private Course course;
 
     protected Category() {
-
     }
 
     public Category(Course course) {
