@@ -59,4 +59,18 @@ public class Place {
         this.lat = lat;
         this.lng = lng;
     }
+
+    public void updateBasicInfo(String name, String address, String thumbNailUrl, String phoneNum, double lat, double lng) {
+        this.name = name;
+        this.address = address;
+        this.thumbNailUrl = thumbNailUrl;
+        this.phoneNum = phoneNum;
+        this.lat = lat;
+        this.lng = lng;
+    }
+
+    public void updateDetailInfo(String useTime, String restDate) {
+        this.useTime = useTime;
+        this.restDate = restDate;
+    }
 }
