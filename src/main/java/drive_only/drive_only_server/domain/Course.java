@@ -11,7 +11,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import java.time.LocalDate;
 import java.util.List;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
@@ -57,16 +59,17 @@ public class Course {
     protected Course() {
     }
 
-    public Course(String title, Member member, List<LikedCourse> likedCourses) {
+    public Course(String title, LocalDate createdDate, Double recommendation, Double difficulty, int viewCount,
+                  int likeCount, int commentCount, boolean isReported, Member member, List<CoursePlace> coursePlaces) {
         this.title = title;
+        this.createdDate = createdDate;
+        this.recommendation = recommendation;
+        this.difficulty = difficulty;
+        this.viewCount = viewCount;
+        this.likeCount = likeCount;
+        this.commentCount = commentCount;
+        this.isReported = isReported;
         this.member = member;
-        this.likedCourses = likedCourses;
-        this.createdDate = LocalDate.now();
-        this.recommendation = 0.0;
-        this.difficulty = 0.0;
-        this.viewCount = 0;
-        this.likeCount = 0;
-        this.commentCount = 0;
-        this.isReported = false;
+        this.coursePlaces = coursePlaces;
     }
 }

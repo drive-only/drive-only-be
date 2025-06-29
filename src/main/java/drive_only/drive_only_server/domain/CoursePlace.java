@@ -10,9 +10,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 @Table(name = "course_place")
 public class CoursePlace {
     @Id
@@ -42,12 +44,11 @@ public class CoursePlace {
     protected CoursePlace() {
     }
 
-    public CoursePlace(String name, String placeType, String content, int sequence, Course course, Place place) {
+    public CoursePlace(String name, String placeType, String content, int sequence, Place place) {
         this.name = name;
         this.placeType = placeType;
         this.content = content;
         this.sequence = sequence;
-        this.course = course;
         this.place = place;
     }
 }
