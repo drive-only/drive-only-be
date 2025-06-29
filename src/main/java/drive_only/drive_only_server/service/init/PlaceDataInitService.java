@@ -26,7 +26,7 @@ public class PlaceDataInitService {
     private final WebClient webClient;
 
     public void importPlaceDataFromTourApi() {
-        int numOfRows = 10;
+        int numOfRows = 30;
         int totalPage = 5;
         //TODO : 현재는 개발 계정으로 TourAPI와 연동하고 있어서, 나중에 운영 계정으로 변환되면 전체 데이터를 가져오도록 아래처럼 변경
         //int numOfRows = 200;
@@ -124,8 +124,10 @@ public class PlaceDataInitService {
         String restDate = getRestDate(contentTypeId, placeDetail);
 
         return new Place(
+                Integer.parseInt(place.getContentid()),
+                Integer.parseInt(place.getContenttypeid()),
                 place.getTitle(),
-                place.getAddr1(),
+                place.getAddr1() + " " + place.getAddr2(),
                 place.getFirstimage2(),
                 useTime,
                 restDate,
