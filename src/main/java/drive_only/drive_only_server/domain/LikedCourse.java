@@ -6,6 +6,7 @@ import lombok.*;
 @Entity
 @Getter
 @Table(name = "liked_course")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class LikedCourse {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,9 +19,6 @@ public class LikedCourse {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")
     private Course course;
-
-    protected LikedCourse() {
-    }
 
     public LikedCourse(Member member, Course course) {
         this.member = member;

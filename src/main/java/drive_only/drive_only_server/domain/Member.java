@@ -3,11 +3,9 @@ package drive_only.drive_only_server.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,9 +22,6 @@ public class Member {
 
     @Column(name = "provider")
     private String provider;
-
-    protected Member() {
-    }
 
     public Member(String email, String nickname, String profileImageUrl, String provider) {
         this.email = email;

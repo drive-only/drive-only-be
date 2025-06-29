@@ -5,6 +5,7 @@ import lombok.*;
 
 @Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Photo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,9 +17,6 @@ public class Photo {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_place_id")
     private CoursePlace coursePlace;
-
-    protected Photo() {
-    }
 
     public Photo(CoursePlace coursePlace) {
         this.coursePlace = coursePlace;

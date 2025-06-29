@@ -14,23 +14,18 @@ import drive_only.drive_only_server.repository.PlaceRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class CourseService {
     private final CourseRepository courseRepository;
     private final PlaceRepository placeRepository;
     private final CoursePlaceRepository coursePlaceRepository;
     private final MemberReporitory memberReporitory;
-
-    public CourseService(CourseRepository courseRepository, PlaceRepository placeRepository, CoursePlaceRepository coursePlaceRepository, MemberReporitory memberReporitory) {
-        this.courseRepository = courseRepository;
-        this.placeRepository = placeRepository;
-        this.coursePlaceRepository = coursePlaceRepository;
-        this.memberReporitory = memberReporitory;
-    }
 
     @Transactional
     public CourseCreateResponse createCourse(CourseCreateRequest request) {

@@ -18,6 +18,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Course {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -56,9 +57,6 @@ public class Course {
 
     @OneToMany(mappedBy = "course")
     private List<CoursePlace> coursePlaces = new ArrayList<>();
-
-    protected Course() {
-    }
 
     public static Course createCourse(String title, LocalDate createdDate, Double recommendation, Double difficulty, int viewCount,
                                       int likeCount, int commentCount, boolean isReported, Member member, List<CoursePlace> coursePlaces) {

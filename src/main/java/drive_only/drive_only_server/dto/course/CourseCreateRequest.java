@@ -1,12 +1,10 @@
 package drive_only.drive_only_server.dto.course;
 
-import drive_only.drive_only_server.domain.CoursePlace;
 import drive_only.drive_only_server.dto.coursePlace.CoursePlaceCreateRequest;
 import java.util.List;
 import lombok.Getter;
 
 @Getter
-
 public class CourseCreateRequest {
     //카테고리
     private String region;
