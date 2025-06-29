@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -51,10 +52,10 @@ public class Course {
     private Member member;
 
     @OneToMany(mappedBy = "course")
-    private List<LikedCourse> likedCourses;
+    private List<LikedCourse> likedCourses = new ArrayList<>();
 
     @OneToMany(mappedBy = "course")
-    private List<CoursePlace> coursePlaces;
+    private List<CoursePlace> coursePlaces = new ArrayList<>();
 
     protected Course() {
     }
@@ -70,6 +71,9 @@ public class Course {
         this.commentCount = commentCount;
         this.isReported = isReported;
         this.member = member;
-        this.coursePlaces = coursePlaces;
+        for (CoursePlace coursePlace : coursePlaces) {
+            this.coursePlaces.add(coursePlace);
+            coursePlace.setCourse(this);
+        }
     }
 }
