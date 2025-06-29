@@ -6,6 +6,7 @@ import drive_only.drive_only_server.dto.init.PlaceDataInitResponse;
 import drive_only.drive_only_server.dto.init.PlaceDataInitResponse.Item;
 import drive_only.drive_only_server.repository.PlaceRepository;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -16,17 +17,13 @@ import reactor.core.publisher.Mono;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 @Slf4j
 public class PlaceDataInitService {
     @Value("${tourapi.service-key}")
     private String tourApiServiceKey;
     private final PlaceRepository placeRepository;
     private final WebClient webClient;
-
-    public PlaceDataInitService(PlaceRepository placeRepository, WebClient webClient) {
-        this.placeRepository = placeRepository;
-        this.webClient = webClient;
-    }
 
     public void importPlaceDataFromTourApi() {
         int numOfRows = 10;
