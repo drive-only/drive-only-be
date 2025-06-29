@@ -9,7 +9,7 @@ import drive_only.drive_only_server.dto.course.CourseCreateResponse;
 import drive_only.drive_only_server.dto.coursePlace.CoursePlaceCreateRequest;
 import drive_only.drive_only_server.repository.CoursePlaceRepository;
 import drive_only.drive_only_server.repository.CourseRepository;
-import drive_only.drive_only_server.repository.MemberReporitory;
+import drive_only.drive_only_server.repository.MemberRepository;
 import drive_only.drive_only_server.repository.PlaceRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ public class CourseService {
     private final CourseRepository courseRepository;
     private final PlaceRepository placeRepository;
     private final CoursePlaceRepository coursePlaceRepository;
-    private final MemberReporitory memberReporitory;
+    private final MemberRepository memberRepository;
 
     @Transactional
     public CourseCreateResponse createCourse(CourseCreateRequest request) {
@@ -60,7 +60,7 @@ public class CourseService {
 
     private Member createMember() {
         Member mockMember = new Member("email", "nickname", "url", "provider");
-        memberReporitory.save(mockMember);
+        memberRepository.save(mockMember);
         return mockMember;
     }
 
