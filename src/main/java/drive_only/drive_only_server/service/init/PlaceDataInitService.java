@@ -1,9 +1,9 @@
-package drive_only.drive_only_server.service;
+package drive_only.drive_only_server.service.init;
 
 import drive_only.drive_only_server.domain.Place;
-import drive_only.drive_only_server.dto.DetailIntroResponse;
-import drive_only.drive_only_server.dto.PlaceDataInitResponse;
-import drive_only.drive_only_server.dto.PlaceDataInitResponse.Item;
+import drive_only.drive_only_server.dto.init.DetailIntroResponse;
+import drive_only.drive_only_server.dto.init.PlaceDataInitResponse;
+import drive_only.drive_only_server.dto.init.PlaceDataInitResponse.Item;
 import drive_only.drive_only_server.repository.PlaceRepository;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;

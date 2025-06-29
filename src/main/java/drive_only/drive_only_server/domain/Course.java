@@ -10,11 +10,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Course {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,24 +53,40 @@ public class Course {
     private Member member;
 
     @OneToMany(mappedBy = "course")
-    private List<LikedCourse> likedCourses;
+    private List<LikedCourse> likedCourses = new ArrayList<>();
 
     @OneToMany(mappedBy = "course")
-    private List<CoursePlace> coursePlaces;
+    private List<CoursePlace> coursePlaces = new ArrayList<>();
 
-    protected Course() {
+    public static Course createCourse(String title, LocalDate createdDate, Double recommendation, Double difficulty, int viewCount,
+                                      int likeCount, int commentCount, boolean isReported, Member member, List<CoursePlace> coursePlaces) {
+        Course course = new Course();
+        course.title = title;
+        course.createdDate = createdDate;
+        course.recommendation = recommendation;
+        course.difficulty = difficulty;
+        course.viewCount = viewCount;
+        course.likeCount = likeCount;
+        course.commentCount = commentCount;
+        course.isReported = isReported;
+        course.setMember(member);
+        for (CoursePlace coursePlace : coursePlaces) {
+            course.addCoursePlace(coursePlace);
+        }
+        return course;
     }
 
-    public Course(String title, Member member, List<LikedCourse> likedCourses) {
-        this.title = title;
+    public void addCoursePlace(CoursePlace coursePlace) {
+        coursePlaces.add(coursePlace);
+        coursePlace.setCourse(this);
+    }
+
+    public void addLikedCourse(LikedCourse likedCourse) {
+        likedCourses.add(likedCourse);
+        likedCourse.setCourse(this);
+    }
+
+    public void setMember(Member member) {
         this.member = member;
-        this.likedCourses = likedCourses;
-        this.createdDate = LocalDate.now();
-        this.recommendation = 0.0;
-        this.difficulty = 0.0;
-        this.viewCount = 0;
-        this.likeCount = 0;
-        this.commentCount = 0;
-        this.isReported = false;
     }
 }
