@@ -28,7 +28,7 @@ public class PlaceDataService {
     private final PlaceRepository placeRepository;
     private final WebClient webClient;
 
-    private final static int numOfRows = 30;
+    private final static int numOfRows = 10;
     private final static int totalPage = 5;
     //TODO : 현재는 개발 계정으로 TourAPI와 연동하고 있어서, 나중에 운영 계정으로 변환되면 전체 데이터를 가져오도록 위의 코드를 아래처럼 변경
     //int numOfRows = 200;
@@ -162,7 +162,9 @@ public class PlaceDataService {
             case 14 -> placeDetail.getUsetimeculture();
             case 15 -> placeDetail.getPlaytime();
             case 28 -> placeDetail.getUsetimeleports();
+            case 32 -> "";
             case 38 -> placeDetail.getOpentime();
+            case 30 -> "";
             default -> placeDetail.getOpentimefood();
         };
     }
@@ -173,7 +175,9 @@ public class PlaceDataService {
             case 14 -> placeDetail.getRestdateculture();
             case 15 -> "";
             case 28 -> placeDetail.getRestdateleports();
+            case 32 -> "";
             case 38 -> placeDetail.getRestdateshopping();
+            case 39 -> "";
             default -> placeDetail.getRestdatefood();
         };
     }
