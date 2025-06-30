@@ -1,5 +1,6 @@
-package drive_only.drive_only_server.dto.coursePlace;
+package drive_only.drive_only_server.dto.coursePlace.search;
 
+import drive_only.drive_only_server.dto.photo.PhotoResponse;
 import java.util.List;
 import lombok.Getter;
 
@@ -11,12 +12,14 @@ public class CoursePlaceSearchResponse {
     private String name;
     private String address;
     private String content;
-    private List<String> photoUrls;
+    private List<PhotoResponse> photoUrls;
     private double lat;
     private double lng;
     private int sequence;
 
-    public CoursePlaceSearchResponse(Long coursePlaceId, Long placeId, String placeType, String name, String address, String content, List<String> photoUrls, double lat, double lng, int sequence) {
+    public CoursePlaceSearchResponse(Long coursePlaceId, Long placeId, String placeType, String name,
+                                     String address, String content, List<PhotoResponse> photoUrls, double lat,
+                                     double lng, int sequence) {
         this.coursePlaceId = coursePlaceId;
         this.placeId = placeId;
         this.placeType = placeType;

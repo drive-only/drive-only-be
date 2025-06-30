@@ -48,9 +48,16 @@ public class Course {
     @Column(name = "is_reported")
     private boolean isReported;
 
+    @Column(name = "is_liked")
+    private boolean isLiked;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
 
     @OneToMany(mappedBy = "course")
     private List<LikedCourse> likedCourses = new ArrayList<>();
@@ -58,8 +65,12 @@ public class Course {
     @OneToMany(mappedBy = "course")
     private List<CoursePlace> coursePlaces = new ArrayList<>();
 
+    @OneToMany(mappedBy = "course")
+    private List<Tag> tags = new ArrayList<>();
+
     public static Course createCourse(String title, LocalDate createdDate, Double recommendation, Double difficulty, int viewCount,
-                                      int likeCount, int commentCount, boolean isReported, Member member, List<CoursePlace> coursePlaces) {
+                                      int likeCount, int commentCount, boolean isReported, Member member, Category category,
+                                      List<CoursePlace> coursePlaces, List<Tag> tags) {
         Course course = new Course();
         course.title = title;
         course.createdDate = createdDate;
@@ -70,10 +81,22 @@ public class Course {
         course.commentCount = commentCount;
         course.isReported = isReported;
         course.setMember(member);
+        course.setCategory(category);
         for (CoursePlace coursePlace : coursePlaces) {
             course.addCoursePlace(coursePlace);
         }
+        for (Tag tag : tags) {
+            course.addTag(tag);
+        }
         return course;
+    }
+
+    public void setMember(Member member) {
+        this.member = member;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
     }
 
     public void addCoursePlace(CoursePlace coursePlace) {
@@ -81,12 +104,13 @@ public class Course {
         coursePlace.setCourse(this);
     }
 
+    public void addTag(Tag tag) {
+        tags.add(tag);
+        tag.setCourse(this);
+    }
+
     public void addLikedCourse(LikedCourse likedCourse) {
         likedCourses.add(likedCourse);
         likedCourse.setCourse(this);
-    }
-
-    public void setMember(Member member) {
-        this.member = member;
     }
 }
