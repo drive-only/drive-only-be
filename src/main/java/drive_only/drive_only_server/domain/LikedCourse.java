@@ -27,5 +27,8 @@ public class LikedCourse {
 
     public void setCourse(Course course) {
         this.course = course;
+        if (!course.getLikedCourses().contains(this)) {
+            course.addLikedCourse(this);
+        }
     }
 }

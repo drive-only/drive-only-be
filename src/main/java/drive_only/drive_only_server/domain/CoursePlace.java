@@ -19,7 +19,6 @@ import lombok.Setter;
 
 @Entity
 @Getter
-@Setter
 @Table(name = "course_place")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CoursePlace {
@@ -54,11 +53,24 @@ public class CoursePlace {
         this.name = name;
         this.placeType = placeType;
         this.content = content;
-        for (Photo photo : photos) {
-            this.photos.add(photo);
-            photo.setCoursePlace(this);
+        if (photos != null) {
+            for (Photo photo : photos) {
+                addPhoto(photo);
+            }
         }
         this.sequence = sequence;
         this.place = place;
+    }
+
+    public void setCourse(Course course) {
+        this.course = course;
+        if (!course.getCoursePlaces().contains(this)) {
+            course.getCoursePlaces().add(this);
+        }
+    }
+
+    public void addPhoto(Photo photo) {
+        this.photos.add(photo);
+        photo.setCoursePlace(this);
     }
 }

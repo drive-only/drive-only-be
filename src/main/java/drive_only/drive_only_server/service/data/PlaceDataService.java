@@ -62,16 +62,15 @@ public class PlaceDataService {
 
     private int calculateTotalCount() {
         PlaceDataInitResponse response = requestPlaceDataFromTourApi(1, 1).block();
-        return response.getResponse().getBody().getTotalCount();
+        return response.response().body().totalCount();
     }
 
     private List<Item> getAllPlaces(int pageNo, int numOfRows) {
         PlaceDataInitResponse response = requestPlaceDataFromTourApi(pageNo, numOfRows).block();
-
         if (isValidResponse(response)) {
             return null;
         }
-        return response.getResponse().getBody().getItems().getItem();
+        return response.response().body().items().item();
     }
 
     private Mono<PlaceDataInitResponse> requestPlaceDataFromTourApi(int pageNo, int numOfRows) {
@@ -92,24 +91,24 @@ public class PlaceDataService {
 
     private boolean isValidResponse(PlaceDataInitResponse response) {
         boolean valid = response != null &&
-                response.getResponse() != null &&
-                response.getResponse().getBody() != null &&
-                response.getResponse().getBody().getItems() != null &&
-                response.getResponse().getBody().getItems().getItem() != null;
+                response.response() != null &&
+                response.response().body() != null &&
+                response.response().body().items() != null &&
+                response.response().body().items().item() != null;
         return !valid;
     }
 
     private void savePlaces(List<Item> places) {
         for (Item place : places) {
-            String contentId = place.getContentid();
-            String contentTypeId = place.getContenttypeid();
+            String contentId = place.contentid();
+            String contentTypeId = place.contenttypeid();
 
             DetailIntroResponse detailIntroResponse = requestPlaceDetailFromTourApi(place, contentId, contentTypeId).block();
             if (detailIntroResponse == null) {
                 continue;
             }
 
-            List<DetailIntroResponse.Item> detailItems = detailIntroResponse.getResponse().getBody().getItems().getItem();
+            List<DetailIntroResponse.Item> detailItems = detailIntroResponse.response().body().items().item();
             if (detailItems == null || detailItems.isEmpty()) {
                 continue;
             }
@@ -137,79 +136,79 @@ public class PlaceDataService {
     }
 
     private Place createPlace(Item place, DetailIntroResponse.Item placeDetail) {
-        int contentId = Integer.parseInt(place.getContentid());
-        int contentTypeId = Integer.parseInt(place.getContenttypeid());
+        int contentId = Integer.parseInt(place.contentid());
+        int contentTypeId = Integer.parseInt(place.contenttypeid());
         String useTime = getUseTime(contentTypeId, placeDetail);
         String restDate = getRestDate(contentTypeId, placeDetail);
 
         return new Place(
                 contentId,
                 contentTypeId,
-                place.getTitle(),
-                place.getAddr1() + " " + place.getAddr2(),
-                place.getFirstimage2(),
+                place.title(),
+                place.addr1() + " " + place.addr2(),
+                place.firstimage2(),
                 useTime,
                 restDate,
-                place.getTel(),
-                Double.parseDouble(place.getMapx()),
-                Double.parseDouble(place.getMapy())
+                place.tel(),
+                Double.parseDouble(place.mapx()),
+                Double.parseDouble(place.mapy())
         );
     }
 
     private String getUseTime(int contentTypeId, DetailIntroResponse.Item placeDetail) {
         return switch (contentTypeId) {
-            case 12 -> placeDetail.getUsetime();
-            case 14 -> placeDetail.getUsetimeculture();
-            case 15 -> placeDetail.getPlaytime();
-            case 28 -> placeDetail.getUsetimeleports();
+            case 12 -> placeDetail.usetime();
+            case 14 -> placeDetail.usetimeculture();
+            case 15 -> placeDetail.playtime();
+            case 28 -> placeDetail.usetimeleports();
             case 32 -> "";
-            case 38 -> placeDetail.getOpentime();
+            case 38 -> placeDetail.opentime();
             case 30 -> "";
-            default -> placeDetail.getOpentimefood();
+            default -> placeDetail.opentimefood();
         };
     }
 
     private String getRestDate(int contentTypeId, DetailIntroResponse.Item placeDetail) {
         return switch (contentTypeId) {
-            case 12 -> placeDetail.getRestdate();
-            case 14 -> placeDetail.getRestdateculture();
+            case 12 -> placeDetail.restdate();
+            case 14 -> placeDetail.restdateculture();
             case 15 -> "";
-            case 28 -> placeDetail.getRestdateleports();
+            case 28 -> placeDetail.restdateleports();
             case 32 -> "";
-            case 38 -> placeDetail.getRestdateshopping();
+            case 38 -> placeDetail.restdateshopping();
             case 39 -> "";
-            default -> placeDetail.getRestdatefood();
+            default -> placeDetail.restdatefood();
         };
     }
 
     private void syncPlaces(Item place) {
-        DetailIntroResponse detail = requestPlaceDetailFromTourApi(place, place.getContentid(), place.getContenttypeid()).block();
+        DetailIntroResponse detail = requestPlaceDetailFromTourApi(place, place.contentid(), place.contenttypeid()).block();
         if (detail == null) {
             return;
         }
 
-        Optional<Place> findPlace = placeRepository.findByContentId(Integer.parseInt(place.getContentid()));
+        Optional<Place> findPlace = placeRepository.findByContentId(Integer.parseInt(place.contentid()));
         if (findPlace.isPresent()) {
             Place existingPlace = findPlace.get();
             updatePlace(existingPlace, place, detail);
         } else {
-            Place newPlace = createPlace(place, detail.getResponse().getBody().getItems().getItem().get(0));
+            Place newPlace = createPlace(place, detail.response().body().items().item().get(0));
             placeRepository.save(newPlace);
         }
     }
 
     private void updatePlace(Place existingPlace, Item place, DetailIntroResponse detail) {
         existingPlace.updateBasicInfo(
-                place.getTitle(),
-                place.getAddr1() + " " + place.getAddr2(),
-                place.getFirstimage2(),
-                place.getTel(),
-                Double.parseDouble(place.getMapx()),
-                Double.parseDouble(place.getMapy())
+                place.title(),
+                place.addr1() + " " + place.addr2(),
+                place.firstimage2(),
+                place.tel(),
+                Double.parseDouble(place.mapx()),
+                Double.parseDouble(place.mapy())
         );
 
-        int contentTypeId = Integer.parseInt(place.getContenttypeid());
-        DetailIntroResponse.Item placeDetail = detail.getResponse().getBody().getItems().getItem().get(0);
+        int contentTypeId = Integer.parseInt(place.contenttypeid());
+        DetailIntroResponse.Item placeDetail = detail.response().body().items().item().get(0);
         existingPlace.updateDetailInfo(
                 getUseTime(contentTypeId, placeDetail),
                 getRestDate(contentTypeId, placeDetail)

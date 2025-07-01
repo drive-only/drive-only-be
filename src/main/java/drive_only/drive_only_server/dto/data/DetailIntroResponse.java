@@ -1,78 +1,56 @@
 package drive_only.drive_only_server.dto.data;
 
 import java.util.List;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
-@NoArgsConstructor
-public class DetailIntroResponse {
-    private Response response;
+public record DetailIntroResponse(
+    Response response
+) {
+    public record Response(
+        Header header,
+        Body body
+    ) {}
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    public static class Response {
-        private Header header;
-        private Body body;
-    }
+    public record Header(
+        String resultCode,
+        String resultMsg
+    ) {}
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    public static class Header {
-        private String resultCode;
-        private String resultMsg;
-    }
+    public record Body(
+        Items items,
+        int numOfRows,
+        int pageNo,
+        int totalCount
+    ) {}
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    public static class Body {
-        private Items items;
-        private int numOfRows;
-        private int pageNo;
-        private int totalCount;
-    }
+    public record Items(
+        List<Item> item
+    ) {}
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    public static class Items {
-        private List<Item> item;
-    }
+    public record Item(
+        String contentid,
+        String contenttypeid,
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    public static class Item {
-        //공통정보
-        private String contentid;
-        private String contenttypeid;
+        // 관광지(contentTypeId = 12)
+        String usetime,
+        String restdate,
 
-        //관광지(contentTypeId = 12)
-        private String usetime;
-        private String restdate;
+        // 문화시설(contentTypeId = 14)
+        String usetimeculture,
+        String restdateculture,
 
-        //문화시설(contentTypeId = 14)
-        private String usetimeculture;
-        private String restdateculture;
+        // 행사/공연/축제(contentTypeId = 15)
+        String playtime,
 
-        //행사/공연/축제(contentTypeId = 15)
-        private String playtime;
+        // 레포츠(contentTypeId = 28)
+        String usetimeleports,
+        String restdateleports,
 
-        //레포츠(contentTypeId = 28)
-        private String usetimeleports;
-        private String restdateleports;
+        // 쇼핑(contentTypeId = 38)
+        String opentime,
+        String restdateshopping,
 
-        //쇼핑(contentTypeId = 38)
-        private String opentime;
-        private String restdateshopping;
-
-        //음식점(contentTypeId = 39)
-        private String opentimefood;
-        private String restdatefood;
-    }
+        // 음식점(contentTypeId = 39)
+        String opentimefood,
+        String restdatefood
+    ) {}
 }

@@ -24,5 +24,8 @@ public class Photo {
 
     public void setCoursePlace(CoursePlace coursePlace) {
         this.coursePlace = coursePlace;
+        if (!coursePlace.getPhotos().contains(this)) {
+            coursePlace.addPhoto(this);
+        }
     }
 }
