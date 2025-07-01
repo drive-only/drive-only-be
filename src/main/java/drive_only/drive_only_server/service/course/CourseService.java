@@ -75,51 +75,18 @@ public class CourseService {
         );
     }
 
-    private CategoryResponse createCategoryResponse(Course course) {
-        return new CategoryResponse(
-                course.getCategory().getRegion(),
-                course.getCategory().getSubRegion(),
-                course.getCategory().getSeason(),
-                course.getCategory().getTime(),
-                course.getCategory().getTheme(),
-                course.getCategory().getAreaType()
+    private Course createCourse(CourseCreateRequest request, Member testMember, List<CoursePlace> coursePlaces, Category category, List<Tag> tags) {
+        Course course = Course.createCourse(
+                request.getTitle(),
+                LocalDate.now(),
+                request.getRecommendation(), request.getDifficulty(),
+                0, 0, 0, false,
+                testMember, //TODO : 나중에 Member 생성되면 LoginMember(현재 로그인 된 사용자)로 변경
+                category,
+                coursePlaces,
+                tags
         );
-    }
-
-    private List<TagResponse> createTagResponse(Course course) {
-        List<TagResponse> tagResponses = new ArrayList<>();
-        for (Tag tag : course.getTags()) {
-            tagResponses.add(new TagResponse(tag.getId(), tag.getName()));
-        }
-        return tagResponses;
-    }
-
-    private List<CoursePlaceSearchResponse> createCoursePlaceSearchResponse(List<CoursePlace> coursePlaces) {
-        List<CoursePlaceSearchResponse> coursePlaceSearchResponses = new ArrayList<>();
-        for (CoursePlace coursePlace : coursePlaces) {
-            coursePlaceSearchResponses.add(
-                    new CoursePlaceSearchResponse(
-                            coursePlace.getId(),
-                            coursePlace.getPlace().getId(),
-                            coursePlace.getPlaceType(),
-                            coursePlace.getName(),
-                            coursePlace.getPlace().getAddress(),
-                            coursePlace.getContent(),
-                            createPhotoResponse(coursePlace),
-                            coursePlace.getPlace().getLat(),
-                            coursePlace.getPlace().getLng(),
-                            coursePlace.getSequence()
-                    ));
-        }
-        return coursePlaceSearchResponses;
-    }
-
-    private List<PhotoResponse> createPhotoResponse(CoursePlace coursePlace) {
-        List<PhotoResponse> photoResponses = new ArrayList<>();
-        for (Photo photo : coursePlace.getPhotos()) {
-            photoResponses.add(new PhotoResponse(photo.getId(), photo.getUrl()));
-        }
-        return photoResponses;
+        return courseRepository.save(course);
     }
 
     private List<CoursePlace> createCoursePlaces(CourseCreateRequest request) {
@@ -132,18 +99,8 @@ public class CourseService {
         return coursePlaces;
     }
 
-    private Place findPlace(CoursePlaceCreateRequest coursePlaceCreateRequest) {
-        return placeRepository.findById(Long.parseLong(coursePlaceCreateRequest.getPlaceId()))
-                .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
-    }
-
     private CoursePlace createCoursePlace(CoursePlaceCreateRequest coursePlaceCreateRequest, Place place) {
-        List<Photo> photos = new ArrayList<>();
-        for (PhotoRequest photoRequest : coursePlaceCreateRequest.getPhotoUrls()) {
-            Photo photo = new Photo(photoRequest.getPhotoUrl());
-            photoRepository.save(photo);
-            photos.add(photo);
-        }
+        List<Photo> photos = createPhotos(coursePlaceCreateRequest);
 
         CoursePlace coursePlace = new CoursePlace(
                 coursePlaceCreateRequest.getName(),
@@ -155,6 +112,16 @@ public class CourseService {
         );
         coursePlaceRepository.save(coursePlace);
         return coursePlace;
+    }
+
+    private List<Photo> createPhotos(CoursePlaceCreateRequest coursePlaceCreateRequest) {
+        List<Photo> photos = new ArrayList<>();
+        for (PhotoRequest photoRequest : coursePlaceCreateRequest.getPhotoUrls()) {
+            Photo photo = new Photo(photoRequest.getPhotoUrl());
+            photoRepository.save(photo);
+            photos.add(photo);
+        }
+        return photos;
     }
 
     private Member createMember() {
@@ -185,17 +152,55 @@ public class CourseService {
         return tagResponse;
     }
 
-    private Course createCourse(CourseCreateRequest request, Member testMember, List<CoursePlace> coursePlaces, Category category, List<Tag> tags) {
-        Course course = Course.createCourse(
-                request.getTitle(),
-                LocalDate.now(),
-                request.getRecommendation(), request.getDifficulty(),
-                0, 0, 0, false,
-                testMember, //TODO : 나중에 Member 생성되면 LoginMember(현재 로그인 된 사용자)로 변경
-                category,
-                coursePlaces,
-                tags
+    private List<CoursePlaceSearchResponse> createCoursePlaceSearchResponse(List<CoursePlace> coursePlaces) {
+        List<CoursePlaceSearchResponse> coursePlaceSearchResponses = new ArrayList<>();
+        for (CoursePlace coursePlace : coursePlaces) {
+            coursePlaceSearchResponses.add(
+                    new CoursePlaceSearchResponse(
+                            coursePlace.getId(),
+                            coursePlace.getPlace().getId(),
+                            coursePlace.getPlaceType(),
+                            coursePlace.getName(),
+                            coursePlace.getPlace().getAddress(),
+                            coursePlace.getContent(),
+                            createPhotoResponse(coursePlace),
+                            coursePlace.getPlace().getLat(),
+                            coursePlace.getPlace().getLng(),
+                            coursePlace.getSequence()
+                    ));
+        }
+        return coursePlaceSearchResponses;
+    }
+
+    private List<PhotoResponse> createPhotoResponse(CoursePlace coursePlace) {
+        List<PhotoResponse> photoResponses = new ArrayList<>();
+        for (Photo photo : coursePlace.getPhotos()) {
+            photoResponses.add(new PhotoResponse(photo.getId(), photo.getUrl()));
+        }
+        return photoResponses;
+    }
+
+    private List<TagResponse> createTagResponse(Course course) {
+        List<TagResponse> tagResponses = new ArrayList<>();
+        for (Tag tag : course.getTags()) {
+            tagResponses.add(new TagResponse(tag.getId(), tag.getName()));
+        }
+        return tagResponses;
+    }
+
+    private CategoryResponse createCategoryResponse(Course course) {
+        return new CategoryResponse(
+                course.getCategory().getRegion(),
+                course.getCategory().getSubRegion(),
+                course.getCategory().getSeason(),
+                course.getCategory().getTime(),
+                course.getCategory().getTheme(),
+                course.getCategory().getAreaType()
         );
-        return courseRepository.save(course);
+    }
+
+    private Place findPlace(CoursePlaceCreateRequest coursePlaceCreateRequest) {
+        return placeRepository.findById(Long.parseLong(coursePlaceCreateRequest.getPlaceId()))
+                .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
     }
 }
