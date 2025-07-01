@@ -1,5 +1,7 @@
-package drive_only.drive_only_server.dto.coursePlace;
+package drive_only.drive_only_server.dto.coursePlace.create;
 
+import drive_only.drive_only_server.domain.Photo;
+import drive_only.drive_only_server.dto.photo.PhotoRequest;
 import java.util.List;
 import lombok.Getter;
 
@@ -10,10 +12,10 @@ public class CoursePlaceCreateRequest {
     private String name;
     private String address;
     private String content;
-    private List<String> photoUrls;
+    private List<PhotoRequest> photoUrls;
     private int sequence;
 
-    public CoursePlaceCreateRequest(String placeId, String placeType, String name, String address, String content, List<String> photoUrls, int sequence) {
+    public CoursePlaceCreateRequest(String placeId, String placeType, String name, String address, String content, List<PhotoRequest> photoUrls, int sequence) {
         this.placeId = placeId;
         this.placeType = placeType;
         this.name = name;

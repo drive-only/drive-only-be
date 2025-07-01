@@ -1,4 +1,4 @@
-package drive_only.drive_only_server.dto.course;
+package drive_only.drive_only_server.dto.course.create;
 
 import lombok.Getter;
 

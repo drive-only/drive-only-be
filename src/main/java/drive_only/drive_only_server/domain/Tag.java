@@ -11,14 +11,18 @@ public class Tag {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "tag")
-    private String tag;
+    @Column(name = "name")
+    private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")
     private Course course;
 
-    public Tag(Course course) {
+    public Tag(String name) {
+        this.name = name;
+    }
+
+    public void setCourse(Course course) {
         this.course = course;
     }
 }

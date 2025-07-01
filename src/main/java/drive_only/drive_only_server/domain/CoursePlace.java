@@ -8,7 +8,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,6 +39,9 @@ public class CoursePlace {
     @Column(name = "sequence")
     private int sequence;
 
+    @OneToMany(mappedBy = "coursePlace")
+    private List<Photo> photos = new ArrayList<>();
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")
     private Course course;
@@ -44,10 +50,14 @@ public class CoursePlace {
     @JoinColumn(name = "place_id")
     private Place place;
 
-    public CoursePlace(String name, String placeType, String content, int sequence, Place place) {
+    public CoursePlace(String name, String placeType, String content, List<Photo> photos, int sequence, Place place) {
         this.name = name;
         this.placeType = placeType;
         this.content = content;
+        for (Photo photo : photos) {
+            this.photos.add(photo);
+            photo.setCoursePlace(this);
+        }
         this.sequence = sequence;
         this.place = place;
     }

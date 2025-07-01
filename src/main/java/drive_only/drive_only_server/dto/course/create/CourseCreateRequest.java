@@ -1,6 +1,8 @@
-package drive_only.drive_only_server.dto.course;
+package drive_only.drive_only_server.dto.course.create;
 
-import drive_only.drive_only_server.dto.coursePlace.CoursePlaceCreateRequest;
+import drive_only.drive_only_server.dto.coursePlace.create.CoursePlaceCreateRequest;
+import drive_only.drive_only_server.dto.tag.TagRequest;
+import drive_only.drive_only_server.dto.tag.TagResponse;
 import java.util.List;
 import lombok.Getter;
 
@@ -13,17 +15,16 @@ public class CourseCreateRequest {
     private String season;
     private String theme;
     private String areaType;
-
     private String title;
     private List<CoursePlaceCreateRequest> coursePlaces;
-    private List<String> tags;
+    private List<TagRequest> tags;
     private Double recommendation;
     private Double difficulty;
     private boolean isPrivate;
 
-    public CourseCreateRequest(String region, String subRegion, String time, String season, String theme, String areaType, String title, List<CoursePlaceCreateRequest> coursePlaces, List<String> tags, Double recommendation,
-                               Double difficulty,
-                               boolean isPrivate) {
+    public CourseCreateRequest(String region, String subRegion, String time, String season, String theme, String areaType,
+                               String title, List<CoursePlaceCreateRequest> coursePlaces, List<TagRequest> tags, Double recommendation,
+                               Double difficulty, boolean isPrivate) {
         this.region = region;
         this.subRegion = subRegion;
         this.time = time;

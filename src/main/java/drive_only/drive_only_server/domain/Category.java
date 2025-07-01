@@ -1,6 +1,7 @@
 package drive_only.drive_only_server.domain;
 
 import jakarta.persistence.*;
+import java.util.List;
 import lombok.*;
 
 @Entity
@@ -29,11 +30,12 @@ public class Category {
     @Column(name = "area_type")
     private String areaType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_id")
-    private Course course;
-
-    public Category(Course course) {
-        this.course = course;
+    public Category(String region, String subRegion, String time, String season, String theme, String areaType) {
+        this.region = region;
+        this.subRegion = subRegion;
+        this.time = time;
+        this.season = season;
+        this.theme = theme;
+        this.areaType = areaType;
     }
 }
