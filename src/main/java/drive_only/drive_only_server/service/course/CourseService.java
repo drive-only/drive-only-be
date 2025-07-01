@@ -46,10 +46,10 @@ public class CourseService {
     @Transactional
     public CourseCreateResponse createCourse(CourseCreateRequest request) {
         List<CoursePlace> coursePlaces = createCoursePlaces(request);
-        Member testMember = createMember();
+        Member member = createMember();
         Category category = createCategory(request);
         List<Tag> tags = createTag(request);
-        Course course = createCourse(request, testMember, coursePlaces, category, tags);
+        Course course = createCourse(request, member, coursePlaces, category, tags);
         return new CourseCreateResponse(course.getId(), "게시글이 성공적으로 등록되었습니다.");
     }
 
@@ -75,13 +75,13 @@ public class CourseService {
         );
     }
 
-    private Course createCourse(CourseCreateRequest request, Member testMember, List<CoursePlace> coursePlaces, Category category, List<Tag> tags) {
+    private Course createCourse(CourseCreateRequest request, Member member, List<CoursePlace> coursePlaces, Category category, List<Tag> tags) {
         Course course = Course.createCourse(
                 request.getTitle(),
                 LocalDate.now(),
                 request.getRecommendation(), request.getDifficulty(),
                 0, 0, 0, false,
-                testMember, //TODO : 나중에 Member 생성되면 LoginMember(현재 로그인 된 사용자)로 변경
+                member, //TODO : 나중에 로그인, 회원가입 기능이 완성되면 LoginMember(현재 로그인 된 사용자)로 변경, 현재는 테스트용 멤버
                 category,
                 coursePlaces,
                 tags
@@ -90,38 +90,37 @@ public class CourseService {
     }
 
     private List<CoursePlace> createCoursePlaces(CourseCreateRequest request) {
-        List<CoursePlace> coursePlaces = new ArrayList<>();
-        for (CoursePlaceCreateRequest coursePlaceCreateRequest : request.getCoursePlaces()) {
-            Place place = findPlace(coursePlaceCreateRequest);
-            CoursePlace coursePlace = createCoursePlace(coursePlaceCreateRequest, place);
-            coursePlaces.add(coursePlace);
-        }
-        return coursePlaces;
+        return request.getCoursePlaces().stream()
+                .map(coursePlaceCreateRequest -> {
+                    Place place = findPlace(coursePlaceCreateRequest);
+                    return createCoursePlace(coursePlaceCreateRequest, place);
+                })
+                .toList();
     }
 
-    private CoursePlace createCoursePlace(CoursePlaceCreateRequest coursePlaceCreateRequest, Place place) {
-        List<Photo> photos = createPhotos(coursePlaceCreateRequest);
+    private CoursePlace createCoursePlace(CoursePlaceCreateRequest request, Place place) {
+        List<Photo> photos = createPhotos(request);
 
         CoursePlace coursePlace = new CoursePlace(
-                coursePlaceCreateRequest.getName(),
-                coursePlaceCreateRequest.getPlaceType(),
-                coursePlaceCreateRequest.getContent(),
+                request.getName(),
+                request.getPlaceType(),
+                request.getContent(),
                 photos,
-                coursePlaceCreateRequest.getSequence(),
+                request.getSequence(),
                 place
         );
         coursePlaceRepository.save(coursePlace);
         return coursePlace;
     }
 
-    private List<Photo> createPhotos(CoursePlaceCreateRequest coursePlaceCreateRequest) {
-        List<Photo> photos = new ArrayList<>();
-        for (PhotoRequest photoRequest : coursePlaceCreateRequest.getPhotoUrls()) {
-            Photo photo = new Photo(photoRequest.getPhotoUrl());
-            photoRepository.save(photo);
-            photos.add(photo);
-        }
-        return photos;
+    private List<Photo> createPhotos(CoursePlaceCreateRequest request) {
+        return request.getPhotoUrls().stream()
+                .map(photoRequest -> {
+                    Photo photo = new Photo(photoRequest.getPhotoUrl());
+                    photoRepository.save(photo);
+                    return photo;
+                })
+                .toList();
     }
 
     private Member createMember() {
@@ -143,20 +142,19 @@ public class CourseService {
     }
 
     private List<Tag> createTag(CourseCreateRequest request) {
-        List<Tag> tagResponse = new ArrayList<>();
-        for (TagRequest tagRequest : request.getTags()) {
-            Tag tag = new Tag(tagRequest.getTagName());
-            tagRepository.save(tag);
-            tagResponse.add(tag);
-        }
-        return tagResponse;
+        return request.getTags().stream()
+                .map(tagRequest -> {
+                    Tag tag = new Tag(tagRequest.getTagName());
+                    tagRepository.save(tag);
+                    return tag;
+                })
+                .toList();
     }
 
     private List<CoursePlaceSearchResponse> createCoursePlaceSearchResponse(List<CoursePlace> coursePlaces) {
-        List<CoursePlaceSearchResponse> coursePlaceSearchResponses = new ArrayList<>();
-        for (CoursePlace coursePlace : coursePlaces) {
-            coursePlaceSearchResponses.add(
-                    new CoursePlaceSearchResponse(
+        return coursePlaces.stream()
+                .map(coursePlace -> {
+                    return new CoursePlaceSearchResponse(
                             coursePlace.getId(),
                             coursePlace.getPlace().getId(),
                             coursePlace.getPlaceType(),
@@ -167,25 +165,21 @@ public class CourseService {
                             coursePlace.getPlace().getLat(),
                             coursePlace.getPlace().getLng(),
                             coursePlace.getSequence()
-                    ));
-        }
-        return coursePlaceSearchResponses;
+                    );
+                })
+                .toList();
     }
 
     private List<PhotoResponse> createPhotoResponse(CoursePlace coursePlace) {
-        List<PhotoResponse> photoResponses = new ArrayList<>();
-        for (Photo photo : coursePlace.getPhotos()) {
-            photoResponses.add(new PhotoResponse(photo.getId(), photo.getUrl()));
-        }
-        return photoResponses;
+        return coursePlace.getPhotos().stream()
+                .map(photo -> new PhotoResponse(photo.getId(), photo.getUrl()))
+                .toList();
     }
 
     private List<TagResponse> createTagResponse(Course course) {
-        List<TagResponse> tagResponses = new ArrayList<>();
-        for (Tag tag : course.getTags()) {
-            tagResponses.add(new TagResponse(tag.getId(), tag.getName()));
-        }
-        return tagResponses;
+        return course.getTags().stream()
+                .map(tag -> new TagResponse(tag.getId(), tag.getName()))
+                .toList();
     }
 
     private CategoryResponse createCategoryResponse(Course course) {
