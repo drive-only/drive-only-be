@@ -77,9 +77,9 @@ public class CourseService {
 
     private Course createCourse(CourseCreateRequest request, Member member, List<CoursePlace> coursePlaces, Category category, List<Tag> tags) {
         Course course = Course.createCourse(
-                request.getTitle(),
+                request.title(),
                 LocalDate.now(),
-                request.getRecommendation(), request.getDifficulty(),
+                request.recommendation(), request.difficulty(),
                 0, 0, 0, false,
                 member, //TODO : 나중에 로그인, 회원가입 기능이 완성되면 LoginMember(현재 로그인 된 사용자)로 변경, 현재는 테스트용 멤버
                 category,
@@ -90,7 +90,7 @@ public class CourseService {
     }
 
     private List<CoursePlace> createCoursePlaces(CourseCreateRequest request) {
-        return request.getCoursePlaces().stream()
+        return request.coursePlaces().stream()
                 .map(coursePlaceCreateRequest -> {
                     Place place = findPlace(coursePlaceCreateRequest);
                     return createCoursePlace(coursePlaceCreateRequest, place);
@@ -100,13 +100,12 @@ public class CourseService {
 
     private CoursePlace createCoursePlace(CoursePlaceCreateRequest request, Place place) {
         List<Photo> photos = createPhotos(request);
-
         CoursePlace coursePlace = new CoursePlace(
-                request.getName(),
-                request.getPlaceType(),
-                request.getContent(),
+                request.name(),
+                request.placeType(),
+                request.content(),
                 photos,
-                request.getSequence(),
+                request.sequence(),
                 place
         );
         coursePlaceRepository.save(coursePlace);
@@ -114,9 +113,9 @@ public class CourseService {
     }
 
     private List<Photo> createPhotos(CoursePlaceCreateRequest request) {
-        return request.getPhotoUrls().stream()
+        return request.photoUrls().stream()
                 .map(photoRequest -> {
-                    Photo photo = new Photo(photoRequest.getPhotoUrl());
+                    Photo photo = new Photo(photoRequest.photoUrl());
                     photoRepository.save(photo);
                     return photo;
                 })
@@ -131,20 +130,20 @@ public class CourseService {
 
     private Category createCategory(CourseCreateRequest request) {
         Category category = new Category(
-                request.getRegion(),
-                request.getSubRegion(),
-                request.getTime(),
-                request.getSeason(),
-                request.getTheme(),
-                request.getAreaType()
+                request.region(),
+                request.subRegion(),
+                request.time(),
+                request.season(),
+                request.theme(),
+                request.areaType()
         );
         return categoryRepository.save(category);
     }
 
     private List<Tag> createTag(CourseCreateRequest request) {
-        return request.getTags().stream()
+        return request.tags().stream()
                 .map(tagRequest -> {
-                    Tag tag = new Tag(tagRequest.getTagName());
+                    Tag tag = new Tag(tagRequest.tagName());
                     tagRepository.save(tag);
                     return tag;
                 })
@@ -194,7 +193,7 @@ public class CourseService {
     }
 
     private Place findPlace(CoursePlaceCreateRequest coursePlaceCreateRequest) {
-        return placeRepository.findById(Long.parseLong(coursePlaceCreateRequest.getPlaceId()))
+        return placeRepository.findById(Long.parseLong(coursePlaceCreateRequest.placeId()))
                 .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
     }
 }
