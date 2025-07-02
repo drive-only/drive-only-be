@@ -66,7 +66,7 @@ public class Course {
     @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE)
     private List<CoursePlace> coursePlaces = new ArrayList<>();
 
-    @OneToMany(mappedBy = "course")
+    @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE)
     private List<Tag> tags = new ArrayList<>();
 
     public static Course createCourse(String title, LocalDate createdDate, Double recommendation, Double difficulty, int viewCount,
