@@ -64,10 +64,10 @@ public class Course {
     @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE)
     private List<LikedCourse> likedCourses = new ArrayList<>();
 
-    @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<CoursePlace> coursePlaces = new ArrayList<>();
 
-    @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Tag> tags = new ArrayList<>();
 
     public static Course createCourse(String title, LocalDate createdDate, Double recommendation, Double difficulty, int viewCount,
