@@ -16,5 +16,5 @@ public record CourseCreateRequest(
     List<TagRequest> tags,
     Double recommendation,
     Double difficulty,
-    boolean isPrivate
+    Boolean isPrivate
 ) {}

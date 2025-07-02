@@ -19,5 +19,5 @@ public record CourseDetailSearchResponse(
         double difficulty,
         int likeCount,
         int viewCount,
-        boolean isLiked
+        Boolean isLiked
 ) {}
