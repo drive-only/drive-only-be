@@ -10,6 +10,7 @@ import drive_only.drive_only_server.domain.Tag;
 import drive_only.drive_only_server.dto.category.CategoryResponse;
 import drive_only.drive_only_server.dto.course.create.CourseCreateRequest;
 import drive_only.drive_only_server.dto.course.create.CourseCreateResponse;
+import drive_only.drive_only_server.dto.course.delete.CourseDeleteResponse;
 import drive_only.drive_only_server.dto.course.detailSearch.CourseDetailSearchResponse;
 import drive_only.drive_only_server.dto.coursePlace.create.CoursePlaceCreateRequest;
 import drive_only.drive_only_server.dto.coursePlace.search.CoursePlaceSearchResponse;
@@ -73,6 +74,12 @@ public class CourseService {
                 course.getViewCount(),
                 course.isLiked()
         );
+    }
+
+    @Transactional
+    public CourseDeleteResponse deleteCourse(Long courseId) {
+        courseRepository.deleteById(courseId);
+        return new CourseDeleteResponse(courseId, "게시글이 성공적으로 삭제되었습니다.");
     }
 
     private Course createCourse(CourseCreateRequest request, Member member, List<CoursePlace> coursePlaces, Category category, List<Tag> tags) {
