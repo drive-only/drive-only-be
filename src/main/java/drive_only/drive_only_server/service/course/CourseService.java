@@ -14,9 +14,8 @@ import drive_only.drive_only_server.dto.course.delete.CourseDeleteResponse;
 import drive_only.drive_only_server.dto.course.detailSearch.CourseDetailSearchResponse;
 import drive_only.drive_only_server.dto.coursePlace.create.CoursePlaceCreateRequest;
 import drive_only.drive_only_server.dto.coursePlace.search.CoursePlaceSearchResponse;
-import drive_only.drive_only_server.dto.photo.PhotoRequest;
+import drive_only.drive_only_server.dto.coursePlace.update.CoursePlaceUpdateResponse;
 import drive_only.drive_only_server.dto.photo.PhotoResponse;
-import drive_only.drive_only_server.dto.tag.TagRequest;
 import drive_only.drive_only_server.dto.tag.TagResponse;
 import drive_only.drive_only_server.repository.CategoryRepository;
 import drive_only.drive_only_server.repository.CoursePlaceRepository;
@@ -26,7 +25,6 @@ import drive_only.drive_only_server.repository.PhotoRepository;
 import drive_only.drive_only_server.repository.PlaceRepository;
 import drive_only.drive_only_server.repository.TagRepository;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -55,8 +53,7 @@ public class CourseService {
     }
 
     public CourseDetailSearchResponse searchCourseDetail(Long courseId) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 코스(게시글)을 찾을 수 없습니다."));
+        Course course = findCourse(courseId);
         List<CoursePlace> coursePlaces = coursePlaceRepository.findByCourse(course);
 
         return new CourseDetailSearchResponse(
@@ -74,6 +71,16 @@ public class CourseService {
                 course.getViewCount(),
                 course.isLiked()
         );
+    }
+
+    @Transactional
+    public CoursePlaceUpdateResponse updateCourse(Long courseId, CourseCreateRequest request) {
+        Course course = findCourse(courseId);
+        Category newCategory = createCategory(request);
+        List<CoursePlace> newCoursePlaces = createCoursePlaces(request);
+        List<Tag> newTags = createTag(request);
+        course.update(request, newCategory, newCoursePlaces, newTags);
+        return new CoursePlaceUpdateResponse(course.getId(), "게시글이 성공적으로 수정되었습니다.");
     }
 
     @Transactional
@@ -202,5 +209,10 @@ public class CourseService {
     private Place findPlace(CoursePlaceCreateRequest coursePlaceCreateRequest) {
         return placeRepository.findById(Long.parseLong(coursePlaceCreateRequest.placeId()))
                 .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
+    }
+
+    private Course findCourse(Long courseId) {
+        return courseRepository.findById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 코스(게시글)을 찾을 수 없습니다."));
     }
 }

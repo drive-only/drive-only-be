@@ -1,5 +1,6 @@
 package drive_only.drive_only_server.domain;
 
+import drive_only.drive_only_server.dto.course.create.CourseCreateRequest;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -113,5 +114,16 @@ public class Course {
     public void addLikedCourse(LikedCourse likedCourse) {
         likedCourses.add(likedCourse);
         likedCourse.setCourse(this);
+    }
+
+    public void update(CourseCreateRequest request, Category newCategory, List<CoursePlace> newCoursePlaces, List<Tag> newTags) {
+        this.title = request.title();
+        this.recommendation = request.recommendation();
+        this.difficulty = request.difficulty();
+        this.category = newCategory;
+        this.coursePlaces.clear();
+        newCoursePlaces.stream().forEach(this::addCoursePlace);
+        this.tags.clear();
+        newTags.stream().forEach(this::addTag);
     }
 }
