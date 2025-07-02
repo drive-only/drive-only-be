@@ -1,5 +1,6 @@
 package drive_only.drive_only_server.domain;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -38,7 +39,7 @@ public class CoursePlace {
     @Column(name = "sequence")
     private int sequence;
 
-    @OneToMany(mappedBy = "coursePlace")
+    @OneToMany(mappedBy = "coursePlace", cascade = CascadeType.REMOVE)
     private List<Photo> photos = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
