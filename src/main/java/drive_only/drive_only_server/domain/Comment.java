@@ -37,6 +37,10 @@ public class Comment {
     private boolean isDeleted;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")
     private Course course;
 
@@ -47,8 +51,9 @@ public class Comment {
     @OneToMany(mappedBy = "parentComment", orphanRemoval = true)
     private List<Comment> childComments = new ArrayList<>();
 
-    public Comment(String content, Course course, Comment parentComment) {
+    public Comment(String content, Member member, Course course, Comment parentComment) {
         this.content = content;
+        this.member = member;
         this.course = course;
         this.parentComment = parentComment;
         this.createdDate = LocalDateTime.now();
