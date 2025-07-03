@@ -9,7 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -28,7 +28,7 @@ public class Comment {
     private String content;
 
     @Column(name = "created_date")
-    private LocalDate createdDate;
+    private LocalDateTime createdDate;
 
     @Column(name = "like_count")
     private int likeCount;
@@ -51,7 +51,7 @@ public class Comment {
         this.content = content;
         this.course = course;
         this.parentComment = parentComment;
-        this.createdDate = LocalDate.now();
+        this.createdDate = LocalDateTime.now();
         this.likeCount = 0;
         this.isDeleted = false;
     }
