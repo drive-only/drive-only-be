@@ -1,6 +1,8 @@
 package drive_only.drive_only_server.domain;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.*;
 
 @Entity
@@ -22,6 +24,9 @@ public class Member {
 
     @Column(name = "provider")
     private String provider;
+
+    @OneToMany(mappedBy = "member", orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
 
     public Member(String email, String nickname, String profileImageUrl, String provider) {
         this.email = email;
