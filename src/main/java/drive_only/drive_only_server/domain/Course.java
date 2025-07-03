@@ -70,6 +70,9 @@ public class Course {
     @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Tag> tags = new ArrayList<>();
 
+    @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
+
     public static Course createCourse(String title, LocalDate createdDate, Double recommendation, Double difficulty, int viewCount,
                                       int likeCount, int commentCount, boolean isReported, Member member, Category category,
                                       List<CoursePlace> coursePlaces, List<Tag> tags) {
