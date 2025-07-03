@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CommentController {
     private final CommentService commentService;
 
+    @Operation(summary = "댓글 조회", description = "댓글 및 대댓글들을 조회")
     @GetMapping("/api/courses/{courseId}/comments")
     public ResponseEntity<CommentListResponse> searchComments(
             @PathVariable Long courseId,
