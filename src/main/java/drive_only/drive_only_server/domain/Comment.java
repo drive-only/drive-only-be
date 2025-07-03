@@ -8,7 +8,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,7 +28,7 @@ public class Comment {
     private String content;
 
     @Column(name = "created_date")
-    private LocalDate createdDated;
+    private LocalDate createdDate;
 
     @Column(name = "like_count")
     private int likeCount;
@@ -39,14 +42,22 @@ public class Comment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
-    private Comment parent;
+    private Comment parentComment;
 
-    public Comment(String content, Course course, Comment parent) {
+    @OneToMany(mappedBy = "parentComment", orphanRemoval = true)
+    private List<Comment> childComments = new ArrayList<>();
+
+    public Comment(String content, Course course, Comment parentComment) {
         this.content = content;
         this.course = course;
-        this.parent = parent;
-        this.createdDated = LocalDate.now();
+        this.parentComment = parentComment;
+        this.createdDate = LocalDate.now();
         this.likeCount = 0;
         this.isDeleted = false;
+    }
+
+    public void addChildComment(Comment child) {
+        this.childComments.add(child);
+        child.parentComment = this;
     }
 }
