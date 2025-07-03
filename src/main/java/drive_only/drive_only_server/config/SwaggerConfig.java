@@ -2,6 +2,7 @@ package drive_only.drive_only_server.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,8 +19,9 @@ public class SwaggerConfig {
 
     @Bean
     public OpenAPI driveOnlyOpenAPI() {
-        return new OpenAPI().info(
-                new Info()
+        return new OpenAPI()
+                .addServersItem(new Server().url("https://drive-only.com"))
+                .info(new Info()
                         .title("Drive-Only API")
                         .version("v1")
                         .description("Drive-Only API 명세서"));
