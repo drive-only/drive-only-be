@@ -46,7 +46,7 @@ public class CommentService {
         //TODO : 나중에 멤버 관련 기능들이 완성되면 현재 로그인 된 멤버로 리팩토링
         Member member = new Member("test", "test", "test", "test");
         List<Comment> comments = course.getComments().stream()
-                .filter(comment -> comment.getParentComment() == null)
+                .filter(comment -> comment.getParentComment() == null && !comment.isDeleted())
                 .toList();
 
         int total = comments.size();
