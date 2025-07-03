@@ -20,12 +20,13 @@ public class CommentService {
     @Transactional
     public CommentCreateResponse createComment(Long courseId, CommentCreateRequest request) {
         Course course = findCourse(courseId);
-        Comment parentComment = null;
+        Comment comment = new Comment(request.content(), course, null);
+
         if (request.parentCommentId() != null) {
-            parentComment = commentRepository.findById(request.parentCommentId())
+            Comment parentComment = commentRepository.findById(request.parentCommentId())
                     .orElseThrow(() -> new IllegalArgumentException("부모 댓글을 찾을 수 없습니다."));
+            parentComment.addChildComment(comment);
         }
-        Comment comment = new Comment(request.content(), course, parentComment);
         commentRepository.save(comment);
         return new CommentCreateResponse(comment.getId(), "댓글이 성공적으로 등록되었습니다.");
     }
