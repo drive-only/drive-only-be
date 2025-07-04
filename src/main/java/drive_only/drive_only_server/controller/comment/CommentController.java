@@ -58,12 +58,25 @@ public class CommentController {
         return ResponseEntity.ok().body(response);
     }
 
+    @Operation(summary = "댓글 수정", description = "commentId를 이용해 기존 댓글을 수정")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "댓글 수정 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
+            @ApiResponse(responseCode = "404", description = "해당 댓글을 찾을 수 없음", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
     @PatchMapping("/api/comments/{commentId}")
     public ResponseEntity<CommentUpdateResponse> updateComment(@PathVariable Long commentId, @RequestBody CommentUpdateRequest request) {
         CommentUpdateResponse response = commentService.updateComment(commentId, request);
         return ResponseEntity.ok().body(response);
     }
 
+    @Operation(summary = "댓글 삭제", description = "commentId를 이용해 댓글을 삭제")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "댓글 삭제 성공"),
+            @ApiResponse(responseCode = "404", description = "해당 댓글을 찾을 수 없음", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
     @DeleteMapping("/api/comments/{commentId}")
     public ResponseEntity<CommentDeleteResponse> deleteComment(@PathVariable Long commentId) {
         CommentDeleteResponse response = commentService.deleteComment(commentId);
