@@ -8,6 +8,8 @@ import drive_only.drive_only_server.dto.comment.create.CommentCreateResponse;
 import drive_only.drive_only_server.dto.comment.search.CommentListResponse;
 import drive_only.drive_only_server.dto.comment.search.CommentListResponse.Meta;
 import drive_only.drive_only_server.dto.comment.search.CommentSearchResponse;
+import drive_only.drive_only_server.dto.comment.update.CommentUpdateRequest;
+import drive_only.drive_only_server.dto.comment.update.CommentUpdateResponse;
 import drive_only.drive_only_server.repository.CommentRepository;
 import drive_only.drive_only_server.repository.CourseRepository;
 import drive_only.drive_only_server.repository.MemberRepository;
@@ -61,6 +63,14 @@ public class CommentService {
         Meta meta = new Meta(total, page + 1, size, hasNext);
 
         return new CommentListResponse(rootResponses, meta);
+    }
+
+    @Transactional
+    public CommentUpdateResponse updateComment(Long commentId, CommentUpdateRequest request) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다."));
+        comment.update(request);
+        return new CommentUpdateResponse(comment.getId(), "댓글이 성공적으로 수정되었습니다.");
     }
 
     private CommentSearchResponse createCommentResponse(Comment comment, Member loginMember) {

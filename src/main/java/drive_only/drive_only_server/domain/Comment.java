@@ -1,5 +1,6 @@
 package drive_only.drive_only_server.domain;
 
+import drive_only.drive_only_server.dto.comment.update.CommentUpdateRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -64,5 +65,10 @@ public class Comment {
     public void addChildComment(Comment child) {
         this.childComments.add(child);
         child.parentComment = this;
+    }
+
+    public void update(CommentUpdateRequest request) {
+        this.content = request.content();
+        this.createdDate = LocalDateTime.now();
     }
 }

@@ -4,6 +4,8 @@ import drive_only.drive_only_server.dto.comment.create.CommentCreateRequest;
 import drive_only.drive_only_server.dto.comment.create.CommentCreateResponse;
 import drive_only.drive_only_server.dto.comment.search.CommentListResponse;
 import drive_only.drive_only_server.dto.comment.search.CommentSearchResponse;
+import drive_only.drive_only_server.dto.comment.update.CommentUpdateRequest;
+import drive_only.drive_only_server.dto.comment.update.CommentUpdateResponse;
 import drive_only.drive_only_server.service.comment.CommentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -50,6 +53,12 @@ public class CommentController {
     @PostMapping("/api/courses/{courseId}/comments")
     public ResponseEntity<CommentCreateResponse> createComment(@PathVariable Long courseId, @RequestBody CommentCreateRequest request) {
         CommentCreateResponse response = commentService.createComment(courseId, request);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PatchMapping("/api/comments/{commentId}")
+    public ResponseEntity<CommentUpdateResponse> updateComment(@PathVariable Long commentId, @RequestBody CommentUpdateRequest request) {
+        CommentUpdateResponse response = commentService.updateComment(commentId, request);
         return ResponseEntity.ok().body(response);
     }
 }
