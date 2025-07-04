@@ -2,6 +2,7 @@ package drive_only.drive_only_server.controller.comment;
 
 import drive_only.drive_only_server.dto.comment.create.CommentCreateRequest;
 import drive_only.drive_only_server.dto.comment.create.CommentCreateResponse;
+import drive_only.drive_only_server.dto.comment.delete.CommentDeleteResponse;
 import drive_only.drive_only_server.dto.comment.search.CommentListResponse;
 import drive_only.drive_only_server.dto.comment.search.CommentSearchResponse;
 import drive_only.drive_only_server.dto.comment.update.CommentUpdateRequest;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -56,9 +58,28 @@ public class CommentController {
         return ResponseEntity.ok().body(response);
     }
 
+    @Operation(summary = "댓글 수정", description = "commentId를 이용해 기존 댓글을 수정")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "댓글 수정 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
+            @ApiResponse(responseCode = "404", description = "해당 댓글을 찾을 수 없음", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
     @PatchMapping("/api/comments/{commentId}")
     public ResponseEntity<CommentUpdateResponse> updateComment(@PathVariable Long commentId, @RequestBody CommentUpdateRequest request) {
         CommentUpdateResponse response = commentService.updateComment(commentId, request);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "댓글 삭제", description = "commentId를 이용해 댓글을 삭제")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "댓글 삭제 성공"),
+            @ApiResponse(responseCode = "404", description = "해당 댓글을 찾을 수 없음", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
+    @DeleteMapping("/api/comments/{commentId}")
+    public ResponseEntity<CommentDeleteResponse> deleteComment(@PathVariable Long commentId) {
+        CommentDeleteResponse response = commentService.deleteComment(commentId);
         return ResponseEntity.ok().body(response);
     }
 }
