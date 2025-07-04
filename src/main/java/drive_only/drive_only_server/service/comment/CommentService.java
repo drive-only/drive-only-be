@@ -5,6 +5,7 @@ import drive_only.drive_only_server.domain.Course;
 import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.dto.comment.create.CommentCreateRequest;
 import drive_only.drive_only_server.dto.comment.create.CommentCreateResponse;
+import drive_only.drive_only_server.dto.comment.delete.CommentDeleteResponse;
 import drive_only.drive_only_server.dto.comment.search.CommentListResponse;
 import drive_only.drive_only_server.dto.comment.search.CommentListResponse.Meta;
 import drive_only.drive_only_server.dto.comment.search.CommentSearchResponse;
@@ -71,6 +72,17 @@ public class CommentService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다."));
         comment.update(request);
         return new CommentUpdateResponse(comment.getId(), "댓글이 성공적으로 수정되었습니다.");
+    }
+
+    @Transactional
+    public CommentDeleteResponse deleteComment(Long commentId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다."));
+        if (comment.getChildComments() != null) {
+            comment.getChildComments().clear();
+        }
+        commentRepository.delete(comment);
+        return new CommentDeleteResponse(comment.getId(), "댓글이 성공적으로 삭제되었습니다.");
     }
 
     private CommentSearchResponse createCommentResponse(Comment comment, Member loginMember) {
