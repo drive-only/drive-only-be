@@ -16,6 +16,7 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
 @Entity
 @Getter
@@ -50,6 +51,7 @@ public class Comment {
     private Comment parentComment;
 
     @OneToMany(mappedBy = "parentComment", orphanRemoval = true)
+    @BatchSize(size = 100)
     private List<Comment> childComments = new ArrayList<>();
 
     public Comment(String content, Member member, Course course, Comment parentComment) {
