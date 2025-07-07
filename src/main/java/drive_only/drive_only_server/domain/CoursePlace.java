@@ -65,9 +65,6 @@ public class CoursePlace {
 
     public void setCourse(Course course) {
         this.course = course;
-        if (!course.getCoursePlaces().contains(this)) {
-            course.getCoursePlaces().add(this);
-        }
     }
 
     public void addPhoto(Photo photo) {
