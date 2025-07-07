@@ -16,12 +16,17 @@ import drive_only.drive_only_server.repository.CourseRepository;
 import drive_only.drive_only_server.repository.MemberRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class CommentService {
     private final CourseRepository courseRepository;
     private final CommentRepository commentRepository;
@@ -45,25 +50,18 @@ public class CommentService {
     }
 
     public CommentListResponse searchComments(Long courseId, int page, int size) {
-        Course course = findCourse(courseId);
-        //TODO : 나중에 멤버 관련 기능들이 완성되면 현재 로그인 된 멤버로 리팩토링
         Member member = new Member("test", "test", "test", "test");
-        List<Comment> comments = course.getComments().stream()
-                .filter(comment -> comment.getParentComment() == null && !comment.isDeleted())
-                .toList();
-
-        int total = comments.size();
-        int fromIndex = Math.min(page * size, total);
-        int toIndex = Math.min(fromIndex + size, total);
-
-        List<Comment> pagedComments = comments.subList(fromIndex, toIndex);
-        List<CommentSearchResponse> rootResponses = pagedComments.stream()
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Comment> parentComments = commentRepository.findParentCommentsByCourseId(courseId, pageable);
+        List<CommentSearchResponse> responses = parentComments.stream()
                 .map(comment -> createCommentResponse(comment, member))
                 .toList();
-        Boolean hasNext = toIndex < total;
+
+        Boolean hasNext = parentComments.hasNext();
+        int total = (int) parentComments.getTotalElements();
         Meta meta = new Meta(total, page + 1, size, hasNext);
 
-        return new CommentListResponse(rootResponses, meta);
+        return new CommentListResponse(responses, meta);
     }
 
     @Transactional
