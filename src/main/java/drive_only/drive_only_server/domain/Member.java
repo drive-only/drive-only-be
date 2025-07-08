@@ -8,6 +8,7 @@ import lombok.*;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+// 소셜 로그인의 식별자는 이메일과 provider
 @Table(
         uniqueConstraints = @UniqueConstraint(columnNames = {"email", "provider"})
 )
@@ -16,7 +17,7 @@ public class Member {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "email", nullable = false) // 소셜 로그인의 식별자는 이메일
+    @Column(name = "email", nullable = false)
     private String email;
 
     @Column(name = "nickname")
