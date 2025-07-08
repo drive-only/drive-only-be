@@ -69,6 +69,9 @@ public class Comment {
         child.parentComment = this;
     }
 
+
+    public void setMember(Member member) { this.member = member; } //Member 연관 관계 편의 메소드 때문에 만들었음
+
     public void update(CommentUpdateRequest request) {
         this.content = request.content();
         this.createdDate = LocalDateTime.now();
