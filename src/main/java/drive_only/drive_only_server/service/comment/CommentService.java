@@ -51,19 +51,11 @@ public class CommentService {
     }
 
     public CommentListResponse searchComments(Long courseId, int page, int size) {
-        Course course = findCourse(courseId);
         //TODO : 나중에 멤버 관련 기능들이 완성되면 현재 로그인 된 멤버로 리팩토링 (댓글 작성자로 리팩토링)
         Member member = Member.createMember("email", "nickname", "profile", ProviderType.KAKAO);
-        List<Comment> comments = course.getComments().stream()
-                .filter(comment -> comment.getParentComment() == null && !comment.isDeleted())
-                .toList();
-
-        int total = comments.size();
-        int fromIndex = Math.min(page * size, total);
-        int toIndex = Math.min(fromIndex + size, total);
-
-        List<Comment> pagedComments = comments.subList(fromIndex, toIndex);
-        List<CommentSearchResponse> rootResponses = pagedComments.stream()
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Comment> parentComments = commentRepository.findParentCommentsByCourseId(courseId, pageable);
+        List<CommentSearchResponse> responses = parentComments.stream()
                 .map(comment -> createCommentResponse(comment, member))
                 .toList();
 
