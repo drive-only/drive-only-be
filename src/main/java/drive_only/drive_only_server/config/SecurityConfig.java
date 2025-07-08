@@ -26,7 +26,7 @@
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     //api/login 경로는 누구나 접근 허용
                     .authorizeHttpRequests(auth -> auth
-                            .requestMatchers("/api/login/**").permitAll()
+                            .requestMatchers("/api/login/**", "**").permitAll()
                             .anyRequest().authenticated()
                     )
                     //사용자 로그인 폼 인증 전에 JWT 필터를 실행 클라이언트가 보낸 JWT 토큰을 검증
