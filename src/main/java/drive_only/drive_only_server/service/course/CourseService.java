@@ -6,6 +6,8 @@ import drive_only.drive_only_server.dto.course.create.CourseCreateRequest;
 import drive_only.drive_only_server.dto.course.create.CourseCreateResponse;
 import drive_only.drive_only_server.dto.course.delete.CourseDeleteResponse;
 import drive_only.drive_only_server.dto.course.detailSearch.CourseDetailSearchResponse;
+import drive_only.drive_only_server.dto.course.search.CourseSearchListResponse;
+import drive_only.drive_only_server.dto.course.search.CourseSearchRequest;
 import drive_only.drive_only_server.dto.coursePlace.create.CoursePlaceCreateRequest;
 import drive_only.drive_only_server.dto.coursePlace.search.CoursePlaceSearchResponse;
 import drive_only.drive_only_server.dto.coursePlace.update.CoursePlaceUpdateResponse;
@@ -21,6 +23,8 @@ import drive_only.drive_only_server.repository.TagRepository;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +48,11 @@ public class CourseService {
         List<Tag> tags = createTag(request);
         Course course = createCourse(request, member, coursePlaces, category, tags);
         return new CourseCreateResponse(course.getId(), "게시글이 성공적으로 등록되었습니다.");
+    }
+
+    public CourseSearchListResponse searchCourses(CourseSearchRequest request, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        courseRepository.searchCourses(request, pageable);
     }
 
     public CourseDetailSearchResponse searchCourseDetail(Long courseId) {
