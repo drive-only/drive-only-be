@@ -1,7 +1,6 @@
 package drive_only.drive_only_server.service.oauth;
 
 import drive_only.drive_only_server.domain.ProviderType;
-import drive_only.drive_only_server.dto.oauth.KakaoTokenResponse;
 import drive_only.drive_only_server.dto.oauth.OAuthUserInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
