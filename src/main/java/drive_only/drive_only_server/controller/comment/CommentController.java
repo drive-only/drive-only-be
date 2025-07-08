@@ -3,8 +3,7 @@ package drive_only.drive_only_server.controller.comment;
 import drive_only.drive_only_server.dto.comment.create.CommentCreateRequest;
 import drive_only.drive_only_server.dto.comment.create.CommentCreateResponse;
 import drive_only.drive_only_server.dto.comment.delete.CommentDeleteResponse;
-import drive_only.drive_only_server.dto.comment.search.CommentListResponse;
-import drive_only.drive_only_server.dto.comment.search.CommentSearchResponse;
+import drive_only.drive_only_server.dto.comment.search.CommentSearchListResponse;
 import drive_only.drive_only_server.dto.comment.update.CommentUpdateRequest;
 import drive_only.drive_only_server.dto.comment.update.CommentUpdateResponse;
 import drive_only.drive_only_server.service.comment.CommentService;
@@ -36,13 +35,14 @@ public class CommentController {
             @ApiResponse(responseCode = "404", description = "해당 댓글을 찾을 수 없음", content = @Content),
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
     })
+
     @GetMapping("/api/courses/{courseId}/comments")
-    public ResponseEntity<CommentListResponse> searchComments(
+    public ResponseEntity<CommentSearchListResponse> searchComments(
             @PathVariable Long courseId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        CommentListResponse response = commentService.searchComments(courseId, page, size);
+        CommentSearchListResponse response = commentService.searchComments(courseId, page, size);
         return ResponseEntity.ok().body(response);
     }
 
