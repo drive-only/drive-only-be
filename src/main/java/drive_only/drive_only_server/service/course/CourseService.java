@@ -79,7 +79,9 @@ public class CourseService {
 
     @Transactional
     public CourseDeleteResponse deleteCourse(Long courseId) {
-        courseRepository.deleteById(courseId);
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다."));
+        courseRepository.delete(course);
         return new CourseDeleteResponse(courseId, "게시글이 성공적으로 삭제되었습니다.");
     }
 

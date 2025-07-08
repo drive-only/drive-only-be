@@ -24,8 +24,5 @@ public class Tag {
 
     public void setCourse(Course course) {
         this.course = course;
-        if (!course.getTags().contains(this)) {
-            course.getTags().add(this);
-        }
     }
 }

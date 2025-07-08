@@ -1,5 +1,6 @@
 package drive_only.drive_only_server.domain;
 
+import drive_only.drive_only_server.dto.comment.update.CommentUpdateRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -15,6 +16,7 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
 @Entity
 @Getter
@@ -49,6 +51,7 @@ public class Comment {
     private Comment parentComment;
 
     @OneToMany(mappedBy = "parentComment", orphanRemoval = true)
+    @BatchSize(size = 100)
     private List<Comment> childComments = new ArrayList<>();
 
     public Comment(String content, Member member, Course course, Comment parentComment) {
@@ -66,5 +69,11 @@ public class Comment {
         child.parentComment = this;
     }
 
+
     public void setMember(Member member) { this.member = member; } //Member 연관 관계 편의 메소드 때문에 만들었음
+
+    public void update(CommentUpdateRequest request) {
+        this.content = request.content();
+        this.createdDate = LocalDateTime.now();
+    }
 }
