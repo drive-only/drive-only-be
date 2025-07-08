@@ -8,12 +8,15 @@ import lombok.*;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(
+        uniqueConstraints = @UniqueConstraint(columnNames = {"email", "provider"})
+)
 public class Member {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "email")
+    @Column(name = "email", nullable = false) // 소셜 로그인의 식별자는 이메일
     private String email;
 
     @Column(name = "nickname")
@@ -22,16 +25,32 @@ public class Member {
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
-    @Column(name = "provider")
-    private String provider;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "provider", nullable = false)
+    private ProviderType provider;
 
     @OneToMany(mappedBy = "member", orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
-    public Member(String email, String nickname, String profileImageUrl, String provider) {
-        this.email = email;
-        this.nickname = nickname;
-        this.profileImageUrl = profileImageUrl;
-        this.provider = provider;
+    // 정적 팩토리 메서드 (여기서 필드 세팅)
+    public static Member createMember(String email, String nickname, String profileImageUrl, ProviderType provider) {
+        Member member = new Member();
+        member.email = email;
+        member.nickname = nickname;
+        member.profileImageUrl = profileImageUrl;
+        member.provider = provider;
+        return member;
     }
+
+    // 연관 관계 편의 메서드
+    public void addComment(Comment comment) {
+        comments.add(comment);
+        comment.setMember(this);
+    }
+
+    public void removeComment(Comment comment) {
+        comments.remove(comment);
+        comment.setMember(null);
+    }
+
 }

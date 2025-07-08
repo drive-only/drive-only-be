@@ -1,12 +1,6 @@
 package drive_only.drive_only_server.service.course;
 
-import drive_only.drive_only_server.domain.Category;
-import drive_only.drive_only_server.domain.Course;
-import drive_only.drive_only_server.domain.CoursePlace;
-import drive_only.drive_only_server.domain.Member;
-import drive_only.drive_only_server.domain.Photo;
-import drive_only.drive_only_server.domain.Place;
-import drive_only.drive_only_server.domain.Tag;
+import drive_only.drive_only_server.domain.*;
 import drive_only.drive_only_server.dto.category.CategoryResponse;
 import drive_only.drive_only_server.dto.course.create.CourseCreateRequest;
 import drive_only.drive_only_server.dto.course.create.CourseCreateResponse;
@@ -137,7 +131,12 @@ public class CourseService {
     }
 
     private Member createMember() {
-        Member mockMember = new Member("email", "nickname", "url", "provider");
+        Member mockMember = Member.createMember(
+                "email",
+                "nickname",
+                "url",
+                ProviderType.KAKAO
+        );
         memberRepository.save(mockMember);
         return mockMember;
     }

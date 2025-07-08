@@ -3,6 +3,7 @@ package drive_only.drive_only_server.service.comment;
 import drive_only.drive_only_server.domain.Comment;
 import drive_only.drive_only_server.domain.Course;
 import drive_only.drive_only_server.domain.Member;
+import drive_only.drive_only_server.domain.ProviderType;
 import drive_only.drive_only_server.dto.comment.create.CommentCreateRequest;
 import drive_only.drive_only_server.dto.comment.create.CommentCreateResponse;
 import drive_only.drive_only_server.dto.comment.search.CommentListResponse;
@@ -28,7 +29,7 @@ public class CommentService {
     public CommentCreateResponse createComment(Long courseId, CommentCreateRequest request) {
         Course course = findCourse(courseId);
         //TODO : 나중에 멤버 관련 기능들이 완성되면 리팩토링
-        Member member = new Member("test", "test", "test", "test");
+        Member member = Member.createMember("email", "nickname", "profile", ProviderType.KAKAO);
         memberRepository.save(member);
         Comment comment = new Comment(request.content(), member, course, null);
 
@@ -44,7 +45,7 @@ public class CommentService {
     public CommentListResponse searchComments(Long courseId, int page, int size) {
         Course course = findCourse(courseId);
         //TODO : 나중에 멤버 관련 기능들이 완성되면 현재 로그인 된 멤버로 리팩토링
-        Member member = new Member("test", "test", "test", "test");
+        Member member = Member.createMember("email", "nickname", "profile", ProviderType.KAKAO);
         List<Comment> comments = course.getComments().stream()
                 .filter(comment -> comment.getParentComment() == null && !comment.isDeleted())
                 .toList();
