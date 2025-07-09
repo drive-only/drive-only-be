@@ -58,27 +58,7 @@ public class CourseService {
         Page<Course> courses = courseRepository.searchCourses(request, pageable);
 
         List<CourseSearchResponse> courseSearchResponses = courses.stream()
-                .map(course -> new CourseSearchResponse(
-                                course.getId(),
-                                course.getMember().getNickname(),
-                                String.valueOf(course.getCreatedDate()),
-                                course.getTitle(),
-                                course.getCoursePlaces().get(0).getPhotos().get(0).getUrl(),
-                                course.getCoursePlaces().stream()
-                                        .map(CoursePlace::getName)
-                                        .toList(),
-                                new CategoryResponse(
-                                        course.getCategory().getRegion(),
-                                        course.getCategory().getSubRegion(),
-                                        course.getCategory().getSeason(),
-                                        course.getCategory().getTime(),
-                                        course.getCategory().getTheme(),
-                                        course.getCategory().getAreaType()
-                                ),
-                                course.getLikeCount(),
-                                course.getViewCount()
-                        )
-                )
+                .map(this::createCourseSearchResponse)
                 .toList();
 
         Meta meta = new Meta(
@@ -207,6 +187,30 @@ public class CourseService {
                     tagRepository.save(tag);
                     return tag;
                 })
+                .toList();
+    }
+
+    private CourseSearchResponse createCourseSearchResponse(Course course) {
+        return new CourseSearchResponse(
+                course.getId(),
+                course.getMember().getNickname(),
+                String.valueOf(course.getCreatedDate()),
+                course.getTitle(),
+                getCourseThumbnailUrl(course),
+                getCoursePlaceNames(course),
+                createCategoryResponse(course),
+                course.getLikeCount(),
+                course.getViewCount()
+        );
+    }
+
+    private String getCourseThumbnailUrl(Course course) {
+        return course.getCoursePlaces().get(0).getPhotos().get(0).getUrl();
+    }
+
+    private List<String> getCoursePlaceNames(Course course) {
+        return course.getCoursePlaces().stream()
+                .map(CoursePlace::getName)
                 .toList();
     }
 
