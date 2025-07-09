@@ -8,9 +8,11 @@ import drive_only.drive_only_server.dto.course.delete.CourseDeleteResponse;
 import drive_only.drive_only_server.dto.course.detailSearch.CourseDetailSearchResponse;
 import drive_only.drive_only_server.dto.course.search.CourseSearchListResponse;
 import drive_only.drive_only_server.dto.course.search.CourseSearchRequest;
+import drive_only.drive_only_server.dto.course.search.CourseSearchResponse;
 import drive_only.drive_only_server.dto.coursePlace.create.CoursePlaceCreateRequest;
 import drive_only.drive_only_server.dto.coursePlace.search.CoursePlaceSearchResponse;
 import drive_only.drive_only_server.dto.coursePlace.update.CoursePlaceUpdateResponse;
+import drive_only.drive_only_server.dto.meta.Meta;
 import drive_only.drive_only_server.dto.photo.PhotoResponse;
 import drive_only.drive_only_server.dto.tag.TagResponse;
 import drive_only.drive_only_server.repository.CategoryRepository;
@@ -23,6 +25,7 @@ import drive_only.drive_only_server.repository.TagRepository;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -52,7 +55,40 @@ public class CourseService {
 
     public CourseSearchListResponse searchCourses(CourseSearchRequest request, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        courseRepository.searchCourses(request, pageable);
+        Page<Course> courses = courseRepository.searchCourses(request, pageable);
+
+        List<CourseSearchResponse> courseSearchResponses = courses.stream()
+                .map(course -> new CourseSearchResponse(
+                                course.getId(),
+                                course.getMember().getNickname(),
+                                String.valueOf(course.getCreatedDate()),
+                                course.getTitle(),
+                                course.getCoursePlaces().get(0).getPhotos().get(0).getUrl(),
+                                course.getCoursePlaces().stream()
+                                        .map(CoursePlace::getName)
+                                        .toList(),
+                                new CategoryResponse(
+                                        course.getCategory().getRegion(),
+                                        course.getCategory().getSubRegion(),
+                                        course.getCategory().getSeason(),
+                                        course.getCategory().getTime(),
+                                        course.getCategory().getTheme(),
+                                        course.getCategory().getAreaType()
+                                ),
+                                course.getLikeCount(),
+                                course.getViewCount()
+                        )
+                )
+                .toList();
+
+        Meta meta = new Meta(
+                (int) courses.getTotalElements(),
+                courses.getNumber() + 1,
+                courses.getSize(),
+                courses.hasNext()
+        );
+
+        return new CourseSearchListResponse(courseSearchResponses, meta);
     }
 
     public CourseDetailSearchResponse searchCourseDetail(Long courseId) {
