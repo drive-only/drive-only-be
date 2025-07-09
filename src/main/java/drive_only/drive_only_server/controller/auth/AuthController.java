@@ -23,35 +23,20 @@ public class AuthController {
     private final MemberService memberService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    @PostMapping("/kakao")
-    public ResponseEntity<TokenResponse> kakaoLogin(@RequestBody SocialLoginRequest request) {
+    @PostMapping
+    public ResponseEntity<TokenResponse> socialLogin(@RequestBody SocialLoginRequest request) {
+        OAuthUserInfo userInfo;
 
-        // 카카오 인가코드 → access_token
-        // 카카오 access_token → 사용자 정보
-        OAuthUserInfo userInfo = oAuth2UserInfoService.kakaoLogin(request.getCode(), request.getRedirectUri());
+        if ("KAKAO".equalsIgnoreCase(request.getProvider())) {
+            userInfo = oAuth2UserInfoService.kakaoLogin(request.getCode());
+        } else if ("NAVER".equalsIgnoreCase(request.getProvider())) {
+            userInfo = oAuth2UserInfoService.naverLogin(request.getCode());
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
 
-        // 회원가입/로그인
         Member member = memberService.registerOrLogin(userInfo);
-
-        // 우리 서버 JWT 발급
         String jwt = jwtTokenProvider.createToken(member.getEmail(), member.getProvider());
-
-        return ResponseEntity.ok(new TokenResponse(jwt));
-    }
-
-    @PostMapping("/naver")
-    public ResponseEntity<TokenResponse> naverLogin(@RequestBody SocialLoginRequest request) {
-
-        // 네이버 인가코드 → access_token
-        // 네이버 access_token → 사용자 정보
-        OAuthUserInfo userInfo = oAuth2UserInfoService.naverLogin(request.getCode(), request.getRedirectUri());
-
-        // 회원가입/로그인
-        Member member = memberService.registerOrLogin(userInfo);
-
-        // 우리 서버 JWT 발급
-        String jwt = jwtTokenProvider.createToken(member.getEmail(), member.getProvider());
-
         return ResponseEntity.ok(new TokenResponse(jwt));
     }
 }

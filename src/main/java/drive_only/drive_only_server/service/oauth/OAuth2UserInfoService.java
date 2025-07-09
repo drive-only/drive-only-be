@@ -45,9 +45,9 @@ public class OAuth2UserInfoService {
     private String naverUserInfoUri;
 
     // ===================== 카카오 =====================
-    public OAuthUserInfo kakaoLogin(String code, String redirectUri) {
+    public OAuthUserInfo kakaoLogin(String code) {
         String accessToken = exchangeCodeForAccessToken(
-                code, redirectUri,
+                code,
                 kakaoClientId, kakaoClientSecret,
                 kakaoTokenUri
         );
@@ -76,9 +76,9 @@ public class OAuth2UserInfoService {
     }
 
     // ===================== 네이버 =====================
-    public OAuthUserInfo naverLogin(String code, String redirectUri) {
+    public OAuthUserInfo naverLogin(String code) {
         String accessToken = exchangeCodeForAccessToken(
-                code, redirectUri,
+                code,
                 naverClientId, naverClientSecret,
                 naverTokenUri
         );
@@ -109,7 +109,6 @@ public class OAuth2UserInfoService {
     // ===================== 공통 토큰 교환 =====================
     private String exchangeCodeForAccessToken(
             String code,
-            String redirectUri,
             String clientId,
             String clientSecret,
             String tokenUri
@@ -121,7 +120,6 @@ public class OAuth2UserInfoService {
         params.add("grant_type", "authorization_code");
         params.add("client_id", clientId);
         params.add("client_secret", clientSecret);
-        params.add("redirect_uri", redirectUri);
         params.add("code", code);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
