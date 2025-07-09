@@ -26,6 +26,7 @@
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     //api/login 경로는 누구나 접근 허용
                     .authorizeHttpRequests(auth -> auth
+                            // TODO : 프론트 페이지 경로 나오고 수정 하기
                             .requestMatchers("/api/login/**", "**").permitAll()
                             .anyRequest().authenticated()
                     )
