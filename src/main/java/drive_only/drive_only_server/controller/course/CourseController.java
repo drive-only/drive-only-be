@@ -43,6 +43,12 @@ public class CourseController {
         return ResponseEntity.ok().body(response);
     }
 
+    @Operation(summary = "코스(게시글) 리스트 조회", description = "조건에 따른 드라이브 코스(게시글) 목록을 조회")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "코스 리스트 조회 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
     @GetMapping("/api/courses")
     public ResponseEntity<CourseSearchListResponse> searchCourses(
             CourseSearchRequest request,
