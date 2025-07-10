@@ -92,15 +92,15 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
     }
 
     private BooleanExpression seasonEq(String season) {
-        return season != null ? course.category.time.eq(season) : null;
+        return season != null ? course.category.season.eq(season) : null;
     }
 
     private BooleanExpression themeEq(String theme) {
-        return theme != null ? course.category.time.eq(theme) : null;
+        return theme != null ? course.category.theme.eq(theme) : null;
     }
 
     private BooleanExpression areaTypeEq(String areaType) {
-        return areaType != null ? course.category.time.eq(areaType) : null;
+        return areaType != null ? course.category.areaType.eq(areaType) : null;
     }
 
     private OrderSpecifier<?> getSortMethod(CourseSearchRequest request) {
