@@ -52,8 +52,8 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
         Long total = queryFactory
                 .select(course.countDistinct())
                 .from(course)
-                .join(course.member, member)
-                .join(course.category, category)
+                .join(course.member, member).fetchJoin()
+                .join(course.category, category).fetchJoin()
                 .join(course.coursePlaces, coursePlace)
                 .join(coursePlace.place, place)
                 .where(
