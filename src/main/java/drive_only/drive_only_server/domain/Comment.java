@@ -51,7 +51,6 @@ public class Comment {
     private Comment parentComment;
 
     @OneToMany(mappedBy = "parentComment", orphanRemoval = true)
-    @BatchSize(size = 100)
     private List<Comment> childComments = new ArrayList<>();
 
     public Comment(String content, Member member, Course course, Comment parentComment) {

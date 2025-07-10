@@ -7,11 +7,11 @@ import drive_only.drive_only_server.domain.ProviderType;
 import drive_only.drive_only_server.dto.comment.create.CommentCreateRequest;
 import drive_only.drive_only_server.dto.comment.create.CommentCreateResponse;
 import drive_only.drive_only_server.dto.comment.delete.CommentDeleteResponse;
-import drive_only.drive_only_server.dto.comment.search.CommentListResponse;
-import drive_only.drive_only_server.dto.comment.search.CommentListResponse.Meta;
+import drive_only.drive_only_server.dto.comment.search.CommentSearchListResponse;
 import drive_only.drive_only_server.dto.comment.search.CommentSearchResponse;
 import drive_only.drive_only_server.dto.comment.update.CommentUpdateRequest;
 import drive_only.drive_only_server.dto.comment.update.CommentUpdateResponse;
+import drive_only.drive_only_server.dto.meta.Meta;
 import drive_only.drive_only_server.repository.CommentRepository;
 import drive_only.drive_only_server.repository.CourseRepository;
 import drive_only.drive_only_server.repository.MemberRepository;
@@ -50,8 +50,7 @@ public class CommentService {
         return new CommentCreateResponse(comment.getId(), "댓글이 성공적으로 등록되었습니다.");
     }
 
-    public CommentListResponse searchComments(Long courseId, int page, int size) {
-        //TODO : 나중에 멤버 관련 기능들이 완성되면 현재 로그인 된 멤버로 리팩토링 (댓글 작성자로 리팩토링)
+    public CommentSearchListResponse searchComments(Long courseId, int page, int size) {
         Member member = Member.createMember("email", "nickname", "profile", ProviderType.KAKAO);
         Pageable pageable = PageRequest.of(page, size);
         Page<Comment> parentComments = commentRepository.findParentCommentsByCourseId(courseId, pageable);
@@ -63,7 +62,7 @@ public class CommentService {
         int total = (int) parentComments.getTotalElements();
         Meta meta = new Meta(total, page + 1, size, hasNext);
 
-        return new CommentListResponse(responses, meta);
+        return new CommentSearchListResponse(responses, meta);
     }
 
     @Transactional

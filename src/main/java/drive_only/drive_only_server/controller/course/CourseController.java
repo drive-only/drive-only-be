@@ -4,6 +4,9 @@ import drive_only.drive_only_server.dto.course.create.CourseCreateRequest;
 import drive_only.drive_only_server.dto.course.create.CourseCreateResponse;
 import drive_only.drive_only_server.dto.course.delete.CourseDeleteResponse;
 import drive_only.drive_only_server.dto.course.detailSearch.CourseDetailSearchResponse;
+import drive_only.drive_only_server.dto.course.search.CourseSearchListResponse;
+import drive_only.drive_only_server.dto.course.search.CourseSearchRequest;
+import drive_only.drive_only_server.dto.course.search.CourseSearchResponse;
 import drive_only.drive_only_server.dto.coursePlace.update.CoursePlaceUpdateResponse;
 import drive_only.drive_only_server.service.course.CourseService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -36,6 +40,22 @@ public class CourseController {
     @PostMapping("/api/courses")
     public ResponseEntity<CourseCreateResponse> createCourse(@RequestBody CourseCreateRequest request) {
         CourseCreateResponse response = courseService.createCourse(request);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "코스(게시글) 리스트 조회", description = "조건에 따른 드라이브 코스(게시글) 목록을 조회")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "코스 리스트 조회 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
+    @GetMapping("/api/courses")
+    public ResponseEntity<CourseSearchListResponse> searchCourses(
+            CourseSearchRequest request,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        CourseSearchListResponse response = courseService.searchCourses(request, page, size);
         return ResponseEntity.ok().body(response);
     }
 
