@@ -6,6 +6,7 @@ import static drive_only.drive_only_server.domain.QMember.member;
 import static drive_only.drive_only_server.domain.QCoursePlace.coursePlace;
 import static drive_only.drive_only_server.domain.QPlace.place;
 
+import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -27,7 +28,7 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
 
     @Override
     public Page<Course> searchCourses(CourseSearchRequest request, Pageable pageable) {
-        List<Course> content = queryFactory
+        QueryResults<Course> results = queryFactory
                 .selectFrom(course)
                 .join(course.member, member).fetchJoin()
                 .join(course.category, category).fetchJoin()
@@ -47,28 +48,12 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
                 .orderBy(getSortMethod(request))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
-                .fetch();
+                .fetchResults();
 
-        Long total = queryFactory
-                .select(course.countDistinct())
-                .from(course)
-                .join(course.member, member)
-                .join(course.category, category)
-                .join(course.coursePlaces, coursePlace)
-                .join(coursePlace.place, place)
-                .where(
-                        keywordContains(request.keyword()),
-                        placeEq(request.placeId()),
-                        regionEq(request.region()),
-                        subRegionEq(request.subRegion()),
-                        timeEq(request.time()),
-                        seasonEq(request.season()),
-                        themeEq(request.theme()),
-                        areaTypeEq(request.areaType())
-                )
-                .fetchOne();
+        List<Course> content = results.getResults();
+        long total = results.getTotal();
 
-        return new PageImpl<>(content, pageable, total == null ? 0 : total);
+        return new PageImpl<>(content, pageable, total);
     }
 
     private BooleanExpression keywordContains(String keyword) {
