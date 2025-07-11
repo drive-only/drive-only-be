@@ -27,7 +27,7 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
                         comment.course.id.eq(courseId),
                         comment.parentComment.isNull()
                 )
-                .orderBy(comment.createdDate.desc())
+                .orderBy(comment.createdDate.desc(), comment.id.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
