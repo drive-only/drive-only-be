@@ -1,4 +1,4 @@
-package drive_only.drive_only_server.repository;
+package drive_only.drive_only_server.repository.category;
 
 import drive_only.drive_only_server.domain.Category;
 import org.springframework.data.jpa.repository.JpaRepository;

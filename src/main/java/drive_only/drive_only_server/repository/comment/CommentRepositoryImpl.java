@@ -1,10 +1,9 @@
-package drive_only.drive_only_server.repository.impl;
+package drive_only.drive_only_server.repository.comment;
 
 import static drive_only.drive_only_server.domain.QComment.*;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import drive_only.drive_only_server.domain.Comment;
-import drive_only.drive_only_server.repository.custom.CommentRepositoryCustom;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import org.springframework.data.domain.Page;

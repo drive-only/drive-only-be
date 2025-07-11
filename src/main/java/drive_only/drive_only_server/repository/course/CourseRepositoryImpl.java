@@ -1,4 +1,4 @@
-package drive_only.drive_only_server.repository.impl;
+package drive_only.drive_only_server.repository.course;
 
 import static drive_only.drive_only_server.domain.QCategory.category;
 import static drive_only.drive_only_server.domain.QCourse.*;
@@ -11,7 +11,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import drive_only.drive_only_server.domain.Course;
 import drive_only.drive_only_server.dto.course.search.CourseSearchRequest;
-import drive_only.drive_only_server.repository.custom.CourseRepositoryCustom;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import org.springframework.data.domain.Page;

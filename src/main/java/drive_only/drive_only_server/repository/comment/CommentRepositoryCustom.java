@@ -1,4 +1,4 @@
-package drive_only.drive_only_server.repository.custom;
+package drive_only.drive_only_server.repository.comment;
 
 import drive_only.drive_only_server.domain.Comment;
 import org.springframework.data.domain.Page;

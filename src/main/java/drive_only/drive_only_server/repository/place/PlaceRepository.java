@@ -1,7 +1,6 @@
-package drive_only.drive_only_server.repository;
+package drive_only.drive_only_server.repository.place;
 
 import drive_only.drive_only_server.domain.Place;
-import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

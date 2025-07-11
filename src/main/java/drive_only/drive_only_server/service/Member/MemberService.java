@@ -2,7 +2,7 @@ package drive_only.drive_only_server.service.Member;
 
 import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.dto.oauth.OAuthUserInfo;
-import drive_only.drive_only_server.repository.MemberRepository;
+import drive_only.drive_only_server.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

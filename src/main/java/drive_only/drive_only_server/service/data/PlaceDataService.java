@@ -4,7 +4,7 @@ import drive_only.drive_only_server.domain.Place;
 import drive_only.drive_only_server.dto.data.DetailIntroResponse;
 import drive_only.drive_only_server.dto.data.PlaceDataInitResponse;
 import drive_only.drive_only_server.dto.data.PlaceDataInitResponse.Item;
-import drive_only.drive_only_server.repository.PlaceRepository;
+import drive_only.drive_only_server.repository.place.PlaceRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
