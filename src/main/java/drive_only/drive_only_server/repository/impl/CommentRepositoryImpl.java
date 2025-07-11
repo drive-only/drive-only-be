@@ -23,7 +23,6 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
         List<Comment> content = queryFactory
                 .selectFrom(comment)
                 .join(comment.member).fetchJoin()
-                .join(comment.course).fetchJoin()
                 .where(
                         comment.course.id.eq(courseId),
                         comment.parentComment.isNull()
