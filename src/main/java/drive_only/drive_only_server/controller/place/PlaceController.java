@@ -35,4 +35,6 @@ public class PlaceController {
         return ResponseEntity.ok().body(response);
     }
 
+    @GetMapping("/api/courses/{courseId}/nearby-places")
+    public ResponseEntity<>
 }
