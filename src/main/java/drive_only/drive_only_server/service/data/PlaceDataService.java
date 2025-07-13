@@ -68,7 +68,7 @@ public class PlaceDataService {
 
     private List<Item> getAllPlaces(int pageNo, int numOfRows) {
         PlaceDataInitResponse response = requestPlaceDataFromTourApi(pageNo, numOfRows).block();
-        if (isValidResponse(response)) {
+        if (isInvalidResponse(response)) {
             return null;
         }
         return response.response().body().items().item();
@@ -90,7 +90,7 @@ public class PlaceDataService {
                 .bodyToMono(PlaceDataInitResponse.class);
     }
 
-    private boolean isValidResponse(PlaceDataInitResponse response) {
+    private boolean isInvalidResponse(PlaceDataInitResponse response) {
         boolean valid = response != null &&
                 response.response() != null &&
                 response.response().body() != null &&
