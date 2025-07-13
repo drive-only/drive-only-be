@@ -29,6 +29,12 @@ public class Place {
     @Column(name = "address")
     private String address;
 
+    @Column(name = "region")
+    private String region;
+
+    @Column(name = "sub_region")
+    private String subRegion;
+
     @Column(name = "thumbnail_url")
     private String thumbNailUrl;
 
@@ -47,11 +53,16 @@ public class Place {
     @Column(name = "lng")
     private Double lng;
 
-    public Place(int contentId, int contentTypeId, String name, String address, String thumbNailUrl, String useTime, String restDate, String phoneNum, Double lat, Double lng) {
+    public Place(int contentId, int contentTypeId,
+                 String name, String address, String region, String subRegion,
+                 String thumbNailUrl, String useTime, String restDate,
+                 String phoneNum, Double lat, Double lng) {
         this.contentId = contentId;
         this.contentTypeId = contentTypeId;
         this.name = name;
         this.address = address;
+        this.region = region;
+        this.subRegion = subRegion;
         this.thumbNailUrl = thumbNailUrl;
         this.useTime = useTime;
         this.restDate = restDate;
@@ -60,9 +71,11 @@ public class Place {
         this.lng = lng;
     }
 
-    public void updateBasicInfo(String name, String address, String thumbNailUrl, String phoneNum, double lat, double lng) {
+    public void updateBasicInfo(String name, String address, String region, String subRegion, String thumbNailUrl, String phoneNum, double lat, double lng) {
         this.name = name;
         this.address = address;
+        this.region = region;
+        this.subRegion = subRegion;
         this.thumbNailUrl = thumbNailUrl;
         this.phoneNum = phoneNum;
         this.lat = lat;

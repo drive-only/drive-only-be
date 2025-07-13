@@ -1,8 +1,7 @@
-package drive_only.drive_only_server.repository;
+package drive_only.drive_only_server.repository.course;
 
 import drive_only.drive_only_server.domain.Course;
 import drive_only.drive_only_server.dto.course.search.CourseSearchRequest;
-import drive_only.drive_only_server.repository.custom.CourseRepositoryCustom;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

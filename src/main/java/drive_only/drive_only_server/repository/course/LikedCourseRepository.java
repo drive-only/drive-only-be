@@ -1,4 +1,4 @@
-package drive_only.drive_only_server.repository;
+package drive_only.drive_only_server.repository.course;
 
 import drive_only.drive_only_server.domain.LikedCourse;
 import org.springframework.data.jpa.repository.JpaRepository;

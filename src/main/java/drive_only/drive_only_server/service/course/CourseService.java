@@ -2,11 +2,11 @@ package drive_only.drive_only_server.service.course;
 
 import drive_only.drive_only_server.domain.*;
 import drive_only.drive_only_server.dto.category.CategoryResponse;
+import drive_only.drive_only_server.dto.common.PaginatedResponse;
 import drive_only.drive_only_server.dto.course.create.CourseCreateRequest;
 import drive_only.drive_only_server.dto.course.create.CourseCreateResponse;
 import drive_only.drive_only_server.dto.course.delete.CourseDeleteResponse;
 import drive_only.drive_only_server.dto.course.detailSearch.CourseDetailSearchResponse;
-import drive_only.drive_only_server.dto.course.search.CourseSearchListResponse;
 import drive_only.drive_only_server.dto.course.search.CourseSearchRequest;
 import drive_only.drive_only_server.dto.course.search.CourseSearchResponse;
 import drive_only.drive_only_server.dto.coursePlace.create.CoursePlaceCreateRequest;
@@ -15,13 +15,13 @@ import drive_only.drive_only_server.dto.coursePlace.update.CoursePlaceUpdateResp
 import drive_only.drive_only_server.dto.meta.Meta;
 import drive_only.drive_only_server.dto.photo.PhotoResponse;
 import drive_only.drive_only_server.dto.tag.TagResponse;
-import drive_only.drive_only_server.repository.CategoryRepository;
-import drive_only.drive_only_server.repository.CoursePlaceRepository;
-import drive_only.drive_only_server.repository.CourseRepository;
-import drive_only.drive_only_server.repository.MemberRepository;
-import drive_only.drive_only_server.repository.PhotoRepository;
-import drive_only.drive_only_server.repository.PlaceRepository;
-import drive_only.drive_only_server.repository.TagRepository;
+import drive_only.drive_only_server.repository.category.CategoryRepository;
+import drive_only.drive_only_server.repository.coursePlace.CoursePlaceRepository;
+import drive_only.drive_only_server.repository.course.CourseRepository;
+import drive_only.drive_only_server.repository.member.MemberRepository;
+import drive_only.drive_only_server.repository.photo.PhotoRepository;
+import drive_only.drive_only_server.repository.place.PlaceRepository;
+import drive_only.drive_only_server.repository.tag.TagRepository;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -53,11 +53,11 @@ public class CourseService {
         return new CourseCreateResponse(course.getId(), "게시글이 성공적으로 등록되었습니다.");
     }
 
-    public CourseSearchListResponse searchCourses(CourseSearchRequest request, int page, int size) {
+    public PaginatedResponse<CourseSearchResponse> searchCourses(CourseSearchRequest request, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Course> courses = courseRepository.searchCourses(request, pageable);
 
-        List<CourseSearchResponse> courseSearchResponses = courses.stream()
+        List<CourseSearchResponse> responses = courses.stream()
                 .map(this::createCourseSearchResponse)
                 .toList();
 
@@ -68,7 +68,7 @@ public class CourseService {
                 courses.hasNext()
         );
 
-        return new CourseSearchListResponse(courseSearchResponses, meta);
+        return new PaginatedResponse<>(responses, meta);
     }
 
     public CourseDetailSearchResponse searchCourseDetail(Long courseId) {

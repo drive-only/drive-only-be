@@ -3,9 +3,10 @@ package drive_only.drive_only_server.controller.comment;
 import drive_only.drive_only_server.dto.comment.create.CommentCreateRequest;
 import drive_only.drive_only_server.dto.comment.create.CommentCreateResponse;
 import drive_only.drive_only_server.dto.comment.delete.CommentDeleteResponse;
-import drive_only.drive_only_server.dto.comment.search.CommentSearchListResponse;
+import drive_only.drive_only_server.dto.comment.search.CommentSearchResponse;
 import drive_only.drive_only_server.dto.comment.update.CommentUpdateRequest;
 import drive_only.drive_only_server.dto.comment.update.CommentUpdateResponse;
+import drive_only.drive_only_server.dto.common.PaginatedResponse;
 import drive_only.drive_only_server.service.comment.CommentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -37,12 +38,12 @@ public class CommentController {
     })
 
     @GetMapping("/api/courses/{courseId}/comments")
-    public ResponseEntity<CommentSearchListResponse> searchComments(
+    public ResponseEntity<PaginatedResponse<CommentSearchResponse>> searchComments(
             @PathVariable Long courseId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        CommentSearchListResponse response = commentService.searchComments(courseId, page, size);
+        PaginatedResponse<CommentSearchResponse> response = commentService.searchComments(courseId, page, size);
         return ResponseEntity.ok().body(response);
     }
 

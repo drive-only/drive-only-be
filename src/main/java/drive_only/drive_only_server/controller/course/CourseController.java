@@ -1,10 +1,10 @@
 package drive_only.drive_only_server.controller.course;
 
+import drive_only.drive_only_server.dto.common.PaginatedResponse;
 import drive_only.drive_only_server.dto.course.create.CourseCreateRequest;
 import drive_only.drive_only_server.dto.course.create.CourseCreateResponse;
 import drive_only.drive_only_server.dto.course.delete.CourseDeleteResponse;
 import drive_only.drive_only_server.dto.course.detailSearch.CourseDetailSearchResponse;
-import drive_only.drive_only_server.dto.course.search.CourseSearchListResponse;
 import drive_only.drive_only_server.dto.course.search.CourseSearchRequest;
 import drive_only.drive_only_server.dto.course.search.CourseSearchResponse;
 import drive_only.drive_only_server.dto.coursePlace.update.CoursePlaceUpdateResponse;
@@ -50,12 +50,12 @@ public class CourseController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
     })
     @GetMapping("/api/courses")
-    public ResponseEntity<CourseSearchListResponse> searchCourses(
+    public ResponseEntity<PaginatedResponse<CourseSearchResponse>> searchCourses(
             CourseSearchRequest request,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        CourseSearchListResponse response = courseService.searchCourses(request, page, size);
+        PaginatedResponse<CourseSearchResponse> response = courseService.searchCourses(request, page, size);
         return ResponseEntity.ok().body(response);
     }
 

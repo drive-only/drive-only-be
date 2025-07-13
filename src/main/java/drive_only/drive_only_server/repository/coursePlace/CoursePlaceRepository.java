@@ -1,4 +1,4 @@
-package drive_only.drive_only_server.repository;
+package drive_only.drive_only_server.repository.coursePlace;
 
 import drive_only.drive_only_server.domain.Course;
 import drive_only.drive_only_server.domain.CoursePlace;

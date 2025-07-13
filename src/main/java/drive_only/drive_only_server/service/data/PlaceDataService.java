@@ -1,10 +1,11 @@
 package drive_only.drive_only_server.service.data;
 
 import drive_only.drive_only_server.domain.Place;
+import drive_only.drive_only_server.dto.data.AreaCodeResponse;
 import drive_only.drive_only_server.dto.data.DetailIntroResponse;
 import drive_only.drive_only_server.dto.data.PlaceDataInitResponse;
 import drive_only.drive_only_server.dto.data.PlaceDataInitResponse.Item;
-import drive_only.drive_only_server.repository.PlaceRepository;
+import drive_only.drive_only_server.repository.place.PlaceRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -67,7 +68,7 @@ public class PlaceDataService {
 
     private List<Item> getAllPlaces(int pageNo, int numOfRows) {
         PlaceDataInitResponse response = requestPlaceDataFromTourApi(pageNo, numOfRows).block();
-        if (isValidResponse(response)) {
+        if (isInvalidResponse(response)) {
             return null;
         }
         return response.response().body().items().item();
@@ -89,7 +90,7 @@ public class PlaceDataService {
                 .bodyToMono(PlaceDataInitResponse.class);
     }
 
-    private boolean isValidResponse(PlaceDataInitResponse response) {
+    private boolean isInvalidResponse(PlaceDataInitResponse response) {
         boolean valid = response != null &&
                 response.response() != null &&
                 response.response().body() != null &&
@@ -138,6 +139,8 @@ public class PlaceDataService {
     private Place createPlace(Item place, DetailIntroResponse.Item placeDetail) {
         int contentId = Integer.parseInt(place.contentid());
         int contentTypeId = Integer.parseInt(place.contenttypeid());
+        String region = getRegion(place.lDongRegnCd());
+        String subRegion = getSubRegion(place.lDongRegnCd(), place.lDongSignguCd());
         String useTime = getUseTime(contentTypeId, placeDetail);
         String restDate = getRestDate(contentTypeId, placeDetail);
 
@@ -146,6 +149,8 @@ public class PlaceDataService {
                 contentTypeId,
                 place.title(),
                 place.addr1() + " " + place.addr2(),
+                region,
+                subRegion,
                 place.firstimage2(),
                 useTime,
                 restDate,
@@ -153,6 +158,53 @@ public class PlaceDataService {
                 Double.parseDouble(place.mapx()),
                 Double.parseDouble(place.mapy())
         );
+    }
+
+    private String getRegion(String lDongRegnCd) {
+        AreaCodeResponse response = webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/ldongCode2")
+                        .queryParam("serviceKey", tourApiServiceKey)
+                        .queryParam("MobileOS", "ETC")
+                        .queryParam("MobileApp", "justdrive")
+                        .queryParam("_type", "json")
+                        .queryParam("pageNo", 1)
+                        .queryParam("numOfRows", 20)
+                        .build())
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(AreaCodeResponse.class)
+                .block();
+
+        return response.response().body().items().item().stream()
+                .filter(item -> item.code().trim().equals(lDongRegnCd.trim()))
+                .map(AreaCodeResponse.Item::name)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String getSubRegion(String lDongRegnCd, String lDongSignguCd) {
+        AreaCodeResponse response = webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/ldongCode2")
+                        .queryParam("serviceKey", tourApiServiceKey)
+                        .queryParam("MobileOS", "ETC")
+                        .queryParam("MobileApp", "justdrive")
+                        .queryParam("lDongRegnCd", lDongRegnCd)
+                        .queryParam("_type", "json")
+                        .queryParam("pageNo", 1)
+                        .queryParam("numOfRows", 70)
+                        .build())
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(AreaCodeResponse.class)
+                .block();
+
+        return response.response().body().items().item().stream()
+                .filter(item -> item.code().trim().equals(lDongSignguCd.trim()))
+                .map(AreaCodeResponse.Item::name)
+                .findFirst()
+                .orElse(null);
     }
 
     private String getUseTime(int contentTypeId, DetailIntroResponse.Item placeDetail) {
@@ -201,6 +253,8 @@ public class PlaceDataService {
         existingPlace.updateBasicInfo(
                 place.title(),
                 place.addr1() + " " + place.addr2(),
+                getRegion(place.lDongRegnCd()),
+                getSubRegion(place.lDongRegnCd(), place.lDongSignguCd()),
                 place.firstimage2(),
                 place.tel(),
                 Double.parseDouble(place.mapx()),

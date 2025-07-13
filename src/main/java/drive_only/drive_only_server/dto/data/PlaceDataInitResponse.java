@@ -21,6 +21,8 @@ public record PlaceDataInitResponse(
     public record Item(
         String addr1,
         String addr2,
+        String lDongRegnCd,
+        String lDongSignguCd,
         String contentid,
         String contenttypeid,
         String createdtime,
