@@ -21,8 +21,8 @@ public class PlaceController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        placeService.searchPlaces(request, page, size);
-        return null;
+        PaginatedResponse<PlaceSearchResponse> response = placeService.searchPlaces(request, page, size);
+        return ResponseEntity.ok().body(response);
     }
 
 }
