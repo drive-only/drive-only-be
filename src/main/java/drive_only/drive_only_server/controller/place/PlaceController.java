@@ -37,6 +37,12 @@ public class PlaceController {
         return ResponseEntity.ok().body(response);
     }
 
+    @Operation(summary = "주변 장소 리스트 조회", description = "분배 로직 반영하여 위치에 따른 주변 관광지/음식점 조회")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "주변 장소 리스트 조회 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
     @GetMapping("/api/courses/{courseId}/nearby-places")
     public ResponseEntity<PaginatedResponse<NearbyPlacesResponse>> searchNearbyPlaces(
             @PathVariable Long courseId,
