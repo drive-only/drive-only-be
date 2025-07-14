@@ -1,9 +1,9 @@
 package drive_only.drive_only_server.controller.place;
 
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
-import drive_only.drive_only_server.dto.place.NearbyPlacesResponse;
-import drive_only.drive_only_server.dto.place.PlaceSearchRequest;
-import drive_only.drive_only_server.dto.place.PlaceSearchResponse;
+import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlacesResponse;
+import drive_only.drive_only_server.dto.place.search.PlaceSearchRequest;
+import drive_only.drive_only_server.dto.place.search.PlaceSearchResponse;
 import drive_only.drive_only_server.service.place.PlaceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
