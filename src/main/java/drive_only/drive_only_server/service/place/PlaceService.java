@@ -78,6 +78,14 @@ public class PlaceService {
         };
     }
 
+    private int getContentTypeId(String type) {
+        return switch (type) {
+            case "tourist-spot" -> 12;
+            case "restaurant" -> 39;
+            default -> throw new IllegalArgumentException("지원하지 않는 장소 타입입니다.");
+        };
+    }
+
     private NearbyPlacesResponse createNearbyPlacesResponse(CoursePlace coursePlace, int contentTypeId, int numOfRows) {
         Double mapX = coursePlace.getPlace().getLat();
         Double mapY = coursePlace.getPlace().getLng();
@@ -92,14 +100,6 @@ public class PlaceService {
                 coursePlace.getPlace().getName(),
                 searchResponses
         );
-    }
-
-    private int getContentTypeId(String type) {
-        return switch (type) {
-            case "tourist-spot" -> 12;
-            case "restaurant" -> 39;
-            default -> throw new IllegalArgumentException("지원하지 않는 장소 타입입니다.");
-        };
     }
 
     private NearbyPlaceTourApiResponse getNearbyPlaces(int contentTypeId, Double mapX, Double mapY, int numOfRows) {
