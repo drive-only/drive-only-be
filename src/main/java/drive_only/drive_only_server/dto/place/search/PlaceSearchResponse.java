@@ -1,4 +1,4 @@
-package drive_only.drive_only_server.dto.place;
+package drive_only.drive_only_server.dto.place.search;
 
 public record PlaceSearchResponse(
         Long placeId,
