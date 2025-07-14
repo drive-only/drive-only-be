@@ -62,7 +62,7 @@ public class PlaceService {
         List<NearbyPlacesResponse> results = new ArrayList<>();
 
         for (int i = 0; i < coursePlaces.size(); i++) {
-            results.add(buildNearbyPlacesResponse(coursePlaces.get(i), contentTypeId, distribution.get(i)));
+            results.add(createNearbyPlacesResponse(coursePlaces.get(i), contentTypeId, distribution.get(i)));
         }
         return new PaginatedResponse<>(results, null);
     }
@@ -78,7 +78,7 @@ public class PlaceService {
         };
     }
 
-    private NearbyPlacesResponse buildNearbyPlacesResponse(CoursePlace coursePlace, int contentTypeId, int numOfRows) {
+    private NearbyPlacesResponse createNearbyPlacesResponse(CoursePlace coursePlace, int contentTypeId, int numOfRows) {
         Double mapX = coursePlace.getPlace().getLat();
         Double mapY = coursePlace.getPlace().getLng();
 
