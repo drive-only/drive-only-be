@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -60,11 +61,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String provider = jwtTokenProvider.getProvider(token);
 
             // 인증 객체 생성
+            // provider를 SimpleGrantedAuthority로 넣기
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
                             email,
                             null,
-                            List.of() // SimpleGrantedAuthority 추가 가능
+                            List.of(new SimpleGrantedAuthority(provider))
                     );
 
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
