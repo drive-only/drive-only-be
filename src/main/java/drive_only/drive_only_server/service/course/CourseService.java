@@ -22,6 +22,7 @@ import drive_only.drive_only_server.repository.member.MemberRepository;
 import drive_only.drive_only_server.repository.photo.PhotoRepository;
 import drive_only.drive_only_server.repository.place.PlaceRepository;
 import drive_only.drive_only_server.repository.tag.TagRepository;
+import drive_only.drive_only_server.security.LoginMemberProvider;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -38,18 +39,18 @@ public class CourseService {
     private final CourseRepository courseRepository;
     private final PlaceRepository placeRepository;
     private final CoursePlaceRepository coursePlaceRepository;
-    private final MemberRepository memberRepository;
     private final CategoryRepository categoryRepository;
     private final TagRepository tagRepository;
     private final PhotoRepository photoRepository;
+    private final LoginMemberProvider loginMemberProvider;
 
     @Transactional
     public CourseCreateResponse createCourse(CourseCreateRequest request) {
         List<CoursePlace> coursePlaces = createCoursePlaces(request);
-        Member member = createMember();
+        Member loginMember = loginMemberProvider.getLoginMember();
         Category category = createCategory(request);
         List<Tag> tags = createTag(request);
-        Course course = createCourse(request, member, coursePlaces, category, tags);
+        Course course = createCourse(request, loginMember, coursePlaces, category, tags);
         return new CourseCreateResponse(course.getId(), "게시글이 성공적으로 등록되었습니다.");
     }
 
@@ -116,7 +117,7 @@ public class CourseService {
                 LocalDate.now(),
                 request.recommendation(), request.difficulty(),
                 0, 0, 0, false,
-                member, //TODO : 나중에 로그인, 회원가입 기능이 완성되면 LoginMember(현재 로그인 된 사용자)로 변경, 현재는 테스트용 멤버
+                member,
                 category,
                 coursePlaces,
                 tags
@@ -155,17 +156,6 @@ public class CourseService {
                     return photo;
                 })
                 .toList();
-    }
-
-    private Member createMember() {
-        Member mockMember = Member.createMember(
-                "email",
-                "nickname",
-                "url",
-                ProviderType.KAKAO
-        );
-        memberRepository.save(mockMember);
-        return mockMember;
     }
 
     private Category createCategory(CourseCreateRequest request) {
