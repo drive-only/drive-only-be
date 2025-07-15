@@ -60,4 +60,9 @@ public class JwtTokenProvider {
                 .parseClaimsJws(token)
                 .getBody();
     }
+
+    //만료일 추출 메서드
+    public Date getExpirationDate(String token) {
+        return getClaims(token).getExpiration();
+    }
 }
