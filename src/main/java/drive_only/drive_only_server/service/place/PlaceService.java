@@ -74,7 +74,7 @@ public class PlaceService {
             case 3 -> List.of(2, 2, 1);
             case 4 -> List.of(2, 1, 1, 1);
             case 5 -> List.of(1, 1, 1, 1, 1);
-            default -> throw new IllegalArgumentException("코스는 1개 이상 5개 이하이어야 합니다.");
+            default -> throw new IllegalArgumentException("코스는 1개 이상 5개 이하이어야 합니다. coursePlaceCount: " + coursePlaceCount);
         };
     }
 
