@@ -80,7 +80,7 @@ public class PlaceDataService {
                         .path("/areaBasedList2")
                         .queryParam("serviceKey", tourApiServiceKey)
                         .queryParam("MobileOS", "ETC")
-                        .queryParam("MobileApp", "justdrive")
+                        .queryParam("MobileApp", "drive-only")
                         .queryParam("_type", "json")
                         .queryParam("numOfRows", numOfRows)
                         .queryParam("pageNo", pageNo)
@@ -104,7 +104,7 @@ public class PlaceDataService {
             String contentId = place.contentid();
             String contentTypeId = place.contenttypeid();
 
-            DetailIntroResponse detailIntroResponse = requestPlaceDetailFromTourApi(place, contentId, contentTypeId).block();
+            DetailIntroResponse detailIntroResponse = requestPlaceDetailFromTourApi(contentId, contentTypeId).block();
             if (detailIntroResponse == null) {
                 continue;
             }
@@ -120,13 +120,13 @@ public class PlaceDataService {
         }
     }
 
-    private Mono<DetailIntroResponse> requestPlaceDetailFromTourApi(Item place, String contentId, String contentTypeId) {
+    private Mono<DetailIntroResponse> requestPlaceDetailFromTourApi(String contentId, String contentTypeId) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/detailIntro2")
                         .queryParam("serviceKey", tourApiServiceKey)
                         .queryParam("MobileOS", "ETC")
-                        .queryParam("MobileApp", "justdrive")
+                        .queryParam("MobileApp", "drive-only")
                         .queryParam("_type", "json")
                         .queryParam("contentId", contentId)
                         .queryParam("contentTypeId", contentTypeId)
@@ -166,7 +166,7 @@ public class PlaceDataService {
                         .path("/ldongCode2")
                         .queryParam("serviceKey", tourApiServiceKey)
                         .queryParam("MobileOS", "ETC")
-                        .queryParam("MobileApp", "justdrive")
+                        .queryParam("MobileApp", "drive-only")
                         .queryParam("_type", "json")
                         .queryParam("pageNo", 1)
                         .queryParam("numOfRows", 20)
@@ -189,7 +189,7 @@ public class PlaceDataService {
                         .path("/ldongCode2")
                         .queryParam("serviceKey", tourApiServiceKey)
                         .queryParam("MobileOS", "ETC")
-                        .queryParam("MobileApp", "justdrive")
+                        .queryParam("MobileApp", "drive-only")
                         .queryParam("lDongRegnCd", lDongRegnCd)
                         .queryParam("_type", "json")
                         .queryParam("pageNo", 1)
@@ -234,7 +234,7 @@ public class PlaceDataService {
     }
 
     private void syncPlaces(Item place) {
-        DetailIntroResponse detail = requestPlaceDetailFromTourApi(place, place.contentid(), place.contenttypeid()).block();
+        DetailIntroResponse detail = requestPlaceDetailFromTourApi(place.contentid(), place.contenttypeid()).block();
         if (detail == null) {
             return;
         }

@@ -5,7 +5,7 @@ import static drive_only.drive_only_server.domain.QPlace.*;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import drive_only.drive_only_server.domain.Place;
-import drive_only.drive_only_server.dto.place.PlaceSearchRequest;
+import drive_only.drive_only_server.dto.place.search.PlaceSearchRequest;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import org.springframework.data.domain.Page;
