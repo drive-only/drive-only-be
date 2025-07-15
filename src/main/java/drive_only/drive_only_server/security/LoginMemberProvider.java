@@ -17,7 +17,7 @@ public class LoginMemberProvider {
     public Member getLoginMember() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !authentication.isAuthenticated()) {
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
             throw new IllegalStateException("인증 정보가 없습니다.");
         }
 

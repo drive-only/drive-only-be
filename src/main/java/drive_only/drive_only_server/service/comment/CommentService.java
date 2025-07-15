@@ -15,6 +15,7 @@ import drive_only.drive_only_server.dto.meta.Meta;
 import drive_only.drive_only_server.repository.comment.CommentRepository;
 import drive_only.drive_only_server.repository.course.CourseRepository;
 import drive_only.drive_only_server.repository.member.MemberRepository;
+import drive_only.drive_only_server.security.LoginMemberProvider;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,15 +32,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class CommentService {
     private final CourseRepository courseRepository;
     private final CommentRepository commentRepository;
-    private final MemberRepository memberRepository;
+    private final LoginMemberProvider loginMemberProvider;
 
     @Transactional
     public CommentCreateResponse createComment(Long courseId, CommentCreateRequest request) {
         Course course = findCourse(courseId);
-        //TODO : 나중에 멤버 관련 기능들이 완성되면 리팩토링 (현재 로그인 되어 있는 사용자로 리팩토링)
-        Member member = Member.createMember("email", "nickname", "profile", ProviderType.KAKAO);
-        memberRepository.save(member);
-        Comment comment = new Comment(request.content(), member, course, null);
+        Member loginMember = loginMemberProvider.getLoginMember();
+        Comment comment = new Comment(request.content(), loginMember, course, null);
 
         if (request.parentCommentId() != null) {
             Comment parentComment = commentRepository.findById(request.parentCommentId())
@@ -47,15 +46,16 @@ public class CommentService {
             parentComment.addChildComment(comment);
         }
         commentRepository.save(comment);
+
         return new CommentCreateResponse(comment.getId(), "댓글이 성공적으로 등록되었습니다.");
     }
 
     public PaginatedResponse<CommentSearchResponse> searchComments(Long courseId, int page, int size) {
-        Member member = Member.createMember("email", "nickname", "profile", ProviderType.KAKAO);
+        Member loginMember = loginMemberProvider.getLoginMember();
         Pageable pageable = PageRequest.of(page, size);
         Page<Comment> parentComments = commentRepository.findParentCommentsByCourseId(courseId, pageable);
         List<CommentSearchResponse> responses = parentComments.stream()
-                .map(comment -> createCommentResponse(comment, member))
+                .map(comment -> createCommentResponse(comment, loginMember))
                 .toList();
 
         Boolean hasNext = parentComments.hasNext();
@@ -92,7 +92,7 @@ public class CommentService {
                 comment.getContent(),
                 comment.getCreatedDate(), // LocalDate -> LocalDateTime 변환 참고
                 comment.getLikeCount(),
-                loginMember != null && comment.getMember().equals(loginMember),
+                comment.getMember().equals(loginMember),
                 comment.isDeleted(),
                 comment.getChildComments().stream()
                         .map(child -> createCommentResponse(child, loginMember))
