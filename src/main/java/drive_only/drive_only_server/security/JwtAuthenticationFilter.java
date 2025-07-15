@@ -1,5 +1,6 @@
 package drive_only.drive_only_server.security;
 
+import drive_only.drive_only_server.service.auth.LogoutService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +21,7 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final LogoutService logoutService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -46,6 +48,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = authorizationHeader.substring(7);
 
         if (jwtTokenProvider.validateToken(token)) {
+
+            // 블랙리스트 체크
+            if (logoutService.isBlacklisted(token)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
+
             // 유효한 토큰이면 이메일, provider 추출
             String email = jwtTokenProvider.getEmail(token);
             String provider = jwtTokenProvider.getProvider(token);
