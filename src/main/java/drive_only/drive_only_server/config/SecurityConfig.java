@@ -3,6 +3,7 @@
     import drive_only.drive_only_server.security.JwtAuthenticationFilter;
     import lombok.RequiredArgsConstructor;
     import org.springframework.context.annotation.Configuration;
+    import org.springframework.http.HttpMethod;
     import org.springframework.security.config.annotation.web.builders.HttpSecurity;
     import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
     import org.springframework.context.annotation.Bean;
@@ -27,6 +28,7 @@
                     //api/login 경로는 누구나 접근 허용
                     .authorizeHttpRequests(auth -> auth
                             .requestMatchers("/api/login", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/courses/**", "/api/places", "/api/categories").permitAll()
                             .anyRequest().authenticated()
                     )
                     //사용자 로그인 폼 인증 전에 JWT 필터를 실행 클라이언트가 보낸 JWT 토큰을 검증
