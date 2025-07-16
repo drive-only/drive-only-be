@@ -51,4 +51,10 @@ public class PlaceController {
         PaginatedResponse<NearbyPlacesResponse> response = placeService.searchNearbyPlaces(courseId, type);
         return ResponseEntity.ok().body(response);
     }
+
+    @GetMapping("/api/my-places")
+    public ResponseEntity<PaginatedResponse<PlaceSearchResponse>> searchSavedPlaces() {
+        PaginatedResponse<PlaceSearchResponse> response = placeService.searchSavedPlaces();
+        return ResponseEntity.ok().body(response);
+    }
 }

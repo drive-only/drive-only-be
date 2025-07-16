@@ -3,6 +3,7 @@ package drive_only.drive_only_server.security;
 import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.domain.ProviderType;
 import drive_only.drive_only_server.repository.member.MemberRepository;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class LoginMemberProvider {
     private final MemberRepository memberRepository;
 
-    public Member getLoginMember() {
+    public Optional<Member> getLoginMember() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
@@ -28,7 +29,6 @@ public class LoginMemberProvider {
                 .orElse("KAKAO");
         ProviderType provider = ProviderType.valueOf(providerString.toUpperCase());
 
-        return memberRepository.findByEmailAndProvider(email, provider)
-                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
+        return memberRepository.findByEmailAndProvider(email, provider);
     }
 }

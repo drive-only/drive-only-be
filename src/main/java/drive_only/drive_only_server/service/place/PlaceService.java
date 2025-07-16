@@ -2,7 +2,9 @@ package drive_only.drive_only_server.service.place;
 
 import drive_only.drive_only_server.domain.Course;
 import drive_only.drive_only_server.domain.CoursePlace;
+import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.domain.Place;
+import drive_only.drive_only_server.domain.SavedPlace;
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
 import drive_only.drive_only_server.dto.meta.Meta;
 import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlaceTourApiResponse;
@@ -11,7 +13,10 @@ import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlacesResponse;
 import drive_only.drive_only_server.dto.place.search.PlaceSearchRequest;
 import drive_only.drive_only_server.dto.place.search.PlaceSearchResponse;
 import drive_only.drive_only_server.repository.course.CourseRepository;
+import drive_only.drive_only_server.repository.course.SavedPlaceRepository;
+import drive_only.drive_only_server.repository.member.MemberRepository;
 import drive_only.drive_only_server.repository.place.PlaceRepository;
+import drive_only.drive_only_server.security.LoginMemberProvider;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -33,6 +39,8 @@ public class PlaceService {
     private final WebClient webClient;
     private final PlaceRepository placeRepository;
     private final CourseRepository courseRepository;
+    private final SavedPlaceRepository savedPlaceRepository;
+    private final LoginMemberProvider loginMemberProvider;
     private static final int DEFAULT_RADIUS = 3000;
     private static final int DEFAULT_PAGE_NO = 1;
 
@@ -64,6 +72,19 @@ public class PlaceService {
         for (int i = 0; i < coursePlaces.size(); i++) {
             results.add(createNearbyPlacesResponse(coursePlaces.get(i), contentTypeId, distribution.get(i)));
         }
+        return new PaginatedResponse<>(results, null);
+    }
+
+    public PaginatedResponse<PlaceSearchResponse> searchSavedPlaces() {
+        Member member = loginMemberProvider.getLoginMember()
+                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
+        List<SavedPlace> savedPlaces = savedPlaceRepository.findByMember(member);
+        List<PlaceSearchResponse> results = savedPlaces.stream()
+                .map(savedPlace -> {
+                    Place place = savedPlace.getPlace();
+                    return createPlaceSearchResponse(place);
+                })
+                .toList();
         return new PaginatedResponse<>(results, null);
     }
 

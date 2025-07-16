@@ -15,6 +15,7 @@ import drive_only.drive_only_server.repository.comment.CommentRepository;
 import drive_only.drive_only_server.repository.course.CourseRepository;
 import drive_only.drive_only_server.security.LoginMemberProvider;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -35,7 +36,8 @@ public class CommentService {
     @Transactional
     public CommentCreateResponse createComment(Long courseId, CommentCreateRequest request) {
         Course course = findCourse(courseId);
-        Member loginMember = loginMemberProvider.getLoginMember();
+        Member loginMember = loginMemberProvider.getLoginMember()
+                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
         Comment comment = new Comment(request.content(), loginMember, course, null);
 
         if (request.parentCommentId() != null) {
@@ -49,11 +51,11 @@ public class CommentService {
     }
 
     public PaginatedResponse<CommentSearchResponse> searchComments(Long courseId, int page, int size) {
-        Member loginMember = loginMemberProvider.getLoginMember();
+        Optional<Member> loginMember = loginMemberProvider.getLoginMember();
         Pageable pageable = PageRequest.of(page, size);
         Page<Comment> parentComments = commentRepository.findParentCommentsByCourseId(courseId, pageable);
         List<CommentSearchResponse> responses = parentComments.stream()
-                .map(comment -> createCommentResponse(comment, loginMember))
+                .map(comment -> createCommentResponse(comment, loginMember.orElse(null)))
                 .toList();
 
         Boolean hasNext = parentComments.hasNext();
@@ -83,6 +85,7 @@ public class CommentService {
     }
 
     private CommentSearchResponse createCommentResponse(Comment comment, Member loginMember) {
+        boolean isMine = loginMember != null && comment.getMember().equals(loginMember);
         return new CommentSearchResponse(
                 comment.getId(),
                 comment.getMember().getId(),
@@ -90,7 +93,7 @@ public class CommentService {
                 comment.getContent(),
                 comment.getCreatedDate(), // LocalDate -> LocalDateTime 변환 참고
                 comment.getLikeCount(),
-                comment.getMember().equals(loginMember),
+                isMine,
                 comment.isDeleted(),
                 comment.getChildComments().stream()
                         .map(child -> createCommentResponse(child, loginMember))

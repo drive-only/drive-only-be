@@ -47,7 +47,8 @@ public class CourseService {
     @Transactional
     public CourseCreateResponse createCourse(CourseCreateRequest request) {
         List<CoursePlace> coursePlaces = createCoursePlaces(request);
-        Member loginMember = loginMemberProvider.getLoginMember();
+        Member loginMember = loginMemberProvider.getLoginMember()
+                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
         Category category = createCategory(request);
         List<Tag> tags = createTag(request);
         Course course = createCourse(request, loginMember, coursePlaces, category, tags);
