@@ -104,7 +104,11 @@ public class PlaceService {
 
     @Transactional
     public DeleteSavedPlaceResponse deleteSavedPlace(Long savedPlaceId) {
-        SavedPlace savedPlace = savedPlaceRepository.findById(savedPlaceId)
+        Member member = loginMemberProvider.getLoginMember()
+                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
+        SavedPlace savedPlace = member.getSavedPlaces().stream()
+                .filter(sp -> sp.getId().equals(savedPlaceId))
+                .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("저장되지 않은 장소입니다."));
         savedPlaceRepository.delete(savedPlace);
         return new DeleteSavedPlaceResponse(savedPlace.getId(), "저장된 장소를 성공적으로 삭제했습니다.");
