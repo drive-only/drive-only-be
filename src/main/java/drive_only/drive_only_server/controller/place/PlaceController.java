@@ -68,8 +68,15 @@ public class PlaceController {
         return ResponseEntity.ok().body(response);
     }
 
+    @Operation(summary = "장소 저장", description = "사용자가 저장하고 싶은 장소 등록")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "장소 저장 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
     @PostMapping("/api/my-places/{placeId}")
     public ResponseEntity<SavePlaceResponse> savePlace(@PathVariable Long placeId) {
-        placeService.savePlace(placeId);
+        SavePlaceResponse response = placeService.savePlace(placeId);
+        return ResponseEntity.ok().body(response);
     }
 }
