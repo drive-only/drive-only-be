@@ -36,7 +36,6 @@ public class CommentController {
             @ApiResponse(responseCode = "404", description = "해당 댓글을 찾을 수 없음", content = @Content),
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
     })
-
     @GetMapping("/api/courses/{courseId}/comments")
     public ResponseEntity<PaginatedResponse<CommentSearchResponse>> searchComments(
             @PathVariable Long courseId,

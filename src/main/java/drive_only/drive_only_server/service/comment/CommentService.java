@@ -85,13 +85,13 @@ public class CommentService {
     }
 
     private CommentSearchResponse createCommentResponse(Comment comment, Member loginMember) {
-        boolean isMine = loginMember != null && comment.getMember().equals(loginMember);
+        boolean isMine = comment.getMember().equals(loginMember);
         return new CommentSearchResponse(
                 comment.getId(),
                 comment.getMember().getId(),
                 comment.getMember().getNickname(),
                 comment.getContent(),
-                comment.getCreatedDate(), // LocalDate -> LocalDateTime 변환 참고
+                comment.getCreatedDate(),
                 comment.getLikeCount(),
                 isMine,
                 comment.isDeleted(),
