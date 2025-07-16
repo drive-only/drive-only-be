@@ -7,6 +7,7 @@ import drive_only.drive_only_server.domain.Place;
 import drive_only.drive_only_server.domain.SavedPlace;
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
 import drive_only.drive_only_server.dto.meta.Meta;
+import drive_only.drive_only_server.dto.place.myPlace.DeleteSavedPlaceResponse;
 import drive_only.drive_only_server.dto.place.myPlace.SavePlaceResponse;
 import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlaceTourApiResponse;
 import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlaceTourApiResponse.Item;
@@ -99,6 +100,18 @@ public class PlaceService {
 
         SavedPlace savedPlace = savedPlaceRepository.save(new SavedPlace(member, place));
         return new SavePlaceResponse(savedPlace.getId(), "해당 장소가 성공적으로 저장되었습니다.");
+    }
+
+    @Transactional
+    public DeleteSavedPlaceResponse deleteSavedPlace(Long savedPlaceId) {
+        Member member = loginMemberProvider.getLoginMember()
+                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
+        SavedPlace savedPlace = member.getSavedPlaces().stream()
+                .filter(sp -> sp.getId().equals(savedPlaceId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("저장되지 않은 장소입니다."));
+        savedPlaceRepository.delete(savedPlace);
+        return new DeleteSavedPlaceResponse(savedPlace.getId(), "저장된 장소를 성공적으로 삭제했습니다.");
     }
 
     private List<Integer> getDistribution(int coursePlaceCount) {
