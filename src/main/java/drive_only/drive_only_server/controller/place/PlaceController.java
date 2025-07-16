@@ -1,6 +1,7 @@
 package drive_only.drive_only_server.controller.place;
 
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
+import drive_only.drive_only_server.dto.place.myPlace.DeleteSavedPlaceResponse;
 import drive_only.drive_only_server.dto.place.myPlace.SavePlaceResponse;
 import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlacesResponse;
 import drive_only.drive_only_server.dto.place.search.PlaceSearchRequest;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -77,6 +79,12 @@ public class PlaceController {
     @PostMapping("/api/my-places/{placeId}")
     public ResponseEntity<SavePlaceResponse> savePlace(@PathVariable Long placeId) {
         SavePlaceResponse response = placeService.savePlace(placeId);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @DeleteMapping("/api/my-places/{savedPlaceId}")
+    public ResponseEntity<DeleteSavedPlaceResponse> deleteSavedPlace(@PathVariable Long savedPlaceId) {
+        DeleteSavedPlaceResponse response = placeService.deleteSavedPlace(savedPlaceId);
         return ResponseEntity.ok().body(response);
     }
 }
