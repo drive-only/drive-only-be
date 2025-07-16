@@ -18,7 +18,9 @@ public class LoginMemberProvider {
     public Optional<Member> getLoginMember() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+        if (authentication == null ||
+            !authentication.isAuthenticated() ||
+            authentication.getPrincipal().equals("anonymousUser")) {
             throw new IllegalStateException("인증 정보가 없습니다.");
         }
 
@@ -30,5 +32,25 @@ public class LoginMemberProvider {
         ProviderType provider = ProviderType.valueOf(providerString.toUpperCase());
 
         return memberRepository.findByEmailAndProvider(email, provider);
+    }
+
+    public Optional<Member> getLoginMemberIfExists() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null ||
+                !authentication.isAuthenticated() ||
+                authentication.getPrincipal().equals("anonymousUser")) {
+            return Optional.empty();
+        }
+
+        String email = (String) authentication.getPrincipal();
+        String provider = authentication.getAuthorities().stream()
+                .findFirst()
+                .map(GrantedAuthority::getAuthority)
+                .orElse("KAKAO");
+
+        ProviderType providerType = ProviderType.valueOf(provider.toUpperCase());
+
+        return memberRepository.findByEmailAndProvider(email, providerType);
     }
 }

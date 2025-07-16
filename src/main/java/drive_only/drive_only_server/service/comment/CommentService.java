@@ -51,7 +51,7 @@ public class CommentService {
     }
 
     public PaginatedResponse<CommentSearchResponse> searchComments(Long courseId, int page, int size) {
-        Optional<Member> loginMember = loginMemberProvider.getLoginMember();
+        Optional<Member> loginMember = loginMemberProvider.getLoginMemberIfExists();
         Pageable pageable = PageRequest.of(page, size);
         Page<Comment> parentComments = commentRepository.findParentCommentsByCourseId(courseId, pageable);
         List<CommentSearchResponse> responses = parentComments.stream()
