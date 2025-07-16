@@ -20,7 +20,18 @@ public class SavedPlace {
     private Place place;
 
     public SavedPlace(Member member, Place place) {
+        setMember(member);
+        setPlace(place);
+    }
+
+    private void setMember(Member member) {
         this.member = member;
+        if (!member.getSavedPlaces().contains(this)) {
+            member.getSavedPlaces().add(this);
+        }
+    }
+
+    private void setPlace(Place place) {
         this.place = place;
     }
 }
