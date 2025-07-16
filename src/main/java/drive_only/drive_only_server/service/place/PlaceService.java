@@ -7,6 +7,7 @@ import drive_only.drive_only_server.domain.Place;
 import drive_only.drive_only_server.domain.SavedPlace;
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
 import drive_only.drive_only_server.dto.meta.Meta;
+import drive_only.drive_only_server.dto.place.myPlace.SavePlaceResponse;
 import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlaceTourApiResponse;
 import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlaceTourApiResponse.Item;
 import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlacesResponse;
@@ -19,6 +20,7 @@ import drive_only.drive_only_server.repository.place.PlaceRepository;
 import drive_only.drive_only_server.security.LoginMemberProvider;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -86,6 +88,17 @@ public class PlaceService {
                 })
                 .toList();
         return new PaginatedResponse<>(results, null);
+    }
+
+    @Transactional
+    public SavePlaceResponse savePlace(Long placeId) {
+        Member member = loginMemberProvider.getLoginMember()
+                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
+        Place place = placeRepository.findById(placeId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
+
+        SavedPlace savedPlace = savedPlaceRepository.save(new SavedPlace(member, place));
+        return new SavePlaceResponse(savedPlace.getId(), "해당 장소가 성공적으로 저장되었습니다.");
     }
 
     private List<Integer> getDistribution(int coursePlaceCount) {

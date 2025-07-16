@@ -1,6 +1,7 @@
 package drive_only.drive_only_server.controller.place;
 
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
+import drive_only.drive_only_server.dto.place.myPlace.SavePlaceResponse;
 import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlacesResponse;
 import drive_only.drive_only_server.dto.place.search.PlaceSearchRequest;
 import drive_only.drive_only_server.dto.place.search.PlaceSearchResponse;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -64,5 +66,10 @@ public class PlaceController {
     public ResponseEntity<PaginatedResponse<PlaceSearchResponse>> searchSavedPlaces() {
         PaginatedResponse<PlaceSearchResponse> response = placeService.searchSavedPlaces();
         return ResponseEntity.ok().body(response);
+    }
+
+    @PostMapping("/api/my-places/{placeId}")
+    public ResponseEntity<SavePlaceResponse> savePlace(@PathVariable Long placeId) {
+        placeService.savePlace(placeId);
     }
 }
