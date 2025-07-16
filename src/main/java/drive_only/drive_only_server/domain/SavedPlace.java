@@ -5,6 +5,7 @@ import lombok.*;
 
 @Entity
 @Getter
+@Table(name = "saved_place")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SavedPlace {
     @Id
