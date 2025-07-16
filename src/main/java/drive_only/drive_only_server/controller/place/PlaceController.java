@@ -82,6 +82,12 @@ public class PlaceController {
         return ResponseEntity.ok().body(response);
     }
 
+    @Operation(summary = "저장한 장소 삭제", description = "사용자가 저장했던 장소를 삭제")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "장소 삭제 성공"),
+            @ApiResponse(responseCode = "404", description = "해당 장소를 찾을 수 없음", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
     @DeleteMapping("/api/my-places/{savedPlaceId}")
     public ResponseEntity<DeleteSavedPlaceResponse> deleteSavedPlace(@PathVariable Long savedPlaceId) {
         DeleteSavedPlaceResponse response = placeService.deleteSavedPlace(savedPlaceId);
