@@ -58,13 +58,7 @@ public class CommentService {
         List<CommentSearchResponse> responses = parentComments.stream()
                 .map(comment -> CommentSearchResponse.from(comment, loginMember))
                 .toList();
-
-        Meta meta = new Meta(
-                (int) parentComments.getTotalElements(),
-                parentComments.getNumber() + 1,
-                parentComments.getSize(),
-                parentComments.hasNext()
-        );
+        Meta meta = Meta.from(parentComments);
 
         return new PaginatedResponse<>(responses, meta);
     }
