@@ -54,14 +54,15 @@ public class Comment {
     @OneToMany(mappedBy = "parentComment", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Comment> childComments = new ArrayList<>();
 
-    public Comment(String content, Member member, Course course, Comment parentComment) {
-        this.content = content;
-        this.member = member;
-        this.course = course;
-        this.parentComment = parentComment;
-        this.createdDate = LocalDateTime.now();
-        this.likeCount = 0;
-        this.isDeleted = false;
+    public static Comment createComment(String content, Member loginMember, Course course, Comment parentComment) {
+        Comment comment = new Comment();
+        comment.content = content;
+        comment.member = loginMember;
+        comment.course = course;
+        comment.parentComment = parentComment;
+        comment.createdDate = LocalDateTime.now();
+        comment.likeCount = 0;
+        comment.isDeleted = false;
     }
 
     public void addChildComment(Comment child) {

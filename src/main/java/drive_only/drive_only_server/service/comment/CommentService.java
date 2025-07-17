@@ -41,8 +41,7 @@ public class CommentService {
     public CommentCreateResponse createComment(Long courseId, CommentCreateRequest request) {
         Course course = findCourse(courseId);
         Member loginMember = getLoginMember();
-
-        Comment comment = new Comment(request.content(), loginMember, course, null);
+        Comment comment = Comment.createComment(request.content(), loginMember, course, null);
 
         if (request.parentCommentId() != null) {
             Comment parentComment = findParentComment(request.parentCommentId());
