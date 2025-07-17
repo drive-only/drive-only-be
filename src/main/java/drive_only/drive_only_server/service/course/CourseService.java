@@ -18,7 +18,6 @@ import drive_only.drive_only_server.dto.tag.TagResponse;
 import drive_only.drive_only_server.repository.category.CategoryRepository;
 import drive_only.drive_only_server.repository.coursePlace.CoursePlaceRepository;
 import drive_only.drive_only_server.repository.course.CourseRepository;
-import drive_only.drive_only_server.repository.member.MemberRepository;
 import drive_only.drive_only_server.repository.photo.PhotoRepository;
 import drive_only.drive_only_server.repository.place.PlaceRepository;
 import drive_only.drive_only_server.repository.tag.TagRepository;
@@ -138,7 +137,7 @@ public class CourseService {
     private CoursePlace createCoursePlace(CoursePlaceCreateRequest request, Place place) {
         List<Photo> photos = createPhotos(request);
         CoursePlace coursePlace = new CoursePlace(
-                request.name(),
+                request.placeName(),
                 request.placeType(),
                 request.content(),
                 photos,
