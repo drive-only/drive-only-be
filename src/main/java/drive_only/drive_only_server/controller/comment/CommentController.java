@@ -38,7 +38,7 @@ public class CommentController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
     })
     @GetMapping("/api/courses/{courseId}/comments")
-    public ResponseEntity<PaginatedResponse<CommentSearchResponse>> searchComments(
+    public ResponseEntity<PaginatedResponse<CommentSearchResponse>> getComments(
             @PathVariable Long courseId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
