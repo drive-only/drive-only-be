@@ -1,7 +1,6 @@
 package drive_only.drive_only_server.service.course;
 
 import drive_only.drive_only_server.domain.*;
-import drive_only.drive_only_server.dto.category.CategoryResponse;
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
 import drive_only.drive_only_server.dto.course.create.CourseCreateRequest;
 import drive_only.drive_only_server.dto.course.create.CourseCreateResponse;
@@ -10,11 +9,8 @@ import drive_only.drive_only_server.dto.course.detailSearch.CourseDetailSearchRe
 import drive_only.drive_only_server.dto.course.search.CourseSearchRequest;
 import drive_only.drive_only_server.dto.course.search.CourseSearchResponse;
 import drive_only.drive_only_server.dto.coursePlace.create.CoursePlaceCreateRequest;
-import drive_only.drive_only_server.dto.coursePlace.search.CoursePlaceSearchResponse;
 import drive_only.drive_only_server.dto.coursePlace.update.CoursePlaceUpdateResponse;
 import drive_only.drive_only_server.dto.meta.Meta;
-import drive_only.drive_only_server.dto.photo.PhotoResponse;
-import drive_only.drive_only_server.dto.tag.TagResponse;
 import drive_only.drive_only_server.repository.category.CategoryRepository;
 import drive_only.drive_only_server.repository.coursePlace.CoursePlaceRepository;
 import drive_only.drive_only_server.repository.course.CourseRepository;
@@ -27,7 +23,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +30,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class CourseService {
+    private static final String SUCCESS_CREATE = "게시글이 성공적으로 등록되었습니다.";
+    private static final String SUCCESS_UPDATE = "게시글이 성공적으로 수정되었습니다.";
+    private static final String SUCCESS_DELETE = "게시글이 성공적으로 삭제되었습니다.";
+
     private final CourseRepository courseRepository;
     private final PlaceRepository placeRepository;
     private final CoursePlaceRepository coursePlaceRepository;
@@ -46,28 +45,27 @@ public class CourseService {
     @Transactional
     public CourseCreateResponse createCourse(CourseCreateRequest request) {
         List<CoursePlace> coursePlaces = createCoursePlaces(request);
-        Member loginMember = loginMemberProvider.getLoginMember()
-                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
-        Category category = createCategory(request);
-        List<Tag> tags = createTag(request);
-        Course course = createCourse(request, loginMember, coursePlaces, category, tags);
-        return new CourseCreateResponse(course.getId(), "게시글이 성공적으로 등록되었습니다.");
+        Member loginMember = getLoginMember();
+        Category category = getCategory(request);
+        List<Tag> tags = getTags(request);
+
+        Course course = Course.createCourse(
+                request.title(), LocalDate.now(), request.recommendation(), request.difficulty(),
+                0, 0, 0, false,
+                loginMember, category, coursePlaces, tags
+        );
+        courseRepository.save(course);
+
+        return new CourseCreateResponse(course.getId(), SUCCESS_CREATE);
     }
 
     public PaginatedResponse<CourseSearchResponse> searchCourses(CourseSearchRequest request, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Course> courses = courseRepository.searchCourses(request, pageable);
-
+        Page<Course> courses = courseRepository.searchCourses(request, PageRequest.of(page, size));
         List<CourseSearchResponse> responses = courses.stream()
-                .map(this::createCourseSearchResponse)
+                .map(CourseSearchResponse::from)
                 .toList();
 
-        Meta meta = new Meta(
-                (int) courses.getTotalElements(),
-                courses.getNumber() + 1,
-                courses.getSize(),
-                courses.hasNext()
-        );
+        Meta meta = Meta.from(courses);
 
         return new PaginatedResponse<>(responses, meta);
     }
@@ -75,60 +73,32 @@ public class CourseService {
     public CourseDetailSearchResponse searchCourseDetail(Long courseId) {
         Course course = findCourse(courseId);
         List<CoursePlace> coursePlaces = coursePlaceRepository.findByCourse(course);
-
-        return new CourseDetailSearchResponse(
-                course.getId(),
-                course.getTitle(),
-                course.getMember().getProfileImageUrl(),
-                course.getMember().getNickname(),
-                course.getCreatedDate(),
-                createCategoryResponse(course),
-                createTagResponse(course),
-                createCoursePlaceSearchResponse(coursePlaces),
-                course.getRecommendation(),
-                course.getDifficulty(),
-                course.getLikeCount(),
-                course.getViewCount(),
-                course.isLiked()
-        );
+        return CourseDetailSearchResponse.from(course, coursePlaces);
     }
 
     @Transactional
     public CoursePlaceUpdateResponse updateCourse(Long courseId, CourseCreateRequest request) {
         Course course = findCourse(courseId);
-        Category newCategory = createCategory(request);
+        Category newCategory = getCategory(request);
         List<CoursePlace> newCoursePlaces = createCoursePlaces(request);
-        List<Tag> newTags = createTag(request);
+        List<Tag> newTags = getTags(request);
+
         course.update(request, newCategory, newCoursePlaces, newTags);
-        return new CoursePlaceUpdateResponse(course.getId(), "게시글이 성공적으로 수정되었습니다.");
+
+        return new CoursePlaceUpdateResponse(course.getId(), SUCCESS_UPDATE);
     }
 
     @Transactional
     public CourseDeleteResponse deleteCourse(Long courseId) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 게시글을 찾을 수 없습니다."));
+        Course course = findCourse(courseId);
         courseRepository.delete(course);
-        return new CourseDeleteResponse(courseId, "게시글이 성공적으로 삭제되었습니다.");
-    }
-
-    private Course createCourse(CourseCreateRequest request, Member member, List<CoursePlace> coursePlaces, Category category, List<Tag> tags) {
-        Course course = Course.createCourse(
-                request.title(),
-                LocalDate.now(),
-                request.recommendation(), request.difficulty(),
-                0, 0, 0, false,
-                member,
-                category,
-                coursePlaces,
-                tags
-        );
-        return courseRepository.save(course);
+        return new CourseDeleteResponse(courseId, SUCCESS_DELETE);
     }
 
     private List<CoursePlace> createCoursePlaces(CourseCreateRequest request) {
         return request.coursePlaces().stream()
                 .map(coursePlaceCreateRequest -> {
-                    Place place = findPlace(coursePlaceCreateRequest);
+                    Place place = findPlace(Long.parseLong(coursePlaceCreateRequest.placeId()));
                     return createCoursePlace(coursePlaceCreateRequest, place);
                 })
                 .toList();
@@ -149,16 +119,14 @@ public class CourseService {
     }
 
     private List<Photo> createPhotos(CoursePlaceCreateRequest request) {
-        return request.photoUrls().stream()
-                .map(photoRequest -> {
-                    Photo photo = new Photo(photoRequest.photoUrl());
-                    photoRepository.save(photo);
-                    return photo;
-                })
+        List<Photo> photos = request.photoUrls().stream()
+                .map(photoRequest -> new Photo(photoRequest.photoUrl()))
                 .toList();
+        photoRepository.saveAll(photos);
+        return photos;
     }
 
-    private Category createCategory(CourseCreateRequest request) {
+    private Category getCategory(CourseCreateRequest request) {
         Category category = new Category(
                 request.region(),
                 request.subRegion(),
@@ -170,84 +138,21 @@ public class CourseService {
         return categoryRepository.save(category);
     }
 
-    private List<Tag> createTag(CourseCreateRequest request) {
-        return request.tags().stream()
-                .map(tagRequest -> {
-                    Tag tag = new Tag(tagRequest.tagName());
-                    tagRepository.save(tag);
-                    return tag;
-                })
+    private List<Tag> getTags(CourseCreateRequest request) {
+        List<Tag> tags = request.tags().stream()
+                .map(tagRequest -> new Tag(tagRequest.tagName()))
                 .toList();
+        tagRepository.saveAll(tags);
+        return tags;
     }
 
-    private CourseSearchResponse createCourseSearchResponse(Course course) {
-        return new CourseSearchResponse(
-                course.getId(),
-                course.getMember().getNickname(),
-                String.valueOf(course.getCreatedDate()),
-                course.getTitle(),
-                getCourseThumbnailUrl(course),
-                getCoursePlaceNames(course),
-                createCategoryResponse(course),
-                course.getLikeCount(),
-                course.getViewCount()
-        );
+    private Member getLoginMember() {
+        return loginMemberProvider.getLoginMember()
+                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
     }
 
-    private String getCourseThumbnailUrl(Course course) {
-        return course.getCoursePlaces().get(0).getPhotos().get(0).getUrl();
-    }
-
-    private List<String> getCoursePlaceNames(Course course) {
-        return course.getCoursePlaces().stream()
-                .map(CoursePlace::getName)
-                .toList();
-    }
-
-    private List<CoursePlaceSearchResponse> createCoursePlaceSearchResponse(List<CoursePlace> coursePlaces) {
-        return coursePlaces.stream()
-                .map(coursePlace -> {
-                    return new CoursePlaceSearchResponse(
-                            coursePlace.getId(),
-                            coursePlace.getPlace().getId(),
-                            coursePlace.getPlaceType(),
-                            coursePlace.getName(),
-                            coursePlace.getPlace().getAddress(),
-                            coursePlace.getContent(),
-                            createPhotoResponse(coursePlace),
-                            coursePlace.getPlace().getLat(),
-                            coursePlace.getPlace().getLng(),
-                            coursePlace.getSequence()
-                    );
-                })
-                .toList();
-    }
-
-    private List<PhotoResponse> createPhotoResponse(CoursePlace coursePlace) {
-        return coursePlace.getPhotos().stream()
-                .map(photo -> new PhotoResponse(photo.getId(), photo.getUrl()))
-                .toList();
-    }
-
-    private List<TagResponse> createTagResponse(Course course) {
-        return course.getTags().stream()
-                .map(tag -> new TagResponse(tag.getId(), tag.getName()))
-                .toList();
-    }
-
-    private CategoryResponse createCategoryResponse(Course course) {
-        return new CategoryResponse(
-                course.getCategory().getRegion(),
-                course.getCategory().getSubRegion(),
-                course.getCategory().getSeason(),
-                course.getCategory().getTime(),
-                course.getCategory().getTheme(),
-                course.getCategory().getAreaType()
-        );
-    }
-
-    private Place findPlace(CoursePlaceCreateRequest coursePlaceCreateRequest) {
-        return placeRepository.findById(Long.parseLong(coursePlaceCreateRequest.placeId()))
+    private Place findPlace(Long placeId) {
+        return placeRepository.findById(placeId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
     }
 
