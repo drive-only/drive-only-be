@@ -60,14 +60,10 @@ public class PlaceService {
         List<CoursePlace> coursePlaces = course.getCoursePlaces();
         int coursePlaceCount = coursePlaces.size();
         List<Integer> distribution = getDistribution(coursePlaceCount);
-        List<Integer> contentTypeIds = getContentTypeIds(type);
         List<NearbyPlacesResponse> results = new ArrayList<>();
 
         for (int i = 0; i < coursePlaceCount; i++) {
-            CoursePlace coursePlace = coursePlaces.get(i);
-            int numOfRows = distribution.get(i);
-            List<PlaceSearchResponse> combinedSearchResults = getPlaceSearchResponses(contentTypeIds, coursePlace, numOfRows);
-            results.add(NearbyPlacesResponse.from(coursePlace, combinedSearchResults));
+            results.add(createNearbyPlacesResponse(coursePlaces.get(i), getContentTypeId(type), distribution.get(i)));
         }
 
         return new PaginatedResponse<>(results, null);
@@ -115,25 +111,23 @@ public class PlaceService {
         };
     }
 
-    private List<Integer> getContentTypeIds(String type) {
+    private int getContentTypeId(String type) {
         return switch (type) {
-            case "tourist-spot" -> List.of(12,14,38);
-            case "restaurant" -> List.of(39);
+            case "tourist-spot" -> 12;
+            case "restaurant" -> 39;
             default -> throw new IllegalArgumentException("지원하지 않는 장소 타입입니다.");
         };
     }
 
-    private List<PlaceSearchResponse> getPlaceSearchResponses(List<Integer> contentTypeIds, CoursePlace coursePlace, int numOfRows) {
-        List<PlaceSearchResponse> combinedSearchResults = new ArrayList<>();
+    private NearbyPlacesResponse createNearbyPlacesResponse(CoursePlace coursePlace, int contentTypeId, int numOfRows) {
+        Double mapX = coursePlace.getPlace().getLat();
+        Double mapY = coursePlace.getPlace().getLng();
 
-        for (Integer contentTypeId : contentTypeIds) {
-            Double mapX = coursePlace.getPlace().getLat();
-            Double mapY = coursePlace.getPlace().getLng();
-            List<Item> items = getNearbyPlaces(contentTypeId, mapX, mapY, numOfRows)
-                    .response().body().items().item();
-            combinedSearchResults.addAll(createPlaceSearchResponses(items));
-        }
-        return combinedSearchResults;
+        List<Item> nearbyItems = getNearbyPlaces(contentTypeId, mapX, mapY, numOfRows)
+                .response().body().items().item();
+        List<PlaceSearchResponse> searchResponses = createPlaceSearchResponses(nearbyItems);
+
+        return NearbyPlacesResponse.from(coursePlace, searchResponses);
     }
 
     private NearbyPlaceTourApiResponse getNearbyPlaces(int contentTypeId, Double mapX, Double mapY, int numOfRows) {
