@@ -125,8 +125,8 @@ public class Course {
         this.difficulty = request.difficulty();
         this.category = newCategory;
         this.coursePlaces.clear();
-        newCoursePlaces.stream().forEach(this::addCoursePlace);
+        newCoursePlaces.forEach(this::addCoursePlace);
         this.tags.clear();
-        newTags.stream().forEach(this::addTag);
+        newTags.forEach(this::addTag);
     }
 }

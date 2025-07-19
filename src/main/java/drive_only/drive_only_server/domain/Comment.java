@@ -1,6 +1,7 @@
 package drive_only.drive_only_server.domain;
 
 import drive_only.drive_only_server.dto.comment.update.CommentUpdateRequest;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -50,17 +51,19 @@ public class Comment {
     @JoinColumn(name = "parent_id")
     private Comment parentComment;
 
-    @OneToMany(mappedBy = "parentComment", orphanRemoval = true)
+    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Comment> childComments = new ArrayList<>();
 
-    public Comment(String content, Member member, Course course, Comment parentComment) {
-        this.content = content;
-        this.member = member;
-        this.course = course;
-        this.parentComment = parentComment;
-        this.createdDate = LocalDateTime.now();
-        this.likeCount = 0;
-        this.isDeleted = false;
+    public static Comment createComment(String content, Member loginMember, Course course, Comment parentComment) {
+        Comment comment = new Comment();
+        comment.content = content;
+        comment.member = loginMember;
+        comment.course = course;
+        comment.parentComment = parentComment;
+        comment.createdDate = LocalDateTime.now();
+        comment.likeCount = 0;
+        comment.isDeleted = false;
+        return comment;
     }
 
     public void addChildComment(Comment child) {
@@ -68,11 +71,16 @@ public class Comment {
         child.parentComment = this;
     }
 
-
-    public void setMember(Member member) { this.member = member; } //Member 연관 관계 편의 메소드 때문에 만들었음
-
     public void update(CommentUpdateRequest request) {
         this.content = request.content();
         this.createdDate = LocalDateTime.now();
+    }
+
+    public void clearChildComments() {
+        this.childComments.clear();
+    }
+
+    public void setMember(Member member) {
+        this.member = member;
     }
 }

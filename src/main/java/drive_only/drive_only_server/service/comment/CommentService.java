@@ -29,6 +29,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @Slf4j
 public class CommentService {
+    private static final String SUCCESS_CREATE ="댓글이 성공적으로 등록되었습니다.";
+    private static final String SUCCESS_UPDATE ="댓글이 성공적으로 수정되었습니다.";
+    private static final String SUCCESS_DELETE ="댓글이 성공적으로 삭제되었습니다.";
+
     private final CourseRepository courseRepository;
     private final CommentRepository commentRepository;
     private final LoginMemberProvider loginMemberProvider;
@@ -36,73 +40,67 @@ public class CommentService {
     @Transactional
     public CommentCreateResponse createComment(Long courseId, CommentCreateRequest request) {
         Course course = findCourse(courseId);
-        Member loginMember = loginMemberProvider.getLoginMember()
-                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
-        Comment comment = new Comment(request.content(), loginMember, course, null);
+        Member loginMember = getLoginMember();
+        Comment comment = Comment.createComment(request.content(), loginMember, course, null);
 
         if (request.parentCommentId() != null) {
-            Comment parentComment = commentRepository.findById(request.parentCommentId())
-                    .orElseThrow(() -> new IllegalArgumentException("부모 댓글을 찾을 수 없습니다."));
+            Comment parentComment = findParentComment(request.parentCommentId());
             parentComment.addChildComment(comment);
         }
+
         commentRepository.save(comment);
 
-        return new CommentCreateResponse(comment.getId(), "댓글이 성공적으로 등록되었습니다.");
+        return new CommentCreateResponse(comment.getId(), SUCCESS_CREATE);
     }
 
     public PaginatedResponse<CommentSearchResponse> searchComments(Long courseId, int page, int size) {
-        Optional<Member> loginMember = loginMemberProvider.getLoginMemberIfExists();
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Comment> parentComments = commentRepository.findParentCommentsByCourseId(courseId, pageable);
+        Member loginMember = getLoginMemberIfExists();
+        Page<Comment> parentComments = commentRepository.findParentCommentsByCourseId(courseId, PageRequest.of(page, size));
         List<CommentSearchResponse> responses = parentComments.stream()
-                .map(comment -> createCommentResponse(comment, loginMember.orElse(null)))
+                .map(comment -> CommentSearchResponse.from(comment, loginMember))
                 .toList();
 
-        Boolean hasNext = parentComments.hasNext();
-        int total = (int) parentComments.getTotalElements();
-        Meta meta = new Meta(total, page + 1, size, hasNext);
+        Meta meta = Meta.from(parentComments);
 
         return new PaginatedResponse<>(responses, meta);
     }
 
     @Transactional
     public CommentUpdateResponse updateComment(Long commentId, CommentUpdateRequest request) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다."));
+        Comment comment = findComment(commentId);
         comment.update(request);
-        return new CommentUpdateResponse(comment.getId(), "댓글이 성공적으로 수정되었습니다.");
+        return new CommentUpdateResponse(comment.getId(), SUCCESS_UPDATE);
     }
 
     @Transactional
     public CommentDeleteResponse deleteComment(Long commentId) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다."));
-        if (comment.getChildComments() != null) {
-            comment.getChildComments().clear();
-        }
+        Comment comment = findComment(commentId);
+        comment.clearChildComments();
         commentRepository.delete(comment);
-        return new CommentDeleteResponse(comment.getId(), "댓글이 성공적으로 삭제되었습니다.");
+        return new CommentDeleteResponse(comment.getId(), SUCCESS_DELETE);
     }
 
-    private CommentSearchResponse createCommentResponse(Comment comment, Member loginMember) {
-        boolean isMine = loginMember != null && comment.getMember().equals(loginMember);
-        return new CommentSearchResponse(
-                comment.getId(),
-                comment.getMember().getId(),
-                comment.getMember().getNickname(),
-                comment.getContent(),
-                comment.getCreatedDate(), // LocalDate -> LocalDateTime 변환 참고
-                comment.getLikeCount(),
-                isMine,
-                comment.isDeleted(),
-                comment.getChildComments().stream()
-                        .map(child -> createCommentResponse(child, loginMember))
-                        .toList()
-        );
+    private Member getLoginMember() {
+        return loginMemberProvider.getLoginMember()
+                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
+    }
+
+    private Member getLoginMemberIfExists() {
+        return loginMemberProvider.getLoginMemberIfExists().orElse(null);
     }
 
     private Course findCourse(Long courseId) {
         return courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 코스(게시글)을 찾을 수 없습니다."));
+    }
+
+    private Comment findComment(Long commentId) {
+        return commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다."));
+    }
+
+    private Comment findParentComment(Long parentCommentId) {
+        return commentRepository.findById(parentCommentId)
+                .orElseThrow(() -> new IllegalArgumentException("부모 댓글을 찾을 수 없습니다."));
     }
 }

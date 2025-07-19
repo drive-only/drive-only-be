@@ -21,6 +21,7 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
     public Page<Comment> findParentCommentsByCourseId(Long courseId, Pageable pageable) {
         List<Comment> content = queryFactory
                 .selectFrom(comment)
+                .distinct()
                 .join(comment.member).fetchJoin()
                 .where(
                         comment.course.id.eq(courseId),

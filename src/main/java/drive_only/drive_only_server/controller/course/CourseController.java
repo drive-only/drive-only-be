@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,18 +32,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class CourseController {
     private final CourseService courseService;
 
-    @Operation(summary = "코스(게시글) 등록", description = "새로운 드라이브 코스(게시글)를 등록")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "코스가 등록 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
-    })
-    @PostMapping("/api/courses")
-    public ResponseEntity<CourseCreateResponse> createCourse(@RequestBody CourseCreateRequest request) {
-        CourseCreateResponse response = courseService.createCourse(request);
-        return ResponseEntity.ok().body(response);
-    }
-
     @Operation(summary = "코스(게시글) 리스트 조회", description = "조건에 따른 드라이브 코스(게시글) 목록을 조회")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "코스 리스트 조회 성공"),
@@ -50,7 +39,7 @@ public class CourseController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
     })
     @GetMapping("/api/courses")
-    public ResponseEntity<PaginatedResponse<CourseSearchResponse>> searchCourses(
+    public ResponseEntity<PaginatedResponse<CourseSearchResponse>> getCourses(
             CourseSearchRequest request,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -66,8 +55,20 @@ public class CourseController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
     })
     @GetMapping("/api/courses/{courseId}")
-    public ResponseEntity<CourseDetailSearchResponse> searchCourseDetail(@PathVariable Long courseId) {
+    public ResponseEntity<CourseDetailSearchResponse> searchCourseDetails(@PathVariable Long courseId) {
         CourseDetailSearchResponse response = courseService.searchCourseDetail(courseId);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "코스(게시글) 등록", description = "새로운 드라이브 코스(게시글)를 등록")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "코스가 등록 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
+    @PostMapping("/api/courses")
+    public ResponseEntity<CourseCreateResponse> createCourse(@Valid @RequestBody CourseCreateRequest request) {
+        CourseCreateResponse response = courseService.createCourse(request);
         return ResponseEntity.ok().body(response);
     }
 

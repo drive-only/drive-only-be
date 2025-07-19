@@ -34,7 +34,7 @@ public class PlaceController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
     })
     @GetMapping("/api/places")
-    public ResponseEntity<PaginatedResponse<PlaceSearchResponse>> searchPlaces(
+    public ResponseEntity<PaginatedResponse<PlaceSearchResponse>> getPlaces(
             PlaceSearchRequest request,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -50,7 +50,7 @@ public class PlaceController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
     })
     @GetMapping("/api/courses/{courseId}/nearby-places")
-    public ResponseEntity<PaginatedResponse<NearbyPlacesResponse>> searchNearbyPlaces(
+    public ResponseEntity<PaginatedResponse<NearbyPlacesResponse>> getNearbyPlaces(
             @PathVariable Long courseId,
             @RequestParam(defaultValue = "tourist-spot") String type
     ) {
@@ -65,7 +65,7 @@ public class PlaceController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
     })
     @GetMapping("/api/my-places")
-    public ResponseEntity<PaginatedResponse<PlaceSearchResponse>> searchSavedPlaces() {
+    public ResponseEntity<PaginatedResponse<PlaceSearchResponse>> getSavedPlaces() {
         PaginatedResponse<PlaceSearchResponse> response = placeService.searchSavedPlaces();
         return ResponseEntity.ok().body(response);
     }
