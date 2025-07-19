@@ -63,6 +63,7 @@ public class Comment {
         comment.createdDate = LocalDateTime.now();
         comment.likeCount = 0;
         comment.isDeleted = false;
+        return comment;
     }
 
     public void addChildComment(Comment child) {

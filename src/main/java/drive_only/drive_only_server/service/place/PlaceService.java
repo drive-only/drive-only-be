@@ -16,19 +16,15 @@ import drive_only.drive_only_server.dto.place.search.PlaceSearchRequest;
 import drive_only.drive_only_server.dto.place.search.PlaceSearchResponse;
 import drive_only.drive_only_server.repository.course.CourseRepository;
 import drive_only.drive_only_server.repository.course.SavedPlaceRepository;
-import drive_only.drive_only_server.repository.member.MemberRepository;
 import drive_only.drive_only_server.repository.place.PlaceRepository;
 import drive_only.drive_only_server.security.LoginMemberProvider;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -37,6 +33,11 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class PlaceService {
+    private static final int DEFAULT_RADIUS = 3000;
+    private static final int DEFAULT_PAGE_NO = 1;
+    private static final String SUCCESS_CREATE = "해당 장소가 성공적으로 저장되었습니다.";
+    private static final String SUCCESS_DELETE = "저장된 장소를 성공적으로 삭제했습니다.";
+
     @Value("${tourapi.service-key}")
     private String tourApiServiceKey;
     private final WebClient webClient;
@@ -44,23 +45,13 @@ public class PlaceService {
     private final CourseRepository courseRepository;
     private final SavedPlaceRepository savedPlaceRepository;
     private final LoginMemberProvider loginMemberProvider;
-    private static final int DEFAULT_RADIUS = 3000;
-    private static final int DEFAULT_PAGE_NO = 1;
 
     public PaginatedResponse<PlaceSearchResponse> searchPlaces(PlaceSearchRequest request, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Place> places = placeRepository.searchPlaces(request, pageable);
+        Page<Place> places = placeRepository.searchPlaces(request, PageRequest.of(page, size));
         List<PlaceSearchResponse> responses = places.stream()
-                .map(this::createPlaceSearchResponse)
+                .map(PlaceSearchResponse::from)
                 .toList();
-
-        Meta meta = new Meta(
-                (int) places.getTotalElements(),
-                places.getNumber() + 1,
-                places.getSize(),
-                places.hasNext()
-        );
-
+        Meta meta = Meta.from(places);
         return new PaginatedResponse<>(responses, meta);
     }
 
@@ -69,23 +60,26 @@ public class PlaceService {
         List<CoursePlace> coursePlaces = course.getCoursePlaces();
         int coursePlaceCount = coursePlaces.size();
         List<Integer> distribution = getDistribution(coursePlaceCount);
-        int contentTypeId = getContentTypeId(type);
+        List<Integer> contentTypeIds = getContentTypeIds(type);
         List<NearbyPlacesResponse> results = new ArrayList<>();
 
-        for (int i = 0; i < coursePlaces.size(); i++) {
-            results.add(createNearbyPlacesResponse(coursePlaces.get(i), contentTypeId, distribution.get(i)));
+        for (int i = 0; i < coursePlaceCount; i++) {
+            CoursePlace coursePlace = coursePlaces.get(i);
+            int numOfRows = distribution.get(i);
+            List<PlaceSearchResponse> combinedSearchResults = getPlaceSearchResponses(contentTypeIds, coursePlace, numOfRows);
+            results.add(NearbyPlacesResponse.from(coursePlace, combinedSearchResults));
         }
+
         return new PaginatedResponse<>(results, null);
     }
 
     public PaginatedResponse<PlaceSearchResponse> searchSavedPlaces() {
-        Member member = loginMemberProvider.getLoginMember()
-                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
+        Member member = getLoginMember();
         List<SavedPlace> savedPlaces = savedPlaceRepository.findByMember(member);
         List<PlaceSearchResponse> results = savedPlaces.stream()
                 .map(savedPlace -> {
                     Place place = savedPlace.getPlace();
-                    return createPlaceSearchResponse(place);
+                    return PlaceSearchResponse.from(place);
                 })
                 .toList();
         return new PaginatedResponse<>(results, null);
@@ -93,25 +87,21 @@ public class PlaceService {
 
     @Transactional
     public SavePlaceResponse savePlace(Long placeId) {
-        Member member = loginMemberProvider.getLoginMember()
-                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
-        Place place = placeRepository.findById(placeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
-
+        Member member = getLoginMember();
+        Place place = findPlaceById(placeId);
         SavedPlace savedPlace = savedPlaceRepository.save(new SavedPlace(member, place));
-        return new SavePlaceResponse(savedPlace.getId(), "해당 장소가 성공적으로 저장되었습니다.");
+        return new SavePlaceResponse(savedPlace.getId(), SUCCESS_CREATE);
     }
 
     @Transactional
     public DeleteSavedPlaceResponse deleteSavedPlace(Long savedPlaceId) {
-        Member member = loginMemberProvider.getLoginMember()
-                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
+        Member member = getLoginMember();
         SavedPlace savedPlace = member.getSavedPlaces().stream()
                 .filter(sp -> sp.getId().equals(savedPlaceId))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("저장되지 않은 장소입니다."));
         savedPlaceRepository.delete(savedPlace);
-        return new DeleteSavedPlaceResponse(savedPlace.getId(), "저장된 장소를 성공적으로 삭제했습니다.");
+        return new DeleteSavedPlaceResponse(savedPlace.getId(), SUCCESS_DELETE);
     }
 
     private List<Integer> getDistribution(int coursePlaceCount) {
@@ -121,32 +111,29 @@ public class PlaceService {
             case 3 -> List.of(2, 2, 1);
             case 4 -> List.of(2, 1, 1, 1);
             case 5 -> List.of(1, 1, 1, 1, 1);
-            default -> throw new IllegalArgumentException("코스는 1개 이상 5개 이하이어야 합니다. coursePlaceCount: " + coursePlaceCount);
+            default -> throw new IllegalArgumentException("코스는 1개 이상 5개 이하이어야 합니다. 코스 개수: " + coursePlaceCount);
         };
     }
 
-    private int getContentTypeId(String type) {
+    private List<Integer> getContentTypeIds(String type) {
         return switch (type) {
-            case "tourist-spot" -> 12;
-            case "restaurant" -> 39;
+            case "tourist-spot" -> List.of(12,14,38);
+            case "restaurant" -> List.of(39);
             default -> throw new IllegalArgumentException("지원하지 않는 장소 타입입니다.");
         };
     }
 
-    private NearbyPlacesResponse createNearbyPlacesResponse(CoursePlace coursePlace, int contentTypeId, int numOfRows) {
-        Double mapX = coursePlace.getPlace().getLat();
-        Double mapY = coursePlace.getPlace().getLng();
+    private List<PlaceSearchResponse> getPlaceSearchResponses(List<Integer> contentTypeIds, CoursePlace coursePlace, int numOfRows) {
+        List<PlaceSearchResponse> combinedSearchResults = new ArrayList<>();
 
-        List<Item> nearbyItems = getNearbyPlaces(contentTypeId, mapX, mapY, numOfRows)
-                .response().body().items().item();
-        List<PlaceSearchResponse> searchResponses = createPlaceSearchResponses(nearbyItems);
-
-        return new NearbyPlacesResponse(
-                coursePlace.getId(),
-                coursePlace.getPlace().getId(),
-                coursePlace.getPlace().getName(),
-                searchResponses
-        );
+        for (Integer contentTypeId : contentTypeIds) {
+            Double mapX = coursePlace.getPlace().getLat();
+            Double mapY = coursePlace.getPlace().getLng();
+            List<Item> items = getNearbyPlaces(contentTypeId, mapX, mapY, numOfRows)
+                    .response().body().items().item();
+            combinedSearchResults.addAll(createPlaceSearchResponses(items));
+        }
+        return combinedSearchResults;
     }
 
     private NearbyPlaceTourApiResponse getNearbyPlaces(int contentTypeId, Double mapX, Double mapY, int numOfRows) {
@@ -173,35 +160,16 @@ public class PlaceService {
 
     private List<PlaceSearchResponse> createPlaceSearchResponses(List<Item> nearbyPlaces) {
         return nearbyPlaces.stream()
-                .map(place -> {
-                    Place findPlace = findPlace(place);
-                    return createPlaceSearchResponse(findPlace);
+                .map(nearbyPlace -> {
+                    Place place = findPlaceByContentId(nearbyPlace);
+                    return PlaceSearchResponse.from(place);
                 })
                 .toList();
     }
 
-    private PlaceSearchResponse createPlaceSearchResponse(Place place) {
-        return new PlaceSearchResponse(
-                place.getId(),
-                getType(place.getContentTypeId()),
-                place.getName(),
-                place.getThumbNailUrl(),
-                place.getUseTime(),
-                place.getRestDate(),
-                place.getPhoneNum(),
-                place.getLat(),
-                place.getLng()
-        );
-    }
-
-    private String getType(int contentTypeId) {
-        if (contentTypeId == 12 || contentTypeId == 14 || contentTypeId ==38) {
-            return "tourist-spot";
-        }
-        if (contentTypeId == 39) {
-            return "restaurant";
-        }
-        return "";
+    private Member getLoginMember() {
+        return loginMemberProvider.getLoginMember()
+                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
     }
 
     private Course findCourse(Long courseId) {
@@ -209,8 +177,13 @@ public class PlaceService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 코스를 찾을 수 없습니다."));
     }
 
-    private Place findPlace(Item place) {
+    private Place findPlaceByContentId(Item place) {
         return placeRepository.findByContentId(Integer.parseInt(place.contentid()))
+                .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
+    }
+
+    private Place findPlaceById(Long placeId) {
+        return placeRepository.findById(placeId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
     }
 }
