@@ -7,6 +7,11 @@ import drive_only.drive_only_server.dto.oauth.OAuthUserInfo;
 import drive_only.drive_only_server.security.JwtTokenProvider;
 import drive_only.drive_only_server.service.Member.MemberService;
 import drive_only.drive_only_server.service.oauth.OAuth2UserInfoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,14 +21,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/login")
+@Tag(name = "로그인", description = "로그인 관련 API")
 public class AuthController {
 
     private final OAuth2UserInfoService oAuth2UserInfoService;
     private final MemberService memberService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    @PostMapping
+    @Operation(summary = "로그인", description = "로그인 요청")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "로그인 성공"),
+            @ApiResponse(responseCode = "401", description = "유효하지 않은 JWT access token", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
+    @PostMapping("/api/login")
     public ResponseEntity<TokenResponse> socialLogin(@RequestBody SocialLoginRequest request) {
         OAuthUserInfo userInfo;
 
