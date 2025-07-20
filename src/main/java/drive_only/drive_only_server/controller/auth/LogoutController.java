@@ -2,11 +2,15 @@ package drive_only.drive_only_server.controller.auth;
 
 import drive_only.drive_only_server.security.JwtTokenProvider;
 import drive_only.drive_only_server.service.auth.LogoutService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
@@ -14,12 +18,20 @@ import java.util.Date;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/logout")
+@Tag(name = "로그아웃", description = "로그아웃 관련 API")
 public class LogoutController {
     private final LogoutService logoutService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    @PostMapping
+    @Operation(summary = "로그아웃", description = "로그아웃 요청")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "로그아웃 성공"),
+            @ApiResponse(responseCode = "400", description = "소셜 access token 누락 또는 provider 잘못됨", content = @Content),
+            @ApiResponse(responseCode = "401", description = "유효하지 않은 JWT access token", content = @Content),
+            @ApiResponse(responseCode = "403", description = "이미 로그아웃 되었거나 무효한 사용자", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
+    @PostMapping("/api/logout")
     public ResponseEntity<Void> logout(@RequestHeader("Authorization") String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.badRequest().build();
