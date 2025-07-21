@@ -12,8 +12,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -51,5 +51,27 @@ public class MemberController {
         );
 
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "회원 탈퇴", description = "현재 로그인한 회원 탈퇴")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "회원 탈퇴 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
+            @ApiResponse(responseCode = "401", description = "유효하지 않은 JWT access token", content = @Content),
+            @ApiResponse(responseCode = "404", description = "회원 정보 없음", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
+    @DeleteMapping("/api/members/me")
+    public ResponseEntity<Void> deleteMyAccount(Authentication authentication) {
+        String email = (String) authentication.getPrincipal();
+        String providerString = authentication.getAuthorities().stream()
+                .findFirst()
+                .map(a -> a.getAuthority())
+                .orElse("KAKAO");
+        ProviderType provider = ProviderType.valueOf(providerString.toUpperCase());
+
+        memberService.deleteMemberByEmailAndProvider(email, provider);
+
+        return ResponseEntity.noContent().build(); // 204 No Content
     }
 }

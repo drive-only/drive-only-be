@@ -33,4 +33,11 @@ public class MemberService {
         return memberRepository.findByEmailAndProvider(email, provider)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
     }
+
+    @Transactional
+    public void deleteMemberByEmailAndProvider(String email, ProviderType provider) {
+        Member member = memberRepository.findByEmailAndProvider(email, provider)
+                .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
+        memberRepository.delete(member);
+    }
 }
