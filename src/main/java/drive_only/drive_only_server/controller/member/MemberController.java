@@ -3,6 +3,7 @@ package drive_only.drive_only_server.controller.member;
 import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.domain.ProviderType;
 import drive_only.drive_only_server.dto.member.MemberResponse;
+import drive_only.drive_only_server.dto.member.MemberUpdateRequest;
 import drive_only.drive_only_server.dto.member.OtherMemberResponse;
 import drive_only.drive_only_server.service.Member.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,10 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -80,6 +78,39 @@ public class MemberController {
                 member.getId(),
                 member.getNickname(),
                 member.getProfileImageUrl()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "회원 정보 수정", description = "로그인한 사용자의 닉네임, 프로필 이미지를 수정합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "회원 정보 수정 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
+            @ApiResponse(responseCode = "401", description = "유효하지 않은 JWT access token", content = @Content),
+            @ApiResponse(responseCode = "404", description = "회원 정보 없음", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
+    @PatchMapping("/api/members/me")
+    public ResponseEntity<MemberResponse> updateMyProfile(
+            @RequestBody MemberUpdateRequest request,
+            Authentication authentication
+    ) {
+        String email = (String) authentication.getPrincipal();
+        String providerString = authentication.getAuthorities().stream()
+                .findFirst()
+                .map(a -> a.getAuthority())
+                .orElse("KAKAO");
+        ProviderType provider = ProviderType.valueOf(providerString.toUpperCase());
+
+        Member updatedMember = memberService.updateMember(email, provider, request);
+
+        MemberResponse response = new MemberResponse(
+                updatedMember.getId(),
+                updatedMember.getEmail(),
+                updatedMember.getNickname(),
+                updatedMember.getProfileImageUrl(),
+                updatedMember.getProvider()
         );
 
         return ResponseEntity.ok(response);
