@@ -57,4 +57,12 @@ public class Member {
         comment.setMember(null);
     }
 
+    // 회원 수정 메서드
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void updateProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
 }

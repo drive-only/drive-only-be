@@ -2,6 +2,7 @@ package drive_only.drive_only_server.service.Member;
 
 import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.domain.ProviderType;
+import drive_only.drive_only_server.dto.member.MemberUpdateRequest;
 import drive_only.drive_only_server.dto.oauth.OAuthUserInfo;
 import drive_only.drive_only_server.repository.member.MemberRepository;
 
@@ -32,6 +33,28 @@ public class MemberService {
     public Member findByEmailAndProvider(String email, ProviderType provider) {
         return memberRepository.findByEmailAndProvider(email, provider)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
+    }
+
+    @Transactional(readOnly = true)
+    public Member findByIdAndProvider(Long id, ProviderType provider) {
+        return memberRepository.findByIdAndProvider(id, provider)
+                .orElseThrow(() -> new IllegalArgumentException("해당 회원을 찾을 수 없습니다."));
+    }
+
+    @Transactional
+    public Member updateMember(String email, ProviderType provider, MemberUpdateRequest request) {
+        Member member = memberRepository.findByEmailAndProvider(email, provider)
+                .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
+
+        if (request.getNickname() != null) {
+            member.updateNickname(request.getNickname());
+        }
+
+        if (request.getProfileImageUrl() != null) {
+            member.updateProfileImageUrl(request.getProfileImageUrl());
+        }
+
+        return member;
     }
 
     @Transactional
