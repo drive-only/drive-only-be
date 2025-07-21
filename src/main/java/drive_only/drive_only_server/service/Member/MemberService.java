@@ -33,4 +33,10 @@ public class MemberService {
         return memberRepository.findByEmailAndProvider(email, provider)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
     }
+
+    @Transactional(readOnly = true)
+    public Member findByIdAndProvider(Long id, ProviderType provider) {
+        return memberRepository.findByIdAndProvider(id, provider)
+                .orElseThrow(() -> new IllegalArgumentException("해당 회원을 찾을 수 없습니다."));
+    }
 }
