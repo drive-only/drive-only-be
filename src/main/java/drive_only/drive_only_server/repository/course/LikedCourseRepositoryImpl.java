@@ -27,7 +27,7 @@ public class LikedCourseRepositoryImpl implements LikedCourseRepositoryCustom {
                 .join(likedCourse.course, course).fetchJoin()
                 .join(course.member, member).fetchJoin()
                 .join(course.category, category).fetchJoin()
-                .leftJoin(course.coursePlaces, coursePlace).fetchJoin() // 장소까지 미리 로딩
+                .leftJoin(course.coursePlaces, coursePlace)
                 .where(
                         likedCourse.member.eq(loginUser),
                         lastIdCondition(lastId)
