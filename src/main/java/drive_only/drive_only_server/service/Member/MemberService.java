@@ -8,7 +8,6 @@ import drive_only.drive_only_server.dto.likedCourse.search.LikedCourseSearchResp
 import drive_only.drive_only_server.dto.member.MemberUpdateRequest;
 import drive_only.drive_only_server.dto.oauth.OAuthUserInfo;
 import drive_only.drive_only_server.repository.course.LikedCourseRepository;
-import drive_only.drive_only_server.repository.course.LikedCourseRepositoryCustom;
 import drive_only.drive_only_server.repository.member.MemberRepository;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +47,13 @@ public class MemberService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 회원을 찾을 수 없습니다."));
     }
 
+    @Transactional(readOnly = true)
+    public Member findByEmail(String email) {
+        return memberRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
+    }
+
+
     @Transactional
     public Member updateMember(String email, ProviderType provider, MemberUpdateRequest request) {
         Member member = memberRepository.findByEmailAndProvider(email, provider)
@@ -84,13 +90,6 @@ public class MemberService {
         Long newLastId = responses.isEmpty() ? null : responses.get(responses.size() - 1).courseId();
         boolean hasNext = likedCourses.size() == size;
 
-        return LikedCourseListResponse.builder()
-                .data(responses)
-                .meta(LikedCourseListResponse.Meta.builder()
-                        .lastId(newLastId)
-                        .size(size)
-                        .hasNext(hasNext)
-                        .build())
-                .build();
+        return LikedCourseListResponse.from(responses, newLastId, size, hasNext);
     }
 }

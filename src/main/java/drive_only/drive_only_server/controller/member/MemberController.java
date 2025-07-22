@@ -6,6 +6,7 @@ import drive_only.drive_only_server.dto.likedCourse.list.LikedCourseListResponse
 import drive_only.drive_only_server.dto.member.MemberResponse;
 import drive_only.drive_only_server.dto.member.MemberUpdateRequest;
 import drive_only.drive_only_server.dto.member.OtherMemberResponse;
+import drive_only.drive_only_server.security.CustomUserPrincipal;
 import drive_only.drive_only_server.service.Member.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -36,13 +37,9 @@ public class MemberController {
     })
     @GetMapping("/api/members/me")
     public ResponseEntity<MemberResponse> getMyProfile(Authentication authentication) {
-        String email = (String) authentication.getPrincipal();
-        String providerString = (String) authentication.getAuthorities().stream()
-                .findFirst()
-                .map(a -> a.getAuthority())
-                .orElse("KAKAO"); // 기본값
-
-        ProviderType provider = ProviderType.valueOf(providerString.toUpperCase());
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        String email = principal.getEmail();
+        ProviderType provider = principal.getProvider();
 
         Member member = memberService.findByEmailAndProvider(email, provider);
 
@@ -91,12 +88,9 @@ public class MemberController {
             @RequestBody MemberUpdateRequest request,
             Authentication authentication
     ) {
-        String email = (String) authentication.getPrincipal();
-        String providerString = authentication.getAuthorities().stream()
-                .findFirst()
-                .map(a -> a.getAuthority())
-                .orElse("KAKAO");
-        ProviderType provider = ProviderType.valueOf(providerString.toUpperCase());
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        String email = principal.getEmail();
+        ProviderType provider = principal.getProvider();
 
         Member updatedMember = memberService.updateMember(email, provider, request);
 
@@ -121,12 +115,9 @@ public class MemberController {
     })
     @DeleteMapping("/api/members/me")
     public ResponseEntity<Void> deleteMyAccount(Authentication authentication) {
-        String email = (String) authentication.getPrincipal();
-        String providerString = authentication.getAuthorities().stream()
-                .findFirst()
-                .map(a -> a.getAuthority())
-                .orElse("KAKAO");
-        ProviderType provider = ProviderType.valueOf(providerString.toUpperCase());
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        String email = principal.getEmail();
+        ProviderType provider = principal.getProvider();
 
         memberService.deleteMemberByEmailAndProvider(email, provider);
 
@@ -147,12 +138,9 @@ public class MemberController {
             @RequestParam(defaultValue = "10") int size,
             Authentication authentication
     ) {
-        String email = (String) authentication.getPrincipal();
-        String providerString = authentication.getAuthorities().stream()
-                .findFirst()
-                .map(a -> a.getAuthority())
-                .orElse("KAKAO");
-        ProviderType provider = ProviderType.valueOf(providerString.toUpperCase());
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        String email = principal.getEmail();
+        ProviderType provider = principal.getProvider();
 
         Member member = memberService.findByEmailAndProvider(email, provider);
         LikedCourseListResponse response = memberService.getLikedCourses(member, lastId, size);
