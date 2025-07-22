@@ -18,10 +18,13 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final LikedCourseRepository likedCourseRepository;
 
+    @Transactional
     public Member registerOrLogin(OAuthUserInfo userInfo) {
         return memberRepository.findByEmailAndProvider(userInfo.getEmail(), userInfo.getProvider())
                 .orElseGet(() -> {
@@ -35,24 +38,20 @@ public class MemberService {
                 });
     }
 
-    @Transactional(readOnly = true)
     public Member findByEmailAndProvider(String email, ProviderType provider) {
         return memberRepository.findByEmailAndProvider(email, provider)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
     }
 
-    @Transactional(readOnly = true)
     public Member findById(Long id) {
         return memberRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 회원을 찾을 수 없습니다."));
     }
 
-    @Transactional(readOnly = true)
     public Member findByEmail(String email) {
         return memberRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
     }
-
 
     @Transactional
     public Member updateMember(String email, ProviderType provider, MemberUpdateRequest request) {
@@ -77,9 +76,6 @@ public class MemberService {
         memberRepository.delete(member);
     }
 
-    private final LikedCourseRepository likedCourseRepository;
-
-    @Transactional(readOnly = true)
     public LikedCourseListResponse getLikedCourses(Member member, Long lastId, int size) {
         List<LikedCourse> likedCourses = likedCourseRepository.findLikedCoursesByMember(member, lastId, size);
 
@@ -89,7 +85,7 @@ public class MemberService {
 
         Long newLastId = responses.isEmpty() ? null : responses.get(responses.size() - 1).courseId();
         boolean hasNext = likedCourses.size() == size;
-
+it
         return LikedCourseListResponse.from(responses, newLastId, size, hasNext);
     }
 }
