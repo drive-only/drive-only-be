@@ -64,7 +64,7 @@ public class MemberController {
     })
     @GetMapping("/api/members/{id}")
     public ResponseEntity<OtherMemberResponse> getOtherMemberProfile(@PathVariable Long id) {
-        Member member = memberService.findById(id);  // ✅ provider 없이 id만으로 조회
+        Member member = memberService.findById(id);
 
         OtherMemberResponse response = new OtherMemberResponse(
                 member.getId(),
