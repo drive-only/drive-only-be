@@ -2,9 +2,11 @@ package drive_only.drive_only_server.controller.member;
 
 import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.domain.ProviderType;
+import drive_only.drive_only_server.dto.likedCourse.list.LikedCourseListResponse;
 import drive_only.drive_only_server.dto.member.MemberResponse;
 import drive_only.drive_only_server.dto.member.MemberUpdateRequest;
 import drive_only.drive_only_server.dto.member.OtherMemberResponse;
+import drive_only.drive_only_server.security.CustomUserPrincipal;
 import drive_only.drive_only_server.service.Member.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -35,13 +37,9 @@ public class MemberController {
     })
     @GetMapping("/api/members/me")
     public ResponseEntity<MemberResponse> getMyProfile(Authentication authentication) {
-        String email = (String) authentication.getPrincipal();
-        String providerString = (String) authentication.getAuthorities().stream()
-                .findFirst()
-                .map(a -> a.getAuthority())
-                .orElse("KAKAO"); // 기본값
-
-        ProviderType provider = ProviderType.valueOf(providerString.toUpperCase());
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        String email = principal.getEmail();
+        ProviderType provider = principal.getProvider();
 
         Member member = memberService.findByEmailAndProvider(email, provider);
 
@@ -65,17 +63,8 @@ public class MemberController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
     })
     @GetMapping("/api/members/{id}")
-    public ResponseEntity<OtherMemberResponse> getOtherMemberProfile(
-            @PathVariable Long id,
-            Authentication authentication
-    ) {
-        String providerString = authentication.getAuthorities().stream()
-                .findFirst()
-                .map(a -> a.getAuthority())
-                .orElse("KAKAO");
-        ProviderType provider = ProviderType.valueOf(providerString.toUpperCase());
-
-        Member member = memberService.findByIdAndProvider(id, provider);
+    public ResponseEntity<OtherMemberResponse> getOtherMemberProfile(@PathVariable Long id) {
+        Member member = memberService.findById(id);
 
         OtherMemberResponse response = new OtherMemberResponse(
                 member.getId(),
@@ -99,12 +88,9 @@ public class MemberController {
             @RequestBody MemberUpdateRequest request,
             Authentication authentication
     ) {
-        String email = (String) authentication.getPrincipal();
-        String providerString = authentication.getAuthorities().stream()
-                .findFirst()
-                .map(a -> a.getAuthority())
-                .orElse("KAKAO");
-        ProviderType provider = ProviderType.valueOf(providerString.toUpperCase());
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        String email = principal.getEmail();
+        ProviderType provider = principal.getProvider();
 
         Member updatedMember = memberService.updateMember(email, provider, request);
 
@@ -129,15 +115,36 @@ public class MemberController {
     })
     @DeleteMapping("/api/members/me")
     public ResponseEntity<Void> deleteMyAccount(Authentication authentication) {
-        String email = (String) authentication.getPrincipal();
-        String providerString = authentication.getAuthorities().stream()
-                .findFirst()
-                .map(a -> a.getAuthority())
-                .orElse("KAKAO");
-        ProviderType provider = ProviderType.valueOf(providerString.toUpperCase());
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        String email = principal.getEmail();
+        ProviderType provider = principal.getProvider();
 
         memberService.deleteMemberByEmailAndProvider(email, provider);
 
         return ResponseEntity.noContent().build(); // 204 No Content
     }
+
+    @Operation(summary = "좋아요한 코스 조회", description = "회원이 좋아요한 드라이브 코스를 최신순으로 조회")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "401", description = "유효하지 않은 인증", content = @Content),
+            @ApiResponse(responseCode = "403", description = "접근 권한 없음", content = @Content),
+            @ApiResponse(responseCode = "404", description = "회원 정보 없음", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
+    @GetMapping("/api/members/me/likedCourses")
+    public ResponseEntity<LikedCourseListResponse> getLikedCourses(
+            @RequestParam(required = false) Long lastId,
+            @RequestParam(defaultValue = "10") int size,
+            Authentication authentication
+    ) {
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        String email = principal.getEmail();
+        ProviderType provider = principal.getProvider();
+
+        Member member = memberService.findByEmailAndProvider(email, provider);
+        LikedCourseListResponse response = memberService.getLikedCourses(member, lastId, size);
+        return ResponseEntity.ok(response);
+    }
+
 }
