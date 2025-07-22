@@ -85,7 +85,7 @@ public class MemberService {
 
         Long newLastId = responses.isEmpty() ? null : responses.get(responses.size() - 1).courseId();
         boolean hasNext = likedCourses.size() == size;
-it
+
         return LikedCourseListResponse.from(responses, newLastId, size, hasNext);
     }
 }
