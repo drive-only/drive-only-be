@@ -16,7 +16,6 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Getter
@@ -27,8 +26,8 @@ public class CoursePlace {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name")
-    private String name;
+    @Column(name = "place_name")
+    private String placeName;
 
     @Column(name = "place_type")
     private String placeType;
@@ -50,8 +49,8 @@ public class CoursePlace {
     @JoinColumn(name = "place_id")
     private Place place;
 
-    public CoursePlace(String name, String placeType, String content, List<Photo> photos, int sequence, Place place) {
-        this.name = name;
+    public CoursePlace(String placeName, String placeType, String content, List<Photo> photos, int sequence, Place place) {
+        this.placeName = placeName;
         this.placeType = placeType;
         this.content = content;
         if (photos != null) {
