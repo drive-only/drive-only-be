@@ -1,5 +1,6 @@
 package drive_only.drive_only_server.exception.handler;
 
+import drive_only.drive_only_server.exception.custom.BusinessException;
 import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import drive_only.drive_only_server.exception.ErrorResponse;
 import drive_only.drive_only_server.exception.custom.CourseNotFoundException;
@@ -12,10 +13,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ErrorResponse.of(ErrorCode.INVALID_PARAMETER));
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException exception) {
+        return toResponse(exception.getErrorCode());
     }
 
     @ExceptionHandler(CourseNotFoundException.class)

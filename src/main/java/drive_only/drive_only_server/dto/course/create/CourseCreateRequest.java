@@ -23,7 +23,6 @@ public record CourseCreateRequest(
     @NotBlank(message = "지역 유형을 선택해주세요.")
     String areaType,
 
-    @Size(min = 1, max = 70, message = "제목은 1자 이상 70자 이하로 입력해주세요.")
     @NotBlank(message = "제목을 입력해주세요.")
     String title,
 

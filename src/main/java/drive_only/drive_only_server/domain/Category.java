@@ -30,12 +30,14 @@ public class Category {
     @Column(name = "area_type")
     private String areaType;
 
-    public Category(String region, String subRegion, String time, String season, String theme, String areaType) {
-        this.region = region;
-        this.subRegion = subRegion;
-        this.time = time;
-        this.season = season;
-        this.theme = theme;
-        this.areaType = areaType;
+    public static Category createCategory(String region, String subRegion, String time, String season, String theme, String areaType) {
+        Category category = new Category();
+        category.region = region;
+        category.subRegion = subRegion;
+        category.time = time;
+        category.season = season;
+        category.theme = theme;
+        category.areaType = areaType;
+        return category;
     }
 }
