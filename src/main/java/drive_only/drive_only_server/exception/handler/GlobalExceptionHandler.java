@@ -3,6 +3,7 @@ package drive_only.drive_only_server.exception.handler;
 import drive_only.drive_only_server.exception.custom.BusinessException;
 import drive_only.drive_only_server.exception.custom.CommentNotFoundException;
 import drive_only.drive_only_server.exception.custom.ParentCommentNotFoundException;
+import drive_only.drive_only_server.exception.custom.UnauthenticatedMemberException;
 import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import drive_only.drive_only_server.exception.ErrorResponse;
 import drive_only.drive_only_server.exception.custom.CourseNotFoundException;
@@ -35,6 +36,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ParentCommentNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleParentCommentNotFoundException(ParentCommentNotFoundException exception) {
+        return toResponse(exception.getErrorCode());
+    }
+
+    @ExceptionHandler(UnauthenticatedMemberException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthenticatedMemberException(UnauthenticatedMemberException exception) {
         return toResponse(exception.getErrorCode());
     }
 
