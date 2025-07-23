@@ -11,6 +11,8 @@ import drive_only.drive_only_server.dto.course.search.CourseSearchResponse;
 import drive_only.drive_only_server.dto.coursePlace.create.CoursePlaceCreateRequest;
 import drive_only.drive_only_server.dto.coursePlace.update.CoursePlaceUpdateResponse;
 import drive_only.drive_only_server.dto.meta.Meta;
+import drive_only.drive_only_server.exception.custom.CourseNotFoundException;
+import drive_only.drive_only_server.exception.custom.PlaceNotFoundException;
 import drive_only.drive_only_server.repository.category.CategoryRepository;
 import drive_only.drive_only_server.repository.coursePlace.CoursePlaceRepository;
 import drive_only.drive_only_server.repository.course.CourseRepository;
@@ -64,9 +66,7 @@ public class CourseService {
         List<CourseSearchResponse> responses = courses.stream()
                 .map(CourseSearchResponse::from)
                 .toList();
-
         Meta meta = Meta.from(courses);
-
         return new PaginatedResponse<>(responses, meta);
     }
 
@@ -127,8 +127,7 @@ public class CourseService {
     }
 
     private Category getCategory(CourseCreateRequest request) {
-        Category category = new Category(
-                request.region(),
+        Category category = Category.createCategory(request.region(),
                 request.subRegion(),
                 request.time(),
                 request.season(),
@@ -147,12 +146,10 @@ public class CourseService {
     }
 
     private Place findPlace(Long placeId) {
-        return placeRepository.findById(placeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
+        return placeRepository.findById(placeId).orElseThrow(PlaceNotFoundException::new);
     }
 
     private Course findCourse(Long courseId) {
-        return courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 코스(게시글)을 찾을 수 없습니다."));
+        return courseRepository.findById(courseId).orElseThrow(CourseNotFoundException::new);
     }
 }

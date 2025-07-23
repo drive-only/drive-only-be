@@ -8,10 +8,13 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum ErrorCode {
     //400 BAD REQUEST
-    INVALID_PARAMETER(HttpStatus.BAD_REQUEST, "파라미터 값을 확인해주세요."),
+    INVALID_COURSE_TITLE(HttpStatus.BAD_REQUEST, "제목은 필수이며 70자 이하로 입력해야 합니다."),
+    INVALID_COURSE_RECOMMENDATION(HttpStatus.BAD_REQUEST, "추천도는 0 이상 5 이하의 값이어야 합니다."),
+    INVALID_COURSE_DIFFICULTY(HttpStatus.BAD_REQUEST, "난이도는 0 이상 5 이하의 값이어야 합니다."),
+    COURSE_PLACES_REQUIRED(HttpStatus.BAD_REQUEST, "코스 장소는 1개 이상이어야 합니다."),
 
     //404 NOT FOUND
-    COURSE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 코스를 찾을 수 없습니다."),
+    COURSE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 코스(게시글)를 찾을 수 없습니다."),
     PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 장소를 찾을 수 없습니다."),
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 댓글을 찾을 수 없습니다."),
 
