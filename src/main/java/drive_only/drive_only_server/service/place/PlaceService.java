@@ -70,7 +70,7 @@ public class PlaceService {
     }
 
     public PaginatedResponse<PlaceSearchResponse> searchSavedPlaces() {
-        Member member = getLoginMember();
+        Member member = loginMemberProvider.getLoginMember();
         List<SavedPlace> savedPlaces = savedPlaceRepository.findByMember(member);
         List<PlaceSearchResponse> results = savedPlaces.stream()
                 .map(savedPlace -> {
@@ -83,7 +83,7 @@ public class PlaceService {
 
     @Transactional
     public SavePlaceResponse savePlace(Long placeId) {
-        Member member = getLoginMember();
+        Member member = loginMemberProvider.getLoginMember();
         Place place = findPlaceById(placeId);
         SavedPlace savedPlace = savedPlaceRepository.save(new SavedPlace(member, place));
         return new SavePlaceResponse(savedPlace.getId(), SUCCESS_CREATE);
@@ -91,7 +91,7 @@ public class PlaceService {
 
     @Transactional
     public DeleteSavedPlaceResponse deleteSavedPlace(Long savedPlaceId) {
-        Member member = getLoginMember();
+        Member member = loginMemberProvider.getLoginMember();
         SavedPlace savedPlace = member.getSavedPlaces().stream()
                 .filter(sp -> sp.getId().equals(savedPlaceId))
                 .findFirst()
@@ -159,11 +159,6 @@ public class PlaceService {
                     return PlaceSearchResponse.from(place);
                 })
                 .toList();
-    }
-
-    private Member getLoginMember() {
-        return loginMemberProvider.getLoginMember()
-                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
     }
 
     private Course findCourse(Long courseId) {

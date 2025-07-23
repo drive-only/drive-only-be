@@ -45,7 +45,7 @@ public class CourseService {
     @Transactional
     public CourseCreateResponse createCourse(CourseCreateRequest request) {
         List<CoursePlace> coursePlaces = createCoursePlaces(request);
-        Member loginMember = getLoginMember();
+        Member loginMember = loginMemberProvider.getLoginMember();
         Category category = getCategory(request);
         List<Tag> tags = getTags(request);
 
@@ -144,11 +144,6 @@ public class CourseService {
                 .toList();
         tagRepository.saveAll(tags);
         return tags;
-    }
-
-    private Member getLoginMember() {
-        return loginMemberProvider.getLoginMember()
-                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
     }
 
     private Place findPlace(Long placeId) {

@@ -15,12 +15,10 @@ import drive_only.drive_only_server.repository.comment.CommentRepository;
 import drive_only.drive_only_server.repository.course.CourseRepository;
 import drive_only.drive_only_server.security.LoginMemberProvider;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,7 +38,7 @@ public class CommentService {
     @Transactional
     public CommentCreateResponse createComment(Long courseId, CommentCreateRequest request) {
         Course course = findCourse(courseId);
-        Member loginMember = getLoginMember();
+        Member loginMember = loginMemberProvider.getLoginMember();
         Comment comment = Comment.createComment(request.content(), loginMember, course, null);
 
         if (request.parentCommentId() != null) {
@@ -54,7 +52,7 @@ public class CommentService {
     }
 
     public PaginatedResponse<CommentSearchResponse> searchComments(Long courseId, int page, int size) {
-        Member loginMember = getLoginMemberIfExists();
+        Member loginMember = loginMemberProvider.getLoginMemberIfExists();
         Page<Comment> parentComments = commentRepository.findParentCommentsByCourseId(courseId, PageRequest.of(page, size));
         List<CommentSearchResponse> responses = parentComments.stream()
                 .map(comment -> CommentSearchResponse.from(comment, loginMember))
@@ -78,15 +76,6 @@ public class CommentService {
         comment.clearChildComments();
         commentRepository.delete(comment);
         return new CommentDeleteResponse(comment.getId(), SUCCESS_DELETE);
-    }
-
-    private Member getLoginMember() {
-        return loginMemberProvider.getLoginMember()
-                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
-    }
-
-    private Member getLoginMemberIfExists() {
-        return loginMemberProvider.getLoginMemberIfExists().orElse(null);
     }
 
     private Course findCourse(Long courseId) {

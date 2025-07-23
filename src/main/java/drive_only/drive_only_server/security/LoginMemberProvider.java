@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class LoginMemberProvider {
     private final MemberRepository memberRepository;
 
-    public Optional<Member> getLoginMember() {
+    public Member getLoginMember() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null ||
@@ -28,22 +28,24 @@ public class LoginMemberProvider {
         String email = principal.getEmail();
         ProviderType provider = principal.getProvider();
 
-        return memberRepository.findByEmailAndProvider(email, provider);
+        return memberRepository.findByEmailAndProvider(email, provider)
+                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
     }
 
-    public Optional<Member> getLoginMemberIfExists() {
+    public Member getLoginMemberIfExists() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null ||
                 !authentication.isAuthenticated() ||
                 authentication.getPrincipal().equals("anonymousUser")) {
-            return Optional.empty();
+            return null;
         }
 
         CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
         String email = principal.getEmail();
         ProviderType provider = principal.getProvider();
 
-        return memberRepository.findByEmailAndProvider(email, provider);
+        return memberRepository.findByEmailAndProvider(email, provider)
+                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
     }
 }
