@@ -5,7 +5,6 @@ import drive_only.drive_only_server.dto.tag.TagRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import java.util.List;
 
 public record CourseCreateRequest(

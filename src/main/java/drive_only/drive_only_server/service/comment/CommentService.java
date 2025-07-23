@@ -11,6 +11,11 @@ import drive_only.drive_only_server.dto.comment.update.CommentUpdateRequest;
 import drive_only.drive_only_server.dto.comment.update.CommentUpdateResponse;
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
 import drive_only.drive_only_server.dto.meta.Meta;
+import drive_only.drive_only_server.exception.custom.BusinessException;
+import drive_only.drive_only_server.exception.custom.CommentNotFoundException;
+import drive_only.drive_only_server.exception.custom.CourseNotFoundException;
+import drive_only.drive_only_server.exception.custom.ParentCommentNotFoundException;
+import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import drive_only.drive_only_server.repository.comment.CommentRepository;
 import drive_only.drive_only_server.repository.course.CourseRepository;
 import drive_only.drive_only_server.security.LoginMemberProvider;
@@ -79,17 +84,14 @@ public class CommentService {
     }
 
     private Course findCourse(Long courseId) {
-        return courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 코스(게시글)을 찾을 수 없습니다."));
+        return courseRepository.findById(courseId).orElseThrow(CourseNotFoundException::new);
     }
 
     private Comment findComment(Long commentId) {
-        return commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다."));
+        return commentRepository.findById(commentId).orElseThrow(CommentNotFoundException::new);
     }
 
     private Comment findParentComment(Long parentCommentId) {
-        return commentRepository.findById(parentCommentId)
-                .orElseThrow(() -> new IllegalArgumentException("부모 댓글을 찾을 수 없습니다."));
+        return commentRepository.findById(parentCommentId).orElseThrow(ParentCommentNotFoundException::new);
     }
 }
