@@ -70,6 +70,13 @@ public class Comment {
         return comment;
     }
 
+    public void update(CommentUpdateRequest request) {
+        validateContent(content);
+
+        this.content = request.content();
+        this.createdDate = LocalDateTime.now();
+    }
+
     private static void validateContent(String content) {
         if (content == null || content.isBlank() || content.length() > 200) {
             throw new BusinessException(ErrorCode.INVALID_COMMENT_CONTENT);
@@ -79,11 +86,6 @@ public class Comment {
     public void addChildComment(Comment child) {
         this.childComments.add(child);
         child.parentComment = this;
-    }
-
-    public void update(CommentUpdateRequest request) {
-        this.content = request.content();
-        this.createdDate = LocalDateTime.now();
     }
 
     public void clearChildComments() {
