@@ -24,12 +24,9 @@ public class LoginMemberProvider {
             throw new IllegalStateException("인증 정보가 없습니다.");
         }
 
-        String email = (String) authentication.getPrincipal();
-        String providerString = authentication.getAuthorities().stream()
-                .findFirst()
-                .map(GrantedAuthority::getAuthority)
-                .orElse("KAKAO");
-        ProviderType provider = ProviderType.valueOf(providerString.toUpperCase());
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        String email = principal.getEmail();
+        ProviderType provider = principal.getProvider();
 
         return memberRepository.findByEmailAndProvider(email, provider);
     }
@@ -43,14 +40,10 @@ public class LoginMemberProvider {
             return Optional.empty();
         }
 
-        String email = (String) authentication.getPrincipal();
-        String provider = authentication.getAuthorities().stream()
-                .findFirst()
-                .map(GrantedAuthority::getAuthority)
-                .orElse("KAKAO");
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        String email = principal.getEmail();
+        ProviderType provider = principal.getProvider();
 
-        ProviderType providerType = ProviderType.valueOf(provider.toUpperCase());
-
-        return memberRepository.findByEmailAndProvider(email, providerType);
+        return memberRepository.findByEmailAndProvider(email, provider);
     }
 }
