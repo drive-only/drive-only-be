@@ -2,6 +2,7 @@ package drive_only.drive_only_server.security;
 
 import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.domain.ProviderType;
+import drive_only.drive_only_server.exception.custom.UnauthenticatedMemberException;
 import drive_only.drive_only_server.repository.member.MemberRepository;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -28,8 +29,7 @@ public class LoginMemberProvider {
         String email = principal.getEmail();
         ProviderType provider = principal.getProvider();
 
-        return memberRepository.findByEmailAndProvider(email, provider)
-                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
+        return memberRepository.findByEmailAndProvider(email, provider).orElseThrow(UnauthenticatedMemberException::new);
     }
 
     public Member getLoginMemberIfExists() {
@@ -45,7 +45,6 @@ public class LoginMemberProvider {
         String email = principal.getEmail();
         ProviderType provider = principal.getProvider();
 
-        return memberRepository.findByEmailAndProvider(email, provider)
-                .orElseThrow(() -> new IllegalArgumentException("로그인한 사용자를 찾을 수 없습니다."));
+        return memberRepository.findByEmailAndProvider(email, provider).orElseThrow(UnauthenticatedMemberException::new);
     }
 }
