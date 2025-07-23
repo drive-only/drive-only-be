@@ -21,7 +21,7 @@ public record CoursePlaceSearchResponse(
                 coursePlace.getId(),
                 coursePlace.getPlace().getId(),
                 coursePlace.getPlaceType(),
-                coursePlace.getName(),
+                coursePlace.getPlaceName(),
                 coursePlace.getPlace().getAddress(),
                 coursePlace.getContent(),
                 createPhotoResponse(coursePlace),

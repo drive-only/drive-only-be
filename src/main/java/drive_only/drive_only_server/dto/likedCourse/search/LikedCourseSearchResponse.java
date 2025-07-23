@@ -34,7 +34,7 @@ public record LikedCourseSearchResponse(
                         .orElse(null),
                 course.getCoursePlaces().stream()
                         .sorted((a, b) -> Integer.compare(a.getSequence(), b.getSequence()))
-                        .map(CoursePlace::getName)
+                        .map(CoursePlace::getPlaceName)
                         .toList(),
                 CategoryResponse.from(course),
                 course.getLikeCount(),

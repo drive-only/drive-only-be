@@ -47,7 +47,7 @@ public record CourseSearchResponse(
 
     private static List<String> getCoursePlaceNames(Course course) {
         return course.getCoursePlaces().stream()
-                .map(CoursePlace::getName)
+                .map(CoursePlace::getPlaceName)
                 .toList();
     }
 }
