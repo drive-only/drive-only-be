@@ -99,6 +99,22 @@ public class Course {
         return course;
     }
 
+    public void update(CourseCreateRequest request, Category newCategory, List<CoursePlace> newCoursePlaces, List<Tag> newTags) {
+        validateTitle(request.title());
+        validateRecommendation(request.recommendation());
+        validateDifficulty(request.difficulty());
+        validateCoursePlaces(newCoursePlaces);
+
+        this.title = request.title();
+        this.recommendation = request.recommendation();
+        this.difficulty = request.difficulty();
+        this.category = newCategory;
+        this.coursePlaces.clear();
+        newCoursePlaces.forEach(this::addCoursePlace);
+        this.tags.clear();
+        newTags.forEach(this::addTag);
+    }
+
     private static void validateTitle(String title) {
         if (title == null || title.isBlank() || title.length() > 70) {
             throw new BusinessException(ErrorCode.INVALID_COURSE_TITLE);
@@ -123,14 +139,6 @@ public class Course {
         }
     }
 
-    public void setMember(Member member) {
-        this.member = member;
-    }
-
-    public void setCategory(Category category) {
-        this.category = category;
-    }
-
     public void addCoursePlace(CoursePlace coursePlace) {
         coursePlaces.add(coursePlace);
         coursePlace.setCourse(this);
@@ -141,14 +149,11 @@ public class Course {
         tag.setCourse(this);
     }
 
-    public void update(CourseCreateRequest request, Category newCategory, List<CoursePlace> newCoursePlaces, List<Tag> newTags) {
-        this.title = request.title();
-        this.recommendation = request.recommendation();
-        this.difficulty = request.difficulty();
-        this.category = newCategory;
-        this.coursePlaces.clear();
-        newCoursePlaces.forEach(this::addCoursePlace);
-        this.tags.clear();
-        newTags.forEach(this::addTag);
+    public void setMember(Member member) {
+        this.member = member;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
     }
 }

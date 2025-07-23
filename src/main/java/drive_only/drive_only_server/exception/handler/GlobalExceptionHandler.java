@@ -1,12 +1,12 @@
 package drive_only.drive_only_server.exception.handler;
 
 import drive_only.drive_only_server.exception.custom.BusinessException;
+import drive_only.drive_only_server.exception.custom.CommentNotFoundException;
+import drive_only.drive_only_server.exception.custom.ParentCommentNotFoundException;
 import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import drive_only.drive_only_server.exception.ErrorResponse;
 import drive_only.drive_only_server.exception.custom.CourseNotFoundException;
 import drive_only.drive_only_server.exception.custom.PlaceNotFoundException;
-import java.net.BindException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -25,6 +25,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(PlaceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handlePlaceNotFoundException(PlaceNotFoundException exception) {
+        return toResponse(exception.getErrorCode());
+    }
+
+    @ExceptionHandler(CommentNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleCommentNotFoundException(CommentNotFoundException exception) {
+        return toResponse(exception.getErrorCode());
+    }
+
+    @ExceptionHandler(ParentCommentNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleParentCommentNotFoundException(ParentCommentNotFoundException exception) {
         return toResponse(exception.getErrorCode());
     }
 

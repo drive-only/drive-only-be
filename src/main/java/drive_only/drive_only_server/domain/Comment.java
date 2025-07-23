@@ -1,6 +1,8 @@
 package drive_only.drive_only_server.domain;
 
 import drive_only.drive_only_server.dto.comment.update.CommentUpdateRequest;
+import drive_only.drive_only_server.exception.custom.BusinessException;
+import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -55,6 +57,8 @@ public class Comment {
     private List<Comment> childComments = new ArrayList<>();
 
     public static Comment createComment(String content, Member loginMember, Course course, Comment parentComment) {
+        validateContent(content);
+        
         Comment comment = new Comment();
         comment.content = content;
         comment.member = loginMember;
@@ -64,6 +68,12 @@ public class Comment {
         comment.likeCount = 0;
         comment.isDeleted = false;
         return comment;
+    }
+
+    private static void validateContent(String content) {
+        if (content == null || content.isBlank() || content.length() > 200) {
+            throw new BusinessException(ErrorCode.INVALID_COMMENT_CONTENT);
+        }
     }
 
     public void addChildComment(Comment child) {
