@@ -14,8 +14,10 @@ import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlaceTourApiRes
 import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlacesResponse;
 import drive_only.drive_only_server.dto.place.search.PlaceSearchRequest;
 import drive_only.drive_only_server.dto.place.search.PlaceSearchResponse;
+import drive_only.drive_only_server.exception.custom.BusinessException;
 import drive_only.drive_only_server.exception.custom.CourseNotFoundException;
 import drive_only.drive_only_server.exception.custom.PlaceNotFoundException;
+import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import drive_only.drive_only_server.repository.course.CourseRepository;
 import drive_only.drive_only_server.repository.course.SavedPlaceRepository;
 import drive_only.drive_only_server.repository.place.PlaceRepository;
@@ -49,6 +51,7 @@ public class PlaceService {
     private final LoginMemberProvider loginMemberProvider;
 
     public PaginatedResponse<PlaceSearchResponse> searchPlaces(PlaceSearchRequest request, int page, int size) {
+        validateSearchRequest(request);
         Page<Place> places = placeRepository.searchPlaces(request, PageRequest.of(page, size));
         List<PlaceSearchResponse> responses = places.stream()
                 .map(PlaceSearchResponse::from)
@@ -173,5 +176,11 @@ public class PlaceService {
 
     private Place findPlaceById(Long placeId) {
         return placeRepository.findById(placeId).orElseThrow(PlaceNotFoundException::new);
+    }
+
+    private void validateSearchRequest(PlaceSearchRequest request) {
+        if (request.region().isBlank() && request.subRegion().isBlank() && request.keyword().isBlank()) {
+            throw new BusinessException(ErrorCode.KEYWORD_REQUIRED);
+        }
     }
 }

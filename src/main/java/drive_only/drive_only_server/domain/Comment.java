@@ -71,7 +71,7 @@ public class Comment {
     }
 
     public void update(CommentUpdateRequest request) {
-        validateContent(content);
+        validateContent(request.content());
 
         this.content = request.content();
         this.createdDate = LocalDateTime.now();

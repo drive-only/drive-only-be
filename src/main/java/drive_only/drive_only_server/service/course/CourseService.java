@@ -11,8 +11,10 @@ import drive_only.drive_only_server.dto.course.search.CourseSearchResponse;
 import drive_only.drive_only_server.dto.coursePlace.create.CoursePlaceCreateRequest;
 import drive_only.drive_only_server.dto.coursePlace.update.CoursePlaceUpdateResponse;
 import drive_only.drive_only_server.dto.meta.Meta;
+import drive_only.drive_only_server.exception.custom.BusinessException;
 import drive_only.drive_only_server.exception.custom.CourseNotFoundException;
 import drive_only.drive_only_server.exception.custom.PlaceNotFoundException;
+import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import drive_only.drive_only_server.repository.category.CategoryRepository;
 import drive_only.drive_only_server.repository.coursePlace.CoursePlaceRepository;
 import drive_only.drive_only_server.repository.course.CourseRepository;
@@ -62,6 +64,7 @@ public class CourseService {
     }
 
     public PaginatedResponse<CourseSearchResponse> searchCourses(CourseSearchRequest request, int page, int size) {
+        validateSearchRequest(request);
         Page<Course> courses = courseRepository.searchCourses(request, PageRequest.of(page, size));
         List<CourseSearchResponse> responses = courses.stream()
                 .map(CourseSearchResponse::from)
@@ -151,5 +154,27 @@ public class CourseService {
 
     private Course findCourse(Long courseId) {
         return courseRepository.findById(courseId).orElseThrow(CourseNotFoundException::new);
+    }
+
+    private void validateSearchRequest(CourseSearchRequest request) {
+        boolean hasKeyword = isNotBlank(request.keyword());
+        boolean hasCategory = hasCategoryFields(request);
+
+        if (hasKeyword && hasCategory) {
+            throw new BusinessException(ErrorCode.KEYWORD_WITH_CATEGORY_NOT_ALLOWED);
+        }
+    }
+
+    private boolean isNotBlank(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private boolean hasCategoryFields(CourseSearchRequest request) {
+        return isNotBlank(request.region())
+                || isNotBlank(request.subRegion())
+                || isNotBlank(request.time())
+                || isNotBlank(request.season())
+                || isNotBlank(request.theme())
+                || isNotBlank(request.areaType());
     }
 }

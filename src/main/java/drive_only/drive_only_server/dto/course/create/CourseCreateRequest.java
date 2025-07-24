@@ -8,29 +8,29 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public record CourseCreateRequest(
-    @NotBlank(message = "지역을 선택해주세요.")
+    @NotBlank
     String region,
 
     String subRegion,
     String time,
 
-    @NotBlank(message = "계절을 선택해주세요.")
+    @NotBlank
     String season,
 
     String theme,
 
-    @NotBlank(message = "지역 유형을 선택해주세요.")
+    @NotBlank
     String areaType,
 
-    @NotBlank(message = "제목을 입력해주세요.")
+    @NotBlank
     String title,
 
-    @NotEmpty(message = "코스 장소를 1개 이상 등록해주세요.")
+    @NotEmpty
     List<CoursePlaceCreateRequest> coursePlaces,
 
     List<TagRequest> tags,
 
-    @NotNull(message = "추천도를 입력해주세요.")
+    @NotNull
     Double recommendation,
 
     Double difficulty,
