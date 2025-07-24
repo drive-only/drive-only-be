@@ -31,7 +31,7 @@ public class PlaceDataService {
 
     private final static int numOfRows = 20;
     private final static int startPage = 1;
-    private final static int totalPage = 5;
+    private final static int totalPage = 10;
     //TODO : 현재는 개발 계정으로 TourAPI와 연동하고 있어서, 나중에 운영 계정으로 변환되면 전체 데이터를 가져오도록 위의 코드를 아래처럼 변경
     //int numOfRows = 200;
     //int totalCount = calculateTotalCount();
