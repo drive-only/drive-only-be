@@ -1,5 +1,7 @@
 package drive_only.drive_only_server.domain;
 
+import drive_only.drive_only_server.exception.custom.BusinessException;
+import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -50,16 +52,31 @@ public class CoursePlace {
     private Place place;
 
     public CoursePlace(String placeName, String placeType, String content, List<Photo> photos, int sequence, Place place) {
+        validateContent(content);
+        validatePhotos(photos);
+
         this.placeName = placeName;
         this.placeType = placeType;
         this.content = content;
-        if (photos != null) {
+        if (!photos.isEmpty()) {
             for (Photo photo : photos) {
                 addPhoto(photo);
             }
         }
         this.sequence = sequence;
         this.place = place;
+    }
+
+    private void validateContent(String content) {
+        if (content.length() > 500) {
+            throw new BusinessException(ErrorCode.INVALID_COURSE_PLACE_CONTENT);
+        }
+    }
+
+    private void validatePhotos(List<Photo> photos) {
+        if (photos.size() > 5) {
+            throw new BusinessException(ErrorCode.INVALID_COURSE_PLACE_PHOTOS);
+        }
     }
 
     public void setCourse(Course course) {
