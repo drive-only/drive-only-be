@@ -13,7 +13,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -56,7 +55,7 @@ public class CommentController {
     @PostMapping("/api/courses/{courseId}/comments")
     public ResponseEntity<CommentCreateResponse> createComment(
             @PathVariable Long courseId,
-            @Valid @RequestBody CommentCreateRequest request
+            @RequestBody CommentCreateRequest request
     ) {
         CommentCreateResponse response = commentService.createComment(courseId, request);
         return ResponseEntity.ok().body(response);
@@ -72,7 +71,7 @@ public class CommentController {
     @PatchMapping("/api/comments/{commentId}")
     public ResponseEntity<CommentUpdateResponse> updateComment(
             @PathVariable Long commentId,
-            @Valid @RequestBody CommentUpdateRequest request
+            @RequestBody CommentUpdateRequest request
     ) {
         CommentUpdateResponse response = commentService.updateComment(commentId, request);
         return ResponseEntity.ok().body(response);
