@@ -13,6 +13,7 @@ import drive_only.drive_only_server.dto.coursePlace.update.CoursePlaceUpdateResp
 import drive_only.drive_only_server.dto.meta.Meta;
 import drive_only.drive_only_server.exception.custom.BusinessException;
 import drive_only.drive_only_server.exception.custom.CourseNotFoundException;
+import drive_only.drive_only_server.exception.custom.OwnerMismatchException;
 import drive_only.drive_only_server.exception.custom.PlaceNotFoundException;
 import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import drive_only.drive_only_server.repository.category.CategoryRepository;
@@ -82,6 +83,7 @@ public class CourseService {
     @Transactional
     public CoursePlaceUpdateResponse updateCourse(Long courseId, CourseCreateRequest request) {
         Course course = findCourse(courseId);
+        validateCourseOwner(course);
         Category newCategory = getCategory(request);
         List<CoursePlace> newCoursePlaces = createCoursePlaces(request);
         List<Tag> newTags = getTags(request);
@@ -94,6 +96,7 @@ public class CourseService {
     @Transactional
     public CourseDeleteResponse deleteCourse(Long courseId) {
         Course course = findCourse(courseId);
+        validateCourseOwner(course);
         courseRepository.delete(course);
         return new CourseDeleteResponse(courseId, SUCCESS_DELETE);
     }
@@ -162,6 +165,13 @@ public class CourseService {
 
         if (hasKeyword && hasCategory) {
             throw new BusinessException(ErrorCode.KEYWORD_WITH_CATEGORY_NOT_ALLOWED);
+        }
+    }
+
+    private void validateCourseOwner(Course course) {
+        Member loginMember = loginMemberProvider.getLoginMember();
+        if (!course.isWrittenBy(loginMember)) {
+            throw new OwnerMismatchException();
         }
     }
 

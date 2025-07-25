@@ -68,9 +68,13 @@ public class CoursePlace {
     }
 
     private void validateContent(String content) {
+        if (content == null) {
+            content = "";
+        }
         if (content.length() > 500) {
             throw new BusinessException(ErrorCode.INVALID_COURSE_PLACE_CONTENT);
         }
+        this.content = content;
     }
 
     private void validatePhotos(List<Photo> photos) {
