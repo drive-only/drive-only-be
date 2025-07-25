@@ -25,6 +25,7 @@ public enum ErrorCode {
     PARENT_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "부모 댓글을 찾을 수 없습니다."),
 
     UNAUTHORIZED(HttpStatus.FORBIDDEN, "권한이 없습니다."),
+    OWNER_MISMATCH(HttpStatus.FORBIDDEN, "작성자만 수정 또는 삭제할 수 있습니다."),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
     UNAUTHENTICATED_MEMBER(HttpStatus.UNAUTHORIZED, "로그인이 필요한 요청입니다."),
 

@@ -13,6 +13,7 @@ import drive_only.drive_only_server.dto.common.PaginatedResponse;
 import drive_only.drive_only_server.dto.meta.Meta;
 import drive_only.drive_only_server.exception.custom.CommentNotFoundException;
 import drive_only.drive_only_server.exception.custom.CourseNotFoundException;
+import drive_only.drive_only_server.exception.custom.OwnerMismatchException;
 import drive_only.drive_only_server.exception.custom.ParentCommentNotFoundException;
 import drive_only.drive_only_server.repository.comment.CommentRepository;
 import drive_only.drive_only_server.repository.course.CourseRepository;
@@ -69,6 +70,7 @@ public class CommentService {
     @Transactional
     public CommentUpdateResponse updateComment(Long commentId, CommentUpdateRequest request) {
         Comment comment = findComment(commentId);
+        validateCommentOwner(comment);
         comment.update(request);
         return new CommentUpdateResponse(comment.getId(), SUCCESS_UPDATE);
     }
@@ -76,6 +78,7 @@ public class CommentService {
     @Transactional
     public CommentDeleteResponse deleteComment(Long commentId) {
         Comment comment = findComment(commentId);
+        validateCommentOwner(comment);
         comment.clearChildComments();
         commentRepository.delete(comment);
         return new CommentDeleteResponse(comment.getId(), SUCCESS_DELETE);
@@ -91,5 +94,12 @@ public class CommentService {
 
     private Comment findParentComment(Long parentCommentId) {
         return commentRepository.findById(parentCommentId).orElseThrow(ParentCommentNotFoundException::new);
+    }
+
+    private void validateCommentOwner(Comment comment) {
+        Member loginMember = loginMemberProvider.getLoginMember();
+        if (!comment.isWrittenBy(loginMember)) {
+            throw new OwnerMismatchException();
+        }
     }
 }

@@ -92,6 +92,10 @@ public class Comment {
         this.childComments.clear();
     }
 
+    public boolean isWrittenBy(Member loginMember) {
+        return this.member.getId().equals(loginMember.getId());
+    }
+
     public void setMember(Member member) {
         this.member = member;
     }
