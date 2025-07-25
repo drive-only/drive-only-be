@@ -7,9 +7,11 @@ import drive_only.drive_only_server.dto.comment.search.CommentSearchResponse;
 import drive_only.drive_only_server.dto.comment.update.CommentUpdateRequest;
 import drive_only.drive_only_server.dto.comment.update.CommentUpdateResponse;
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
+import drive_only.drive_only_server.exception.ErrorResponse;
 import drive_only.drive_only_server.service.comment.CommentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -49,8 +51,12 @@ public class CommentController {
     @Operation(summary = "댓글 등록", description = "새로운 댓글을 등록")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "댓글 등록 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+            @ApiResponse(responseCode = "400", description = "요청 값이 유효하지 않음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "코스를 찾을 수 없음",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/api/courses/{courseId}/comments")
     public ResponseEntity<CommentCreateResponse> createComment(
