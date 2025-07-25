@@ -51,12 +51,9 @@ public class CommentController {
     @Operation(summary = "댓글 등록", description = "새로운 댓글을 등록")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "댓글 등록 성공"),
-            @ApiResponse(responseCode = "400", description = "요청 값이 유효하지 않음",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "404", description = "코스를 찾을 수 없음",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "500", description = "서버 내부 오류",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+            @ApiResponse(responseCode = "400", description = "요청 값이 유효하지 않음", content = @Content),
+            @ApiResponse(responseCode = "404", description = "코스를 찾을 수 없음", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류", content = @Content)
     })
     @PostMapping("/api/courses/{courseId}/comments")
     public ResponseEntity<CommentCreateResponse> createComment(
