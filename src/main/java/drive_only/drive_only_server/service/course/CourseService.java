@@ -11,6 +11,11 @@ import drive_only.drive_only_server.dto.course.search.CourseSearchResponse;
 import drive_only.drive_only_server.dto.coursePlace.create.CoursePlaceCreateRequest;
 import drive_only.drive_only_server.dto.coursePlace.update.CoursePlaceUpdateResponse;
 import drive_only.drive_only_server.dto.meta.Meta;
+import drive_only.drive_only_server.exception.custom.BusinessException;
+import drive_only.drive_only_server.exception.custom.CourseNotFoundException;
+import drive_only.drive_only_server.exception.custom.OwnerMismatchException;
+import drive_only.drive_only_server.exception.custom.PlaceNotFoundException;
+import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import drive_only.drive_only_server.repository.category.CategoryRepository;
 import drive_only.drive_only_server.repository.coursePlace.CoursePlaceRepository;
 import drive_only.drive_only_server.repository.course.CourseRepository;
@@ -60,13 +65,12 @@ public class CourseService {
     }
 
     public PaginatedResponse<CourseSearchResponse> searchCourses(CourseSearchRequest request, int page, int size) {
+        validateSearchRequest(request);
         Page<Course> courses = courseRepository.searchCourses(request, PageRequest.of(page, size));
         List<CourseSearchResponse> responses = courses.stream()
                 .map(CourseSearchResponse::from)
                 .toList();
-
         Meta meta = Meta.from(courses);
-
         return new PaginatedResponse<>(responses, meta);
     }
 
@@ -79,6 +83,7 @@ public class CourseService {
     @Transactional
     public CoursePlaceUpdateResponse updateCourse(Long courseId, CourseCreateRequest request) {
         Course course = findCourse(courseId);
+        validateCourseOwner(course);
         Category newCategory = getCategory(request);
         List<CoursePlace> newCoursePlaces = createCoursePlaces(request);
         List<Tag> newTags = getTags(request);
@@ -91,6 +96,7 @@ public class CourseService {
     @Transactional
     public CourseDeleteResponse deleteCourse(Long courseId) {
         Course course = findCourse(courseId);
+        validateCourseOwner(course);
         courseRepository.delete(course);
         return new CourseDeleteResponse(courseId, SUCCESS_DELETE);
     }
@@ -127,8 +133,7 @@ public class CourseService {
     }
 
     private Category getCategory(CourseCreateRequest request) {
-        Category category = new Category(
-                request.region(),
+        Category category = Category.createCategory(request.region(),
                 request.subRegion(),
                 request.time(),
                 request.season(),
@@ -147,12 +152,39 @@ public class CourseService {
     }
 
     private Place findPlace(Long placeId) {
-        return placeRepository.findById(placeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
+        return placeRepository.findById(placeId).orElseThrow(PlaceNotFoundException::new);
     }
 
     private Course findCourse(Long courseId) {
-        return courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 코스(게시글)을 찾을 수 없습니다."));
+        return courseRepository.findById(courseId).orElseThrow(CourseNotFoundException::new);
+    }
+
+    private void validateSearchRequest(CourseSearchRequest request) {
+        boolean hasKeyword = isNotBlank(request.keyword());
+        boolean hasCategory = hasCategoryFields(request);
+
+        if (hasKeyword && hasCategory) {
+            throw new BusinessException(ErrorCode.KEYWORD_WITH_CATEGORY_NOT_ALLOWED);
+        }
+    }
+
+    private void validateCourseOwner(Course course) {
+        Member loginMember = loginMemberProvider.getLoginMember();
+        if (!course.isWrittenBy(loginMember)) {
+            throw new OwnerMismatchException();
+        }
+    }
+
+    private boolean isNotBlank(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private boolean hasCategoryFields(CourseSearchRequest request) {
+        return isNotBlank(request.region())
+                || isNotBlank(request.subRegion())
+                || isNotBlank(request.time())
+                || isNotBlank(request.season())
+                || isNotBlank(request.theme())
+                || isNotBlank(request.areaType());
     }
 }

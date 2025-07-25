@@ -14,6 +14,10 @@ import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlaceTourApiRes
 import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlacesResponse;
 import drive_only.drive_only_server.dto.place.search.PlaceSearchRequest;
 import drive_only.drive_only_server.dto.place.search.PlaceSearchResponse;
+import drive_only.drive_only_server.exception.custom.BusinessException;
+import drive_only.drive_only_server.exception.custom.CourseNotFoundException;
+import drive_only.drive_only_server.exception.custom.PlaceNotFoundException;
+import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import drive_only.drive_only_server.repository.course.CourseRepository;
 import drive_only.drive_only_server.repository.course.SavedPlaceRepository;
 import drive_only.drive_only_server.repository.place.PlaceRepository;
@@ -47,6 +51,7 @@ public class PlaceService {
     private final LoginMemberProvider loginMemberProvider;
 
     public PaginatedResponse<PlaceSearchResponse> searchPlaces(PlaceSearchRequest request, int page, int size) {
+        validateSearchRequest(request);
         Page<Place> places = placeRepository.searchPlaces(request, PageRequest.of(page, size));
         List<PlaceSearchResponse> responses = places.stream()
                 .map(PlaceSearchResponse::from)
@@ -162,17 +167,20 @@ public class PlaceService {
     }
 
     private Course findCourse(Long courseId) {
-        return courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 코스를 찾을 수 없습니다."));
+        return courseRepository.findById(courseId).orElseThrow(CourseNotFoundException::new);
     }
 
     private Place findPlaceByContentId(Item place) {
-        return placeRepository.findByContentId(Integer.parseInt(place.contentid()))
-                .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
+        return placeRepository.findByContentId(Integer.parseInt(place.contentid())).orElseThrow(PlaceNotFoundException::new);
     }
 
     private Place findPlaceById(Long placeId) {
-        return placeRepository.findById(placeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
+        return placeRepository.findById(placeId).orElseThrow(PlaceNotFoundException::new);
+    }
+
+    private void validateSearchRequest(PlaceSearchRequest request) {
+        if (request.region().isBlank() && request.subRegion().isBlank() && request.keyword().isBlank()) {
+            throw new BusinessException(ErrorCode.KEYWORD_REQUIRED);
+        }
     }
 }

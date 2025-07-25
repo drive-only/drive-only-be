@@ -20,11 +20,6 @@ public class LikedCourse {
     @JoinColumn(name = "course_id")
     private Course course;
 
-    public LikedCourse(Member member, Course course) {
-        this.member = member;
-        this.course = course;
-    }
-
     public void setCourse(Course course) {
         this.course = course;
     }

@@ -1,6 +1,8 @@
 package drive_only.drive_only_server.domain;
 
 import drive_only.drive_only_server.dto.comment.update.CommentUpdateRequest;
+import drive_only.drive_only_server.exception.custom.BusinessException;
+import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -55,6 +57,8 @@ public class Comment {
     private List<Comment> childComments = new ArrayList<>();
 
     public static Comment createComment(String content, Member loginMember, Course course, Comment parentComment) {
+        validateContent(content);
+        
         Comment comment = new Comment();
         comment.content = content;
         comment.member = loginMember;
@@ -66,18 +70,30 @@ public class Comment {
         return comment;
     }
 
+    public void update(CommentUpdateRequest request) {
+        validateContent(request.content());
+
+        this.content = request.content();
+        this.createdDate = LocalDateTime.now();
+    }
+
+    private static void validateContent(String content) {
+        if (content == null || content.isBlank() || content.length() > 200) {
+            throw new BusinessException(ErrorCode.INVALID_COMMENT_CONTENT);
+        }
+    }
+
     public void addChildComment(Comment child) {
         this.childComments.add(child);
         child.parentComment = this;
     }
 
-    public void update(CommentUpdateRequest request) {
-        this.content = request.content();
-        this.createdDate = LocalDateTime.now();
-    }
-
     public void clearChildComments() {
         this.childComments.clear();
+    }
+
+    public boolean isWrittenBy(Member loginMember) {
+        return this.member.getId().equals(loginMember.getId());
     }
 
     public void setMember(Member member) {

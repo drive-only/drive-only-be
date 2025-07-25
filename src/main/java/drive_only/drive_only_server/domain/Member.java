@@ -46,17 +46,6 @@ public class Member {
         return member;
     }
 
-    // 연관 관계 편의 메서드
-    public void addComment(Comment comment) {
-        comments.add(comment);
-        comment.setMember(this);
-    }
-
-    public void removeComment(Comment comment) {
-        comments.remove(comment);
-        comment.setMember(null);
-    }
-
     // 회원 수정 메서드
     public void updateNickname(String nickname) {
         this.nickname = nickname;
