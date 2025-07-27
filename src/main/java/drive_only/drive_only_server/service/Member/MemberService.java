@@ -1,12 +1,16 @@
 package drive_only.drive_only_server.service.Member;
 
+import drive_only.drive_only_server.domain.Course;
 import drive_only.drive_only_server.domain.LikedCourse;
 import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.domain.ProviderType;
+import drive_only.drive_only_server.dto.course.list.MyCourseListResponse;
+import drive_only.drive_only_server.dto.course.search.MyCourseSearchResponse;
 import drive_only.drive_only_server.dto.likedCourse.list.LikedCourseListResponse;
 import drive_only.drive_only_server.dto.likedCourse.search.LikedCourseSearchResponse;
 import drive_only.drive_only_server.dto.member.MemberUpdateRequest;
 import drive_only.drive_only_server.dto.oauth.OAuthUserInfo;
+import drive_only.drive_only_server.repository.course.CourseRepository;
 import drive_only.drive_only_server.repository.course.LikedCourseRepository;
 import drive_only.drive_only_server.repository.member.MemberRepository;
 
@@ -23,6 +27,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final LikedCourseRepository likedCourseRepository;
+    private final CourseRepository courseRepository;
 
     @Transactional
     public Member registerOrLogin(OAuthUserInfo userInfo) {
@@ -87,5 +92,18 @@ public class MemberService {
         boolean hasNext = likedCourses.size() == size;
 
         return LikedCourseListResponse.from(responses, newLastId, size, hasNext);
+    }
+
+    public MyCourseListResponse getMyCourses(Member member, Long lastId, int size) {
+        List<Course> courses = courseRepository.findCoursesByMember(member.getId(), lastId, size);
+
+        List<MyCourseSearchResponse> responseList = courses.stream()
+                .map(MyCourseSearchResponse::from)
+                .toList();
+
+        Long newLastId = responseList.isEmpty() ? null : responseList.get(responseList.size() - 1).courseId();
+        boolean hasNext = courses.size() == size;
+
+        return MyCourseListResponse.from(responseList, newLastId, size, hasNext);
     }
 }

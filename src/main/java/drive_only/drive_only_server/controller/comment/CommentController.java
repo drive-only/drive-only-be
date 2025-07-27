@@ -11,6 +11,7 @@ import drive_only.drive_only_server.dto.comment.update.CommentUpdateResponse;
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
 import drive_only.drive_only_server.dto.like.comment.CommentLikeResponse;
 import drive_only.drive_only_server.exception.ErrorResponse;
+import drive_only.drive_only_server.security.LoginMemberProvider;
 import drive_only.drive_only_server.service.Member.MemberService;
 import drive_only.drive_only_server.service.comment.CommentService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,7 +40,7 @@ import drive_only.drive_only_server.security.CustomUserPrincipal;
 @Tag(name = "댓글", description = "댓글 관련 API")
 public class CommentController {
     private final CommentService commentService;
-    private final MemberService memberService;
+    private final LoginMemberProvider loginMemberProvider;
 
     @Operation(summary = "댓글 조회", description = "댓글 및 대댓글들을 조회")
     @ApiResponses({
@@ -113,13 +114,9 @@ public class CommentController {
     })
     @PostMapping("/api/comments/{commentId}/like")
     public ResponseEntity<CommentLikeResponse> toggleLikeComment(
-            @PathVariable Long commentId,
-            Authentication authentication
+            @PathVariable Long commentId
     ) {
-        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
-        String email = principal.getEmail();
-        ProviderType provider = principal.getProvider();
-        Member member = memberService.findByEmailAndProvider(email, provider);
+        Member member = loginMemberProvider.getLoginMember();
 
         CommentLikeResponse response = commentService.toggleCommentLike(commentId, member);
         HttpStatus status = response.liked() ? HttpStatus.CREATED : HttpStatus.OK;

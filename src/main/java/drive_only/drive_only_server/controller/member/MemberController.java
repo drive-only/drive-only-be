@@ -2,11 +2,13 @@ package drive_only.drive_only_server.controller.member;
 
 import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.domain.ProviderType;
+import drive_only.drive_only_server.dto.course.list.MyCourseListResponse;
 import drive_only.drive_only_server.dto.likedCourse.list.LikedCourseListResponse;
 import drive_only.drive_only_server.dto.member.MemberResponse;
 import drive_only.drive_only_server.dto.member.MemberUpdateRequest;
 import drive_only.drive_only_server.dto.member.OtherMemberResponse;
 import drive_only.drive_only_server.security.CustomUserPrincipal;
+import drive_only.drive_only_server.security.LoginMemberProvider;
 import drive_only.drive_only_server.service.Member.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MemberController {
 
     private final MemberService memberService;
+    private final LoginMemberProvider loginMemberProvider;
 
     @Operation(summary = "마이페이지", description = "마이페이지 조회")
     @ApiResponses({
@@ -36,12 +39,8 @@ public class MemberController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
     })
     @GetMapping("/api/members/me")
-    public ResponseEntity<MemberResponse> getMyProfile(Authentication authentication) {
-        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
-        String email = principal.getEmail();
-        ProviderType provider = principal.getProvider();
-
-        Member member = memberService.findByEmailAndProvider(email, provider);
+    public ResponseEntity<MemberResponse> getMyProfile() {
+        Member member = loginMemberProvider.getLoginMember();
 
         MemberResponse response = new MemberResponse(
                 member.getId(),
@@ -85,14 +84,9 @@ public class MemberController {
     })
     @PatchMapping("/api/members/me")
     public ResponseEntity<MemberResponse> updateMyProfile(
-            @RequestBody MemberUpdateRequest request,
-            Authentication authentication
+            @RequestBody MemberUpdateRequest request
     ) {
-        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
-        String email = principal.getEmail();
-        ProviderType provider = principal.getProvider();
-
-        Member updatedMember = memberService.updateMember(email, provider, request);
+        Member updatedMember = loginMemberProvider.getLoginMember();
 
         MemberResponse response = new MemberResponse(
                 updatedMember.getId(),
@@ -135,16 +129,26 @@ public class MemberController {
     @GetMapping("/api/members/me/likedCourses")
     public ResponseEntity<LikedCourseListResponse> getLikedCourses(
             @RequestParam(required = false) Long lastId,
-            @RequestParam(defaultValue = "10") int size,
-            Authentication authentication
+            @RequestParam(defaultValue = "10") int size
     ) {
-        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
-        String email = principal.getEmail();
-        ProviderType provider = principal.getProvider();
-
-        Member member = memberService.findByEmailAndProvider(email, provider);
+        Member member = loginMemberProvider.getLoginMember();
         LikedCourseListResponse response = memberService.getLikedCourses(member, lastId, size);
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "내가 작성한 코스 조회", description = "인증된 사용자의 작성 코스를 커서 기반으로 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "작성한 코스 목록 조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
+    @GetMapping("/api/members/me/courses")
+    public ResponseEntity<MyCourseListResponse> getMyCourses(
+            @RequestParam(required = false) Long lastId,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Member member = loginMemberProvider.getLoginMember();
+        MyCourseListResponse response = memberService.getMyCourses(member, lastId, size);
+        return ResponseEntity.ok(response);
+    }
 }

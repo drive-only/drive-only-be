@@ -117,4 +117,22 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
 
         return course.createdDate.desc();
     }
+
+    @Override
+    public List<Course> findCoursesByMember(Long memberId, Long lastId, int size) {
+        return queryFactory
+                .selectFrom(course)
+                .join(course.member, member).fetchJoin()
+                .join(course.category, category).fetchJoin()
+                .leftJoin(course.coursePlaces, coursePlace)
+                .where(
+                        course.member.id.eq(memberId),
+                        lastId != null ? course.id.lt(lastId) : null
+                )
+                .distinct()
+                .orderBy(course.id.desc())
+                .limit(size)
+                .fetch();
+    }
+
 }
