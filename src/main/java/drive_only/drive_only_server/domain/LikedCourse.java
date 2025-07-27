@@ -23,4 +23,10 @@ public class LikedCourse {
     public void setCourse(Course course) {
         this.course = course;
     }
+
+    public LikedCourse(Member member, Course course) { // 🔥 여기를 추가
+        this.member = member;
+        this.course = course;
+    }
+
 }
