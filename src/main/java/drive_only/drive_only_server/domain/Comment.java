@@ -99,4 +99,16 @@ public class Comment {
     public void setMember(Member member) {
         this.member = member;
     }
+
+    public void increaseLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decreaseLikeCount() {
+        this.likeCount = Math.max(0, this.likeCount - 1);
+    }
+
+    public int getLikeCount() {
+        return likeCount;
+    }
 }
