@@ -10,6 +10,7 @@ import drive_only.drive_only_server.dto.course.search.CourseSearchRequest;
 import drive_only.drive_only_server.dto.course.search.CourseSearchResponse;
 import drive_only.drive_only_server.dto.coursePlace.create.CoursePlaceCreateRequest;
 import drive_only.drive_only_server.dto.coursePlace.update.CoursePlaceUpdateResponse;
+import drive_only.drive_only_server.dto.like.course.CourseLikeResponse;
 import drive_only.drive_only_server.dto.meta.Meta;
 import drive_only.drive_only_server.exception.custom.BusinessException;
 import drive_only.drive_only_server.exception.custom.CourseNotFoundException;
@@ -17,6 +18,7 @@ import drive_only.drive_only_server.exception.custom.OwnerMismatchException;
 import drive_only.drive_only_server.exception.custom.PlaceNotFoundException;
 import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import drive_only.drive_only_server.repository.category.CategoryRepository;
+import drive_only.drive_only_server.repository.course.LikedCourseRepository;
 import drive_only.drive_only_server.repository.coursePlace.CoursePlaceRepository;
 import drive_only.drive_only_server.repository.course.CourseRepository;
 import drive_only.drive_only_server.repository.photo.PhotoRepository;
@@ -25,11 +27,14 @@ import drive_only.drive_only_server.repository.tag.TagRepository;
 import drive_only.drive_only_server.security.LoginMemberProvider;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 
 @Service
 @Transactional(readOnly = true)
@@ -46,6 +51,7 @@ public class CourseService {
     private final TagRepository tagRepository;
     private final PhotoRepository photoRepository;
     private final LoginMemberProvider loginMemberProvider;
+    private final LikedCourseRepository likedCourseRepository;
 
     @Transactional
     public CourseCreateResponse createCourse(CourseCreateRequest request) {
@@ -187,4 +193,32 @@ public class CourseService {
                 || isNotBlank(request.theme())
                 || isNotBlank(request.areaType());
     }
+
+    @Transactional
+    public CourseLikeResponse toggleCourseLike(Long courseId, Member member) {
+        Course course = courseRepository.findById(courseId).orElseThrow(CourseNotFoundException::new);
+
+        Optional<LikedCourse> liked = likedCourseRepository.findByCourseAndMember(course, member);
+
+        boolean isLiked;
+        if (liked.isPresent()) {
+            // 좋아요 취소
+            likedCourseRepository.delete(liked.get());
+            course.decreaseLikeCount(); // 아래에 구현
+            isLiked = false;
+        } else {
+            // 좋아요 추가
+            likedCourseRepository.save(new LikedCourse(member, course));
+            course.increaseLikeCount(); // 아래에 구현
+            isLiked = true;
+        }
+
+        // JPA 더티 체킹으로 자동 update
+        return new CourseLikeResponse(
+                isLiked ? "게시글에 좋아요를 눌렀습니다." : "게시글의 좋아요를 취소했습니다.",
+                course.getLikeCount(),
+                isLiked
+        );
+    }
+
 }

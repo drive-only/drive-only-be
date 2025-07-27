@@ -1,5 +1,7 @@
 package drive_only.drive_only_server.controller.course;
 
+import drive_only.drive_only_server.domain.Member;
+import drive_only.drive_only_server.domain.ProviderType;
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
 import drive_only.drive_only_server.dto.course.create.CourseCreateRequest;
 import drive_only.drive_only_server.dto.course.create.CourseCreateResponse;
@@ -8,6 +10,9 @@ import drive_only.drive_only_server.dto.course.detailSearch.CourseDetailSearchRe
 import drive_only.drive_only_server.dto.course.search.CourseSearchRequest;
 import drive_only.drive_only_server.dto.course.search.CourseSearchResponse;
 import drive_only.drive_only_server.dto.coursePlace.update.CoursePlaceUpdateResponse;
+import drive_only.drive_only_server.dto.like.course.CourseLikeResponse;
+import drive_only.drive_only_server.security.CustomUserPrincipal;
+import drive_only.drive_only_server.service.Member.MemberService;
 import drive_only.drive_only_server.service.course.CourseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,6 +20,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "코스(게시글)", description = "드라이브 코스(게시글) 관련 API")
 public class CourseController {
     private final CourseService courseService;
+    private final MemberService memberService;
 
     @Operation(summary = "코스(게시글) 리스트 조회", description = "조건에 따른 드라이브 코스(게시글) 목록을 조회")
     @ApiResponses({
@@ -94,5 +102,27 @@ public class CourseController {
     public ResponseEntity<CourseDeleteResponse> deleteCourse(@PathVariable Long courseId) {
         CourseDeleteResponse response = courseService.deleteCourse(courseId);
         return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "코스(게시글) 좋아요 전송", description = "특정 코스에 대해 좋아요 또는 좋아요 취소 요청을 처리합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "좋아요 취소 성공"),
+            @ApiResponse(responseCode = "201", description = "좋아요 등록 성공"),
+            @ApiResponse(responseCode = "404", description = "해당 코스(게시글)을 찾을 수 없음", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
+    @PostMapping("/api/courses/{courseId}/like")
+    public ResponseEntity<CourseLikeResponse> toggleLikeCourse(
+            @PathVariable Long courseId,
+            Authentication authentication
+    ) {
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        String email = principal.getEmail();
+        ProviderType provider = principal.getProvider();
+        Member member = memberService.findByEmailAndProvider(email, provider);
+
+        CourseLikeResponse response = courseService.toggleCourseLike(courseId, member);
+        HttpStatus status = response.liked() ? HttpStatus.CREATED : HttpStatus.OK;
+        return ResponseEntity.status(status).body(response);
     }
 }

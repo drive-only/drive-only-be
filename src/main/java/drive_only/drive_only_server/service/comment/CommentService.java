@@ -2,6 +2,7 @@ package drive_only.drive_only_server.service.comment;
 
 import drive_only.drive_only_server.domain.Comment;
 import drive_only.drive_only_server.domain.Course;
+import drive_only.drive_only_server.domain.LikedComment;
 import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.dto.comment.create.CommentCreateRequest;
 import drive_only.drive_only_server.dto.comment.create.CommentCreateResponse;
@@ -10,12 +11,14 @@ import drive_only.drive_only_server.dto.comment.search.CommentSearchResponse;
 import drive_only.drive_only_server.dto.comment.update.CommentUpdateRequest;
 import drive_only.drive_only_server.dto.comment.update.CommentUpdateResponse;
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
+import drive_only.drive_only_server.dto.like.comment.CommentLikeResponse;
 import drive_only.drive_only_server.dto.meta.Meta;
 import drive_only.drive_only_server.exception.custom.CommentNotFoundException;
 import drive_only.drive_only_server.exception.custom.CourseNotFoundException;
 import drive_only.drive_only_server.exception.custom.OwnerMismatchException;
 import drive_only.drive_only_server.exception.custom.ParentCommentNotFoundException;
 import drive_only.drive_only_server.repository.comment.CommentRepository;
+import drive_only.drive_only_server.repository.comment.LikedCommentRepository;
 import drive_only.drive_only_server.repository.course.CourseRepository;
 import drive_only.drive_only_server.security.LoginMemberProvider;
 import java.util.List;
@@ -37,6 +40,7 @@ public class CommentService {
 
     private final CourseRepository courseRepository;
     private final CommentRepository commentRepository;
+    private final LikedCommentRepository likedCommentRepository;
     private final LoginMemberProvider loginMemberProvider;
 
     @Transactional
@@ -100,6 +104,23 @@ public class CommentService {
         Member loginMember = loginMemberProvider.getLoginMember();
         if (!comment.isWrittenBy(loginMember)) {
             throw new OwnerMismatchException();
+        }
+    }
+
+    @Transactional
+    public CommentLikeResponse toggleCommentLike(Long commentId, Member member) {
+        Comment comment = commentRepository.findById(commentId).orElseThrow(CourseNotFoundException::new);
+
+        boolean isLiked = likedCommentRepository.existsByCommentAndMember(comment, member);
+
+        if (isLiked) {
+            likedCommentRepository.deleteByCommentAndMember(comment, member);
+            comment.decreaseLikeCount();
+            return CommentLikeResponse.from("댓글의 좋아요를 취소 하였습니다.", comment.getLikeCount(), false);
+        } else {
+            likedCommentRepository.save(new LikedComment(member, comment));
+            comment.increaseLikeCount();
+            return CommentLikeResponse.from("댓글에 좋아요를 눌렀습니다.", comment.getLikeCount(), true);
         }
     }
 }
