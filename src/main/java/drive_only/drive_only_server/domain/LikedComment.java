@@ -1,32 +1,28 @@
 package drive_only.drive_only_server.domain;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
+@Table(name = "liked_comment")
 @Getter
-@Table(name = "liked_course")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class LikedCourse {
+public class LikedComment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
     private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_id")
-    private Course course;
+    private Comment comment;
 
-    public void setCourse(Course course) {
-        this.course = course;
-    }
-
-    public LikedCourse(Member member, Course course) { // 🔥 여기를 추가
+    public LikedComment(Member member, Comment comment) {
         this.member = member;
-        this.course = course;
+        this.comment = comment;
     }
-
 }

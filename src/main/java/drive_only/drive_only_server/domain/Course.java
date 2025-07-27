@@ -160,4 +160,16 @@ public class Course {
     public void setCategory(Category category) {
         this.category = category;
     }
+
+    public void increaseLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decreaseLikeCount() {
+        this.likeCount = Math.max(0, this.likeCount - 1);
+    }
+
+    public int getLikeCount() {
+        return likeCount;
+    }
 }
