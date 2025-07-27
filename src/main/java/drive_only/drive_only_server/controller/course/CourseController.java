@@ -5,6 +5,7 @@ import drive_only.drive_only_server.dto.course.create.CourseCreateRequest;
 import drive_only.drive_only_server.dto.course.create.CourseCreateResponse;
 import drive_only.drive_only_server.dto.course.delete.CourseDeleteResponse;
 import drive_only.drive_only_server.dto.course.detailSearch.CourseDetailSearchResponse;
+import drive_only.drive_only_server.dto.course.list.MyCourseListResponse;
 import drive_only.drive_only_server.dto.course.search.CourseSearchRequest;
 import drive_only.drive_only_server.dto.course.search.CourseSearchResponse;
 import drive_only.drive_only_server.dto.coursePlace.update.CoursePlaceUpdateResponse;
@@ -16,6 +17,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -95,4 +97,5 @@ public class CourseController {
         CourseDeleteResponse response = courseService.deleteCourse(courseId);
         return ResponseEntity.ok().body(response);
     }
+
 }

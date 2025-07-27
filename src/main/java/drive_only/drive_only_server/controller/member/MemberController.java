@@ -2,6 +2,7 @@ package drive_only.drive_only_server.controller.member;
 
 import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.domain.ProviderType;
+import drive_only.drive_only_server.dto.course.list.MyCourseListResponse;
 import drive_only.drive_only_server.dto.likedCourse.list.LikedCourseListResponse;
 import drive_only.drive_only_server.dto.member.MemberResponse;
 import drive_only.drive_only_server.dto.member.MemberUpdateRequest;
@@ -16,6 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -147,4 +149,24 @@ public class MemberController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "내가 작성한 코스 조회", description = "인증된 사용자의 작성 코스를 커서 기반으로 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "작성한 코스 목록 조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
+    @GetMapping("/api/members/me/courses")
+    public ResponseEntity<MyCourseListResponse> getMyCourses(
+            @RequestParam(required = false) Long lastId,
+            @RequestParam(defaultValue = "10") int size,
+            Authentication authentication
+    ) {
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        String email = principal.getEmail();
+        ProviderType provider = principal.getProvider();
+
+        Member member = memberService.findByEmailAndProvider(email, provider);
+        MyCourseListResponse response = memberService.getMyCourses(member, lastId, size);
+        return ResponseEntity.ok(response);
+    }
 }
