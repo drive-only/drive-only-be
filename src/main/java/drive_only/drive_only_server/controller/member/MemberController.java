@@ -8,6 +8,7 @@ import drive_only.drive_only_server.dto.member.MemberResponse;
 import drive_only.drive_only_server.dto.member.MemberUpdateRequest;
 import drive_only.drive_only_server.dto.member.OtherMemberResponse;
 import drive_only.drive_only_server.security.CustomUserPrincipal;
+import drive_only.drive_only_server.security.LoginMemberProvider;
 import drive_only.drive_only_server.service.Member.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -17,7 +18,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MemberController {
 
     private final MemberService memberService;
+    private final LoginMemberProvider loginMemberProvider;
 
     @Operation(summary = "마이페이지", description = "마이페이지 조회")
     @ApiResponses({
@@ -38,12 +39,8 @@ public class MemberController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
     })
     @GetMapping("/api/members/me")
-    public ResponseEntity<MemberResponse> getMyProfile(Authentication authentication) {
-        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
-        String email = principal.getEmail();
-        ProviderType provider = principal.getProvider();
-
-        Member member = memberService.findByEmailAndProvider(email, provider);
+    public ResponseEntity<MemberResponse> getMyProfile() {
+        Member member = loginMemberProvider.getLoginMember();
 
         MemberResponse response = new MemberResponse(
                 member.getId(),
@@ -87,14 +84,9 @@ public class MemberController {
     })
     @PatchMapping("/api/members/me")
     public ResponseEntity<MemberResponse> updateMyProfile(
-            @RequestBody MemberUpdateRequest request,
-            Authentication authentication
+            @RequestBody MemberUpdateRequest request
     ) {
-        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
-        String email = principal.getEmail();
-        ProviderType provider = principal.getProvider();
-
-        Member updatedMember = memberService.updateMember(email, provider, request);
+        Member updatedMember = loginMemberProvider.getLoginMember();
 
         MemberResponse response = new MemberResponse(
                 updatedMember.getId(),
@@ -137,14 +129,9 @@ public class MemberController {
     @GetMapping("/api/members/me/likedCourses")
     public ResponseEntity<LikedCourseListResponse> getLikedCourses(
             @RequestParam(required = false) Long lastId,
-            @RequestParam(defaultValue = "10") int size,
-            Authentication authentication
+            @RequestParam(defaultValue = "10") int size
     ) {
-        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
-        String email = principal.getEmail();
-        ProviderType provider = principal.getProvider();
-
-        Member member = memberService.findByEmailAndProvider(email, provider);
+        Member member = loginMemberProvider.getLoginMember();
         LikedCourseListResponse response = memberService.getLikedCourses(member, lastId, size);
         return ResponseEntity.ok(response);
     }
@@ -158,14 +145,9 @@ public class MemberController {
     @GetMapping("/api/members/me/courses")
     public ResponseEntity<MyCourseListResponse> getMyCourses(
             @RequestParam(required = false) Long lastId,
-            @RequestParam(defaultValue = "10") int size,
-            Authentication authentication
+            @RequestParam(defaultValue = "10") int size
     ) {
-        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
-        String email = principal.getEmail();
-        ProviderType provider = principal.getProvider();
-
-        Member member = memberService.findByEmailAndProvider(email, provider);
+        Member member = loginMemberProvider.getLoginMember();
         MyCourseListResponse response = memberService.getMyCourses(member, lastId, size);
         return ResponseEntity.ok(response);
     }

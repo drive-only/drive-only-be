@@ -13,6 +13,7 @@ import drive_only.drive_only_server.dto.course.search.CourseSearchResponse;
 import drive_only.drive_only_server.dto.coursePlace.update.CoursePlaceUpdateResponse;
 import drive_only.drive_only_server.dto.like.course.CourseLikeResponse;
 import drive_only.drive_only_server.security.CustomUserPrincipal;
+import drive_only.drive_only_server.security.LoginMemberProvider;
 import drive_only.drive_only_server.service.Member.MemberService;
 import drive_only.drive_only_server.service.course.CourseService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,7 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "코스(게시글)", description = "드라이브 코스(게시글) 관련 API")
 public class CourseController {
     private final CourseService courseService;
-    private final MemberService memberService;
+    private final LoginMemberProvider loginMemberProvider;
 
     @Operation(summary = "코스(게시글) 리스트 조회", description = "조건에 따른 드라이브 코스(게시글) 목록을 조회")
     @ApiResponses({
@@ -115,13 +116,9 @@ public class CourseController {
     })
     @PostMapping("/api/courses/{courseId}/like")
     public ResponseEntity<CourseLikeResponse> toggleLikeCourse(
-            @PathVariable Long courseId,
-            Authentication authentication
+            @PathVariable Long courseId
     ) {
-        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
-        String email = principal.getEmail();
-        ProviderType provider = principal.getProvider();
-        Member member = memberService.findByEmailAndProvider(email, provider);
+        Member member = loginMemberProvider.getLoginMember();
 
         CourseLikeResponse response = courseService.toggleCourseLike(courseId, member);
         HttpStatus status = response.liked() ? HttpStatus.CREATED : HttpStatus.OK;

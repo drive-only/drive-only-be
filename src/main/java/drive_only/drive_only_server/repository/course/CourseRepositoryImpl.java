@@ -124,7 +124,7 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
                 .selectFrom(course)
                 .join(course.member, member).fetchJoin()
                 .join(course.category, category).fetchJoin()
-                .leftJoin(course.coursePlaces, coursePlace).fetchJoin()
+                .leftJoin(course.coursePlaces, coursePlace)
                 .where(
                         course.member.id.eq(memberId),
                         lastId != null ? course.id.lt(lastId) : null
