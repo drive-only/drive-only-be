@@ -6,6 +6,7 @@ import drive_only.drive_only_server.dto.auth.TokenResponse;
 import drive_only.drive_only_server.dto.oauth.OAuthUserInfo;
 import drive_only.drive_only_server.security.JwtTokenProvider;
 import drive_only.drive_only_server.service.Member.MemberService;
+import drive_only.drive_only_server.service.auth.RefreshTokenService;
 import drive_only.drive_only_server.service.oauth.OAuth2UserInfoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,11 +14,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.Duration;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,6 +30,10 @@ public class AuthController {
     private final OAuth2UserInfoService oAuth2UserInfoService;
     private final MemberService memberService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenService refreshTokenService;
+
+    @Value("${jwt.refresh-expiration}")
+    private long refreshTokenExpiration; // ms 단위
 
     @Operation(summary = "로그인", description = "로그인 요청")
     @ApiResponses({
@@ -46,8 +53,28 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
 
+        // 1. 회원 등록 or 로그인
         Member member = memberService.registerOrLogin(userInfo);
-        String jwt = jwtTokenProvider.createToken(member.getEmail(), member.getProvider());
-        return ResponseEntity.ok(new TokenResponse(jwt));
+
+        // 2. access & refresh token 생성
+        String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(), member.getProvider());
+        String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail());
+
+        // 3. refresh token Redis 저장
+        refreshTokenService.saveRefreshToken(member.getEmail(), refreshToken, refreshTokenExpiration);
+
+        // 4. refresh token을 HttpOnly 쿠키에 담아 응답
+        ResponseCookie refreshCookie = ResponseCookie.from("refresh-token", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.ofMillis(refreshTokenExpiration))
+                .sameSite("Strict")
+                .build();
+
+        // 5. 응답
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(new TokenResponse(accessToken));
     }
 }

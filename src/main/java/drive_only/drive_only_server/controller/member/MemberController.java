@@ -8,8 +8,10 @@ import drive_only.drive_only_server.dto.member.MemberResponse;
 import drive_only.drive_only_server.dto.member.MemberUpdateRequest;
 import drive_only.drive_only_server.dto.member.OtherMemberResponse;
 import drive_only.drive_only_server.security.CustomUserPrincipal;
+import drive_only.drive_only_server.security.JwtTokenProvider;
 import drive_only.drive_only_server.security.LoginMemberProvider;
 import drive_only.drive_only_server.service.Member.MemberService;
+import drive_only.drive_only_server.service.auth.RefreshTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -22,6 +24,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,6 +34,8 @@ public class MemberController {
 
     private final MemberService memberService;
     private final LoginMemberProvider loginMemberProvider;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenService refreshTokenService;
 
     @Operation(summary = "마이페이지", description = "마이페이지 조회")
     @ApiResponses({
@@ -108,14 +114,35 @@ public class MemberController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
     })
     @DeleteMapping("/api/members/me")
-    public ResponseEntity<Void> deleteMyAccount(Authentication authentication) {
+    public ResponseEntity<Void> deleteMyAccount(
+            Authentication authentication,
+            @CookieValue(value = "refresh-token", required = false) String refreshToken
+    ) {
         CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
         String email = principal.getEmail();
         ProviderType provider = principal.getProvider();
 
+        // 1. 회원 삭제
         memberService.deleteMemberByEmailAndProvider(email, provider);
 
-        return ResponseEntity.noContent().build(); // 204 No Content
+        // 2. refresh token 삭제
+        if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
+            refreshTokenService.deleteRefreshToken(email);
+        }
+
+        // 3. 쿠키 삭제 설정
+        ResponseCookie deleteCookie = ResponseCookie.from("refresh-token", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+
+        // 4. 응답
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
+                .build();
     }
 
     @Operation(summary = "좋아요한 코스 조회", description = "회원이 좋아요한 드라이브 코스를 최신순으로 조회")
