@@ -27,7 +27,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 //api/login 경로는 누구나 접근 허용
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/login", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/api/login", "/swagger-ui/**", "/v3/api-docs/**", "/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/courses/**", "/api/places", "/api/categories").permitAll()
                         .anyRequest().authenticated()
                 )
