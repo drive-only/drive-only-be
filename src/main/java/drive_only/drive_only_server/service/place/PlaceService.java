@@ -179,7 +179,7 @@ public class PlaceService {
     }
 
     private void validateSearchRequest(PlaceSearchRequest request) {
-        if (request.region().isBlank() && request.subRegion().isBlank() && request.keyword().isBlank()) {
+        if (request.region() == null && request.subRegion() == null && request.keyword() == null) {
             throw new BusinessException(ErrorCode.KEYWORD_REQUIRED);
         }
     }
