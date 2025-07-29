@@ -20,7 +20,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Slf4j
 public class PlaceDataService {
@@ -30,13 +30,14 @@ public class PlaceDataService {
     private final WebClient webClient;
 
     private final static int numOfRows = 20;
-    private final static int startPage = 11;
-    private final static int totalPage = 20;
+    private final static int startPage = 1;
+    private final static int totalPage = 25;
     //TODO : 현재는 개발 계정으로 TourAPI와 연동하고 있어서, 나중에 운영 계정으로 변환되면 전체 데이터를 가져오도록 위의 코드를 아래처럼 변경
     //int numOfRows = 200;
     //int totalCount = calculateTotalCount();
     //int totalPage = (int) Math.ceil((double) totalCount / numOfRows);
 
+    @Transactional
     public void importPlaceDataFromTourApi() {
         for (int pageNo = startPage; pageNo <= totalPage; pageNo++) {
             List<Item> places = getAllPlaces(pageNo, numOfRows);
@@ -47,6 +48,7 @@ public class PlaceDataService {
         }
     }
 
+    @Transactional
     @Scheduled(cron = "0 50 4 * * *")
     public void syncPlaceDataFromTourApi() {
         log.info("관광지 동기화 시작: {}", LocalDateTime.now());
