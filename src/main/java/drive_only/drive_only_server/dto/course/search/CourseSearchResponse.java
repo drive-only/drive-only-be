@@ -15,7 +15,7 @@ public record CourseSearchResponse(
         String title,
         String thumbnailUrl,
         List<String> coursePlaceNames,
-        CategoryResponse categoryResponse,
+        CategoryResponse category,
         int likeCount,
         int viewCount
 ) {
