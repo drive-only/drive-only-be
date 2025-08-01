@@ -197,8 +197,13 @@ public class CourseService {
     }
 
     private void validateSearchRequest(CourseSearchRequest request) {
+        boolean hasPlaceId = isNotNull(request.placeId());
         boolean hasKeyword = isNotBlank(request.keyword());
         boolean hasCategory = hasCategoryFields(request);
+
+        if ((hasPlaceId && hasKeyword) || (hasPlaceId && hasCategory)) {
+            throw new BusinessException(ErrorCode.PLACE_ID_WITH_ANYTHING_NOT_ALLOWED);
+        }
 
         if (hasKeyword && hasCategory) {
             throw new BusinessException(ErrorCode.KEYWORD_WITH_CATEGORY_NOT_ALLOWED);
@@ -210,6 +215,10 @@ public class CourseService {
         if (!course.isWrittenBy(loginMember)) {
             throw new OwnerMismatchException();
         }
+    }
+
+    private boolean isNotNull(Long value) {
+        return value != null;
     }
 
     private boolean isNotBlank(String value) {

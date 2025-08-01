@@ -19,7 +19,8 @@ public enum ErrorCode {
     INVALID_CATEGORY_AREATYPE(HttpStatus.BAD_REQUEST, "근교/외곽 구분은 필수 입력 항목입니다."),
     COURSE_PLACES_REQUIRED(HttpStatus.BAD_REQUEST, "코스 장소는 최소 1개 이상 등록되어야 합니다."),
     KEYWORD_REQUIRED(HttpStatus.BAD_REQUEST, "검색어를 입력해주세요."),
-    KEYWORD_WITH_CATEGORY_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "검색어와 카테고리 필터는 동시에 사용할 수 없습니다."),
+    PLACE_ID_WITH_ANYTHING_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "장소ID와 검색어 맟 카테고리 필터는 동시에 적용될 수 없습니다."),
+    KEYWORD_WITH_CATEGORY_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "검색어와 카테고리 필터는 동시에 적용될 수 없습니다."),
 
     //404 NOT FOUND
     COURSE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 코스(게시글)를 찾을 수 없습니다."),
