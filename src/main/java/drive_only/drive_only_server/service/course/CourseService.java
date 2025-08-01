@@ -59,14 +59,12 @@ public class CourseService {
         Member loginMember = loginMemberProvider.getLoginMember();
         Category category = getCategory(request);
         List<Tag> tags = getTags(request);
-
         Course course = Course.createCourse(
                 request.title(), LocalDate.now(), request.recommendation(), request.difficulty(),
                 0, 0, 0, false,
                 loginMember, category, coursePlaces, tags
         );
         courseRepository.save(course);
-
         return new CourseCreateResponse(course.getId(), SUCCESS_CREATE);
     }
 
@@ -93,9 +91,7 @@ public class CourseService {
         Category newCategory = getCategory(request);
         List<CoursePlace> newCoursePlaces = createCoursePlaces(request);
         List<Tag> newTags = getTags(request);
-
         course.update(request, newCategory, newCoursePlaces, newTags);
-
         return new CoursePlaceUpdateResponse(course.getId(), SUCCESS_UPDATE);
     }
 

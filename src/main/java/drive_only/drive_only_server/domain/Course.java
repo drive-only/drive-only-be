@@ -109,8 +109,10 @@ public class Course {
         this.recommendation = request.recommendation();
         this.difficulty = request.difficulty();
         this.category = newCategory;
+
         this.coursePlaces.clear();
         newCoursePlaces.forEach(this::addCoursePlace);
+
         this.tags.clear();
         newTags.forEach(this::addTag);
     }
@@ -167,9 +169,5 @@ public class Course {
 
     public void decreaseLikeCount() {
         this.likeCount = Math.max(0, this.likeCount - 1);
-    }
-
-    public int getLikeCount() {
-        return likeCount;
     }
 }
