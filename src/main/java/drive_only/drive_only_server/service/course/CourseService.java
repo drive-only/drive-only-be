@@ -103,6 +103,33 @@ public class CourseService {
         return new CourseDeleteResponse(courseId, SUCCESS_DELETE);
     }
 
+    @Transactional
+    public CourseLikeResponse toggleCourseLike(Long courseId, Member member) {
+        Course course = courseRepository.findById(courseId).orElseThrow(CourseNotFoundException::new);
+
+        Optional<LikedCourse> liked = likedCourseRepository.findByCourseAndMember(course, member);
+
+        boolean isLiked;
+        if (liked.isPresent()) {
+            // 좋아요 취소
+            likedCourseRepository.delete(liked.get());
+            course.decreaseLikeCount(); // 아래에 구현
+            isLiked = false;
+        } else {
+            // 좋아요 추가
+            likedCourseRepository.save(new LikedCourse(member, course));
+            course.increaseLikeCount(); // 아래에 구현
+            isLiked = true;
+        }
+
+        // JPA 더티 체킹으로 자동 update
+        return new CourseLikeResponse(
+                isLiked ? "게시글에 좋아요를 눌렀습니다." : "게시글의 좋아요를 취소했습니다.",
+                course.getLikeCount(),
+                isLiked
+        );
+    }
+
     private List<CoursePlace> createCoursePlaces(CourseCreateRequest request) {
         return request.coursePlaces().stream()
                 .map(coursePlaceCreateRequest -> {
@@ -196,33 +223,6 @@ public class CourseService {
                 || isNotBlank(request.season())
                 || isNotBlank(request.theme())
                 || isNotBlank(request.areaType());
-    }
-
-    @Transactional
-    public CourseLikeResponse toggleCourseLike(Long courseId, Member member) {
-        Course course = courseRepository.findById(courseId).orElseThrow(CourseNotFoundException::new);
-
-        Optional<LikedCourse> liked = likedCourseRepository.findByCourseAndMember(course, member);
-
-        boolean isLiked;
-        if (liked.isPresent()) {
-            // 좋아요 취소
-            likedCourseRepository.delete(liked.get());
-            course.decreaseLikeCount(); // 아래에 구현
-            isLiked = false;
-        } else {
-            // 좋아요 추가
-            likedCourseRepository.save(new LikedCourse(member, course));
-            course.increaseLikeCount(); // 아래에 구현
-            isLiked = true;
-        }
-
-        // JPA 더티 체킹으로 자동 update
-        return new CourseLikeResponse(
-                isLiked ? "게시글에 좋아요를 눌렀습니다." : "게시글의 좋아요를 취소했습니다.",
-                course.getLikeCount(),
-                isLiked
-        );
     }
 
 }
