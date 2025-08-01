@@ -119,8 +119,8 @@ public class CourseService {
     private CoursePlace createCoursePlace(CoursePlaceCreateRequest request, Place place) {
         List<Photo> photos = createPhotos(request);
         CoursePlace coursePlace = new CoursePlace(
-                request.placeName(),
-                request.placeType(),
+                place.getName(),
+                getType(place.getContentTypeId()),
                 request.content(),
                 photos,
                 request.sequence(),
@@ -128,6 +128,14 @@ public class CourseService {
         );
         coursePlaceRepository.save(coursePlace);
         return coursePlace;
+    }
+
+    private String getType(int contentTypeId) {
+        return switch (contentTypeId) {
+            case 12, 14, 38 -> "tourist-spot";
+            case 39 -> "restaurant";
+            default -> "";
+        };
     }
 
     private List<Photo> createPhotos(CoursePlaceCreateRequest request) {

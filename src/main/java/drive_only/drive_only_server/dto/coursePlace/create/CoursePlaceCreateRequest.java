@@ -5,9 +5,6 @@ import java.util.List;
 
 public record CoursePlaceCreateRequest(
         String placeId,
-        String placeType,
-        String placeName,
-        String placeAddress,
         String content,
         List<PhotoRequest> photoUrls,
         int sequence
