@@ -48,14 +48,11 @@ public class CommentService {
         Course course = findCourse(courseId);
         Member loginMember = loginMemberProvider.getLoginMember();
         Comment comment = Comment.createComment(request.content(), loginMember, course, null);
-
         if (request.parentCommentId() != null) {
             Comment parentComment = findParentComment(request.parentCommentId());
             parentComment.addChildComment(comment);
         }
-
         commentRepository.save(comment);
-
         return new CommentCreateResponse(comment.getId(), SUCCESS_CREATE);
     }
 
@@ -65,9 +62,7 @@ public class CommentService {
         List<CommentSearchResponse> responses = parentComments.stream()
                 .map(comment -> CommentSearchResponse.from(comment, loginMember))
                 .toList();
-
         Meta meta = Meta.from(parentComments);
-
         return new PaginatedResponse<>(responses, meta);
     }
 
