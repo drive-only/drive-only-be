@@ -33,6 +33,7 @@ public class SwaggerConfig {
         return GroupedOpenApi.builder()
                 .group("drive-only-api")
                 .pathsToMatch("/api/**") // /api로 시작하는 경로만 Swagger 문서에 포함
+                .addOperationCustomizer(customize())
                 .build();
     }
 
