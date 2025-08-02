@@ -3,7 +3,6 @@ package drive_only.drive_only_server.domain;
 import drive_only.drive_only_server.exception.custom.BusinessException;
 import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import jakarta.persistence.*;
-import java.util.List;
 import lombok.*;
 
 @Entity
@@ -53,7 +52,7 @@ public class Category {
             throw new BusinessException(ErrorCode.INVALID_CATEGORY_SEASON);
         }
         if (isBlank(areaType)) {
-            throw new BusinessException(ErrorCode.INVALID_CATEGORY_AREATYPE);
+            throw new BusinessException(ErrorCode.INVALID_CATEGORY_AREA_TYPE);
         }
     }
 

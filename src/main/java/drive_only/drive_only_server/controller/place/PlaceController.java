@@ -6,11 +6,10 @@ import drive_only.drive_only_server.dto.place.myPlace.SavePlaceResponse;
 import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlacesResponse;
 import drive_only.drive_only_server.dto.place.search.PlaceSearchRequest;
 import drive_only.drive_only_server.dto.place.search.PlaceSearchResponse;
+import drive_only.drive_only_server.exception.annotation.ApiErrorCodeExamples;
+import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import drive_only.drive_only_server.service.place.PlaceService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,10 +28,10 @@ public class PlaceController {
     private final PlaceService placeService;
 
     @Operation(summary = "장소 리스트 조회", description = "조건에 따른 장소 리스트 조회")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "장소 리스트 조회 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    @ApiErrorCodeExamples({
+            ErrorCode.PLACE_NOT_FOUND,
+            ErrorCode.KEYWORD_REQUIRED,
+            ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/places")
     public ResponseEntity<PaginatedResponse<PlaceSearchResponse>> getPlaces(
@@ -45,10 +44,9 @@ public class PlaceController {
     }
 
     @Operation(summary = "주변 장소 리스트 조회", description = "분배 로직 반영하여 위치에 따른 주변 관광지/음식점 조회")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "주변 장소 리스트 조회 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    @ApiErrorCodeExamples({
+            ErrorCode.PLACE_NOT_FOUND,
+            ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/courses/{courseId}/nearby-places")
     public ResponseEntity<PaginatedResponse<NearbyPlacesResponse>> getNearbyPlaces(
@@ -60,10 +58,11 @@ public class PlaceController {
     }
 
     @Operation(summary = "저장한 장소 리스트 조회", description = "사용자가 저장했던 장소들을 조회")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "저장한 장소 리스트 조회 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    @ApiErrorCodeExamples({
+            ErrorCode.PLACE_NOT_FOUND,
+            ErrorCode.INVALID_TOKEN,
+            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/my-places")
     public ResponseEntity<PaginatedResponse<PlaceSearchResponse>> getSavedPlaces() {
@@ -72,10 +71,11 @@ public class PlaceController {
     }
 
     @Operation(summary = "장소 저장", description = "사용자가 저장하고 싶은 장소 등록")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "장소 저장 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    @ApiErrorCodeExamples({
+            ErrorCode.PLACE_NOT_FOUND,
+            ErrorCode.INVALID_TOKEN,
+            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PostMapping("/api/my-places/{placeId}")
     public ResponseEntity<SavePlaceResponse> savePlace(@PathVariable Long placeId) {
@@ -84,10 +84,11 @@ public class PlaceController {
     }
 
     @Operation(summary = "저장한 장소 삭제", description = "사용자가 저장했던 장소를 삭제")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "장소 삭제 성공"),
-            @ApiResponse(responseCode = "404", description = "해당 장소를 찾을 수 없음", content = @Content),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    @ApiErrorCodeExamples({
+            ErrorCode.PLACE_NOT_FOUND,
+            ErrorCode.INVALID_TOKEN,
+            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.INTERNAL_SERVER_ERROR
     })
     @DeleteMapping("/api/my-places/{savedPlaceId}")
     public ResponseEntity<DeleteSavedPlaceResponse> deleteSavedPlace(@PathVariable Long savedPlaceId) {

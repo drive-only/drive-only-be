@@ -16,7 +16,7 @@ public enum ErrorCode {
     INVALID_COURSE_PLACE_PHOTOS(HttpStatus.BAD_REQUEST, "사진 첨부는 최대 5개까지 가능합니다."),
     INVALID_CATEGORY_REGION(HttpStatus.BAD_REQUEST, "지역은 필수 입력 항목입니다."),
     INVALID_CATEGORY_SEASON(HttpStatus.BAD_REQUEST, "계절은 필수 입력 항목입니다."),
-    INVALID_CATEGORY_AREATYPE(HttpStatus.BAD_REQUEST, "근교/외곽 구분은 필수 입력 항목입니다."),
+    INVALID_CATEGORY_AREA_TYPE(HttpStatus.BAD_REQUEST, "근교/외곽 구분은 필수 입력 항목입니다."),
     COURSE_PLACES_REQUIRED(HttpStatus.BAD_REQUEST, "코스 장소는 최소 1개 이상 등록되어야 합니다."),
     KEYWORD_REQUIRED(HttpStatus.BAD_REQUEST, "검색어를 입력해주세요."),
     PLACE_ID_WITH_ANYTHING_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "장소ID와 검색어 맟 카테고리 필터는 동시에 적용될 수 없습니다."),
@@ -28,7 +28,6 @@ public enum ErrorCode {
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 댓글을 찾을 수 없습니다."),
     PARENT_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "부모 댓글을 찾을 수 없습니다."),
 
-    UNAUTHORIZED(HttpStatus.FORBIDDEN, "권한이 없습니다."),
     OWNER_MISMATCH(HttpStatus.FORBIDDEN, "작성자만 수정 또는 삭제할 수 있습니다."),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
     UNAUTHENTICATED_MEMBER(HttpStatus.UNAUTHORIZED, "로그인이 필요한 요청입니다."),
