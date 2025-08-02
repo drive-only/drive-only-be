@@ -1,5 +1,7 @@
 package drive_only.drive_only_server.config;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import drive_only.drive_only_server.exception.ErrorResponse;
 import drive_only.drive_only_server.exception.ExampleHolder;
 import drive_only.drive_only_server.exception.annotation.ApiErrorCodeExample;
@@ -102,7 +104,14 @@ public class SwaggerConfig {
     private Example getSwaggerExample(ErrorCode errorCode) {
         ErrorResponse errorResponseDto = ErrorResponse.of(errorCode);
         Example example = new Example();
-        example.setValue(errorResponseDto);
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonString = objectMapper.writeValueAsString(errorResponseDto);
+            example.setValue(jsonString);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
 
         return example;
     }
