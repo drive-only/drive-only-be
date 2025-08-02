@@ -6,6 +6,7 @@ import drive_only.drive_only_server.dto.data.DetailIntroResponse;
 import drive_only.drive_only_server.dto.data.PlaceDataInitResponse;
 import drive_only.drive_only_server.dto.data.PlaceDataInitResponse.Item;
 import drive_only.drive_only_server.repository.place.PlaceRepository;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -31,7 +32,7 @@ public class PlaceDataService {
 
     private final static int numOfRows = 20;
     private final static int startPage = 1;
-    private final static int totalPage = 20;
+    private final static int totalPage = 25;
     //TODO : 현재는 개발 계정으로 TourAPI와 연동하고 있어서, 나중에 운영 계정으로 변환되면 전체 데이터를 가져오도록 위의 코드를 아래처럼 변경
     //int numOfRows = 200;
     //int totalCount = calculateTotalCount();
@@ -90,7 +91,9 @@ public class PlaceDataService {
                         .build())
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .bodyToMono(PlaceDataInitResponse.class);
+                .bodyToMono(PlaceDataInitResponse.class)
+                .retryWhen(reactor.util.retry.Retry.backoff(3, Duration.ofSeconds(2)))
+                .doOnError(e -> log.warn("요청 실패 (areaBasedList2, page {}): {}", pageNo, e.getMessage()));
     }
 
     private boolean isInvalidResponse(PlaceDataInitResponse response) {
@@ -136,7 +139,9 @@ public class PlaceDataService {
                         .build())
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .bodyToMono(DetailIntroResponse.class);
+                .bodyToMono(DetailIntroResponse.class)
+                .retryWhen(reactor.util.retry.Retry.backoff(3, Duration.ofSeconds(2)))
+                .doOnError(e -> log.warn("요청 실패 (detailIntro2, contentId={}): {}", contentId, e.getMessage()));
     }
 
     private Place createPlace(Item place, DetailIntroResponse.Item placeDetail) {
@@ -177,6 +182,8 @@ public class PlaceDataService {
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(AreaCodeResponse.class)
+                .retryWhen(reactor.util.retry.Retry.backoff(3, Duration.ofSeconds(2)))
+                .doOnError(e -> log.warn("요청 실패 (ldongCode2-region): {}", e.getMessage()))
                 .block();
 
         return response.response().body().items().item().stream()
@@ -201,6 +208,8 @@ public class PlaceDataService {
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(AreaCodeResponse.class)
+                .retryWhen(reactor.util.retry.Retry.backoff(3, Duration.ofSeconds(2)))
+                .doOnError(e -> log.warn("요청 실패 (ldongCode2-subRegion): {}", e.getMessage()))
                 .block();
 
         return response.response().body().items().item().stream()
