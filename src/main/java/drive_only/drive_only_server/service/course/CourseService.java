@@ -81,7 +81,8 @@ public class CourseService {
     public CourseDetailSearchResponse searchCourseDetail(Long courseId) {
         Course course = findCourse(courseId);
         List<CoursePlace> coursePlaces = coursePlaceRepository.findByCourse(course);
-        return CourseDetailSearchResponse.from(course, coursePlaces);
+        Member loginMember = loginMemberProvider.getLoginMemberIfExists();
+        return CourseDetailSearchResponse.from(course, coursePlaces, loginMember);
     }
 
     @Transactional

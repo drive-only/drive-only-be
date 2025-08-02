@@ -2,6 +2,7 @@ package drive_only.drive_only_server.dto.course.detailSearch;
 
 import drive_only.drive_only_server.domain.Course;
 import drive_only.drive_only_server.domain.CoursePlace;
+import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.dto.category.CategoryResponse;
 import drive_only.drive_only_server.dto.coursePlace.search.CoursePlaceSearchResponse;
 import drive_only.drive_only_server.dto.tag.TagResponse;
@@ -21,9 +22,14 @@ public record CourseDetailSearchResponse(
         double difficulty,
         int likeCount,
         int viewCount,
+        Boolean isMine,
         Boolean isLiked
 ) {
-    public static CourseDetailSearchResponse from(Course course, List<CoursePlace> coursePlaces) {
+    public static CourseDetailSearchResponse from(Course course, List<CoursePlace> coursePlaces, Member loginMember) {
+        boolean isMine = false;
+        if (loginMember != null) {
+            isMine = course.isWrittenBy(loginMember);
+        }
         return new CourseDetailSearchResponse(
                 course.getId(),
                 course.getTitle(),
@@ -37,6 +43,7 @@ public record CourseDetailSearchResponse(
                 course.getDifficulty(),
                 course.getLikeCount(),
                 course.getViewCount(),
+                isMine,
                 course.isLiked()
         );
     }
