@@ -36,8 +36,8 @@ public class LoginMemberProvider {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null ||
-                !authentication.isAuthenticated() ||
-                authentication.getPrincipal().equals("anonymousUser")) {
+            !authentication.isAuthenticated() ||
+            authentication.getPrincipal().equals("anonymousUser")) {
             return null;
         }
 

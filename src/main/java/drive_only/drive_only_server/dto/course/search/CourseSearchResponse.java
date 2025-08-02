@@ -10,6 +10,7 @@ import java.util.Optional;
 
 public record CourseSearchResponse(
         Long courseId,
+        String profileImageUrl,
         String nickname,
         String createdDate,
         String title,
@@ -24,6 +25,7 @@ public record CourseSearchResponse(
     public static CourseSearchResponse from(Course course) {
         return new CourseSearchResponse(
                 course.getId(),
+                course.getMember().getProfileImageUrl(),
                 course.getMember().getNickname(),
                 formatDate(course.getCreatedDate()),
                 course.getTitle(),

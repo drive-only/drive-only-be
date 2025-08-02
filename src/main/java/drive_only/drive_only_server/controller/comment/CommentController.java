@@ -1,7 +1,6 @@
 package drive_only.drive_only_server.controller.comment;
 
 import drive_only.drive_only_server.domain.Member;
-import drive_only.drive_only_server.domain.ProviderType;
 import drive_only.drive_only_server.dto.comment.create.CommentCreateRequest;
 import drive_only.drive_only_server.dto.comment.create.CommentCreateResponse;
 import drive_only.drive_only_server.dto.comment.delete.CommentDeleteResponse;
@@ -10,13 +9,12 @@ import drive_only.drive_only_server.dto.comment.update.CommentUpdateRequest;
 import drive_only.drive_only_server.dto.comment.update.CommentUpdateResponse;
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
 import drive_only.drive_only_server.dto.like.comment.CommentLikeResponse;
-import drive_only.drive_only_server.exception.ErrorResponse;
+import drive_only.drive_only_server.exception.annotation.ApiErrorCodeExamples;
+import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import drive_only.drive_only_server.security.LoginMemberProvider;
-import drive_only.drive_only_server.service.Member.MemberService;
 import drive_only.drive_only_server.service.comment.CommentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,8 +29,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.security.core.Authentication;
-import drive_only.drive_only_server.security.CustomUserPrincipal;
 
 
 @RestController
@@ -43,10 +39,10 @@ public class CommentController {
     private final LoginMemberProvider loginMemberProvider;
 
     @Operation(summary = "댓글 조회", description = "댓글 및 대댓글들을 조회")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "댓글 및 대댓글 조회 성공"),
-            @ApiResponse(responseCode = "404", description = "해당 댓글을 찾을 수 없음", content = @Content),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    @ApiErrorCodeExamples({
+            ErrorCode.COMMENT_NOT_FOUND,
+            ErrorCode.PARENT_COMMENT_NOT_FOUND,
+            ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/courses/{courseId}/comments")
     public ResponseEntity<PaginatedResponse<CommentSearchResponse>> getComments(
@@ -59,14 +55,11 @@ public class CommentController {
     }
 
     @Operation(summary = "댓글 등록", description = "새로운 댓글을 등록")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "댓글 등록 성공"),
-            @ApiResponse(responseCode = "400", description = "요청 값이 유효하지 않음",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "404", description = "코스를 찾을 수 없음",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "500", description = "서버 내부 오류",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiErrorCodeExamples({
+            ErrorCode.INVALID_COMMENT_CONTENT,
+            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.INVALID_TOKEN,
+            ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PostMapping("/api/courses/{courseId}/comments")
     public ResponseEntity<CommentCreateResponse> createComment(
@@ -74,15 +67,17 @@ public class CommentController {
             @RequestBody CommentCreateRequest request
     ) {
         CommentCreateResponse response = commentService.createComment(courseId, request);
-        return ResponseEntity.ok().body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(summary = "댓글 수정", description = "commentId를 이용해 기존 댓글을 수정")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "댓글 수정 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
-            @ApiResponse(responseCode = "404", description = "해당 댓글을 찾을 수 없음", content = @Content),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    @ApiErrorCodeExamples({
+            ErrorCode.COMMENT_NOT_FOUND,
+            ErrorCode.INVALID_COMMENT_CONTENT,
+            ErrorCode.OWNER_MISMATCH,
+            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.INVALID_TOKEN,
+            ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PatchMapping("/api/comments/{commentId}")
     public ResponseEntity<CommentUpdateResponse> updateComment(
@@ -94,10 +89,12 @@ public class CommentController {
     }
 
     @Operation(summary = "댓글 삭제", description = "commentId를 이용해 댓글을 삭제")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "댓글 삭제 성공"),
-            @ApiResponse(responseCode = "404", description = "해당 댓글을 찾을 수 없음", content = @Content),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    @ApiErrorCodeExamples({
+            ErrorCode.COMMENT_NOT_FOUND,
+            ErrorCode.OWNER_MISMATCH,
+            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.INVALID_TOKEN,
+            ErrorCode.INTERNAL_SERVER_ERROR
     })
     @DeleteMapping("/api/comments/{commentId}")
     public ResponseEntity<CommentDeleteResponse> deleteComment(@PathVariable Long commentId) {
