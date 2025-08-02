@@ -8,6 +8,7 @@ import java.util.List;
 public record CommentSearchResponse(
         Long commentId,
         Long memberId,
+        String profileImageUrl,
         String nickname,
         String content,
         LocalDateTime createdDate,
@@ -26,6 +27,7 @@ public record CommentSearchResponse(
         return new CommentSearchResponse(
                 comment.getId(),
                 comment.getMember().getId(),
+                comment.getMember().getProfileImageUrl(),
                 comment.getMember().getNickname(),
                 comment.getContent(),
                 comment.getCreatedDate(),
