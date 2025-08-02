@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -79,7 +80,7 @@ public class PlaceController {
     @PostMapping("/api/my-places/{placeId}")
     public ResponseEntity<SavePlaceResponse> savePlace(@PathVariable Long placeId) {
         SavePlaceResponse response = placeService.savePlace(placeId);
-        return ResponseEntity.ok().body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(summary = "저장한 장소 삭제", description = "사용자가 저장했던 장소를 삭제")

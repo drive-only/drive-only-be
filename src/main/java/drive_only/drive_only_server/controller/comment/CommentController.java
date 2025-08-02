@@ -74,7 +74,7 @@ public class CommentController {
             @RequestBody CommentCreateRequest request
     ) {
         CommentCreateResponse response = commentService.createComment(courseId, request);
-        return ResponseEntity.ok().body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(summary = "댓글 수정", description = "commentId를 이용해 기존 댓글을 수정")

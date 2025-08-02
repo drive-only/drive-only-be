@@ -79,7 +79,7 @@ public class CourseController {
     @PostMapping("/api/courses")
     public ResponseEntity<CourseCreateResponse> createCourse(@RequestBody CourseCreateRequest request) {
         CourseCreateResponse response = courseService.createCourse(request);
-        return ResponseEntity.ok().body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(summary = "코스(게시글) 수정", description = "courseId를 이용해 기존 드라이브 코스(게시글)의 정보를 수정")
