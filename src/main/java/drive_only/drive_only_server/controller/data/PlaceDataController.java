@@ -15,13 +15,13 @@ public class PlaceDataController {
 
     @PostMapping("/api/init/places")
     public ResponseEntity<Void> initPlaceData() {
-        placeDataService.importPlaceDataFromTourApi();
+        placeDataService.importAllPlaces();
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/api/sync/places")
     public ResponseEntity<Void> syncPlacesData() {
-        placeDataService.syncPlaceDataFromTourApi();
+        placeDataService.syncAllPlaces();
         return ResponseEntity.ok().build();
     }
 }
