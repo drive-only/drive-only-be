@@ -44,7 +44,7 @@ public class PlaceDataService {
     private final static int DEFAULT_ROWS = 100;
     private static final int AREA_CODE_START_PAGE = 1;
     private final static int PLACE_START_PAGE = 1;
-    private final static int PLACE_TOTAL_PAGES = 30;
+    private final static int PLACE_TOTAL_PAGES = 7;
     private static final int API_MAX_ROWS = 1000;
     private static final Retry RETRY_POLICY = Retry.backoff(3, Duration.ofSeconds(2));
 
@@ -284,7 +284,8 @@ public class PlaceDataService {
             case 15 -> item.playtime();
             case 28 -> item.usetimeleports();
             case 38 -> item.opentime();
-            default -> item.opentimefood();
+            case 39 -> item.opentimefood();
+            default -> "";
         };
     }
 
@@ -294,7 +295,8 @@ public class PlaceDataService {
             case 14 -> item.restdateculture();
             case 28 -> item.restdateleports();
             case 38 -> item.restdateshopping();
-            default -> item.restdatefood();
+            case 39 -> item.restdatefood();
+            default -> "";
         };
     }
 }
