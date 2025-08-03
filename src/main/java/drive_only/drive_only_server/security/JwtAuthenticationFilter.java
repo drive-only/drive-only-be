@@ -4,6 +4,7 @@ import drive_only.drive_only_server.domain.ProviderType;
 import drive_only.drive_only_server.service.auth.LogoutService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -36,43 +37,52 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String authorizationHeader = request.getHeader("Authorization");
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+        // ✅ 쿠키에서 access-token 추출
+        String token = null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("access-token".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        // 토큰이 없거나 유효하지 않으면 다음 필터로
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authorizationHeader.substring(7);
-
-        if (jwtTokenProvider.validateToken(token)) {
-            if (logoutService.isBlacklisted(token)) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
-            }
-
-            String email = jwtTokenProvider.getEmail(token);
-            String providerStr = jwtTokenProvider.getProvider(token);
-
-            ProviderType provider;
-            try {
-                provider = ProviderType.valueOf(providerStr.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                return;
-            }
-
-            CustomUserPrincipal principal = new CustomUserPrincipal(email, provider);
-
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(
-                            principal,
-                            null,
-                            List.of(new SimpleGrantedAuthority("ROLE_USER"))
-                    );
-
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        // 블랙리스트 확인
+        if (logoutService.isBlacklisted(token)) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
         }
+
+        // 토큰으로부터 사용자 정보 추출
+        String email = jwtTokenProvider.getEmail(token);
+        String providerStr = jwtTokenProvider.getProvider(token);
+
+        ProviderType provider;
+        try {
+            provider = ProviderType.valueOf(providerStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        CustomUserPrincipal principal = new CustomUserPrincipal(email, provider);
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        principal,
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                );
+
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         filterChain.doFilter(request, response);
     }
