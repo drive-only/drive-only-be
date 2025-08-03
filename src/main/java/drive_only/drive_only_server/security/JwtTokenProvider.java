@@ -73,4 +73,8 @@ public class JwtTokenProvider {
     public Date getExpirationDate(String token) {
         return getClaims(token).getExpiration();
     }
+
+    public long getAccessTokenExpiration() {
+        return ACCESS_TOKEN_EXPIRATION;
+    }
 }

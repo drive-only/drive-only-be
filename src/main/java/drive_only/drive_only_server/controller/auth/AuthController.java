@@ -63,7 +63,15 @@ public class AuthController {
         // 3. refresh token Redis 저장
         refreshTokenService.saveRefreshToken(member.getEmail(), refreshToken, refreshTokenExpiration);
 
-        // 4. refresh token을 HttpOnly 쿠키에 담아 응답
+        // 4. 쿠키 설정 (access + refresh)
+        ResponseCookie accessCookie = ResponseCookie.from("access-token", accessToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.ofMillis(jwtTokenProvider.getAccessTokenExpiration()))
+                .sameSite("Strict")
+                .build();
+
         ResponseCookie refreshCookie = ResponseCookie.from("refresh-token", refreshToken)
                 .httpOnly(true)
                 .secure(true)
@@ -74,7 +82,9 @@ public class AuthController {
 
         // 5. 응답
         return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                .body(new TokenResponse(accessToken));
+                .build();
+                // .body(new TokenResponse(accessToken));  accessToken body 포함 여부는 선택
     }
 }
