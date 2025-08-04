@@ -1,6 +1,7 @@
 package drive_only.drive_only_server.service.category;
 
 import drive_only.drive_only_server.dto.category.RegionResponse;
+import drive_only.drive_only_server.service.client.TourApiClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

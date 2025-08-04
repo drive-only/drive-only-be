@@ -1,4 +1,4 @@
-package drive_only.drive_only_server.service.category;
+package drive_only.drive_only_server.service.client;
 
 import drive_only.drive_only_server.dto.category.RegionResponse;
 import lombok.RequiredArgsConstructor;
