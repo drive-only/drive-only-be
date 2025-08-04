@@ -26,7 +26,6 @@ import drive_only.drive_only_server.service.client.TourApiClient;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -63,7 +62,7 @@ public class PlaceService {
         List<NearbyPlacesResponse> results = new ArrayList<>();
 
         for (int i = 0; i < coursePlaceCount; i++) {
-            results.add(createNearbyPlacesResponse(coursePlaces.get(i), getContentTypeId(type), distribution.get(i)));
+            results.add(createNearbyPlacesResponse(coursePlaces.get(i), type, distribution.get(i)));
         }
 
         return new PaginatedResponse<>(results, null);
@@ -111,21 +110,27 @@ public class PlaceService {
         };
     }
 
-    private int getContentTypeId(String type) {
+    private List<Integer> getContentTypeIds(String type) {
         return switch (type) {
-            case "tourist-spot" -> 12;
-            case "restaurant" -> 39;
+            case "tourist-spot" -> List.of(12, 14, 38);
+            case "restaurant" -> List.of(39);
             default -> throw new IllegalArgumentException("지원하지 않는 장소 타입입니다.");
         };
     }
 
-    private NearbyPlacesResponse createNearbyPlacesResponse(CoursePlace coursePlace, int contentTypeId, int numOfRows) {
+    private NearbyPlacesResponse createNearbyPlacesResponse(CoursePlace coursePlace, String type, int numOfRows) {
         Double mapX = coursePlace.getPlace().getLat();
         Double mapY = coursePlace.getPlace().getLng();
 
-        List<NearbyPlaceTourApiResponse.Item> nearbyItems = tourApiClient.fetchNearbyPlaces(contentTypeId, mapX, mapY, numOfRows);
-        List<PlaceSearchResponse> searchResponses = createPlaceSearchResponses(nearbyItems);
-
+        List<Integer> contentTypeIds = getContentTypeIds(type);
+        List<NearbyPlaceTourApiResponse.Item> allNearbyPlaces = new ArrayList<>();
+        for (int contentTypeId : contentTypeIds) {
+            List<NearbyPlaceTourApiResponse.Item> nearbyPlaces = tourApiClient.fetchNearbyPlaces(contentTypeId, mapX, mapY, numOfRows);
+            if (nearbyPlaces != null) {
+                allNearbyPlaces.addAll(nearbyPlaces);
+            }
+        }
+        List<PlaceSearchResponse> searchResponses = createPlaceSearchResponses(allNearbyPlaces);
         return NearbyPlacesResponse.from(coursePlace, searchResponses);
     }
 
