@@ -110,14 +110,6 @@ public class PlaceService {
         };
     }
 
-    private List<Integer> getContentTypeIds(String type) {
-        return switch (type) {
-            case "tourist-spot" -> List.of(12, 14, 38);
-            case "restaurant" -> List.of(39);
-            default -> throw new IllegalArgumentException("지원하지 않는 장소 타입입니다.");
-        };
-    }
-
     private NearbyPlacesResponse createNearbyPlacesResponse(CoursePlace coursePlace, String type, int numOfRows) {
         Double mapX = coursePlace.getPlace().getLat();
         Double mapY = coursePlace.getPlace().getLng();
@@ -132,6 +124,14 @@ public class PlaceService {
         }
         List<PlaceSearchResponse> searchResponses = createPlaceSearchResponses(allNearbyPlaces);
         return NearbyPlacesResponse.from(coursePlace, searchResponses);
+    }
+
+    private List<Integer> getContentTypeIds(String type) {
+        return switch (type) {
+            case "tourist-spot" -> List.of(12, 14, 38);
+            case "restaurant" -> List.of(39);
+            default -> throw new IllegalArgumentException("지원하지 않는 장소 타입입니다.");
+        };
     }
 
     private List<PlaceSearchResponse> createPlaceSearchResponses(List<Item> nearbyPlaces) {

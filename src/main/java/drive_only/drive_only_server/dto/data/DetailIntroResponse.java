@@ -42,13 +42,6 @@ public record DetailIntroResponse(
             String usetimeculture,
             String restdateculture,
 
-            // 행사/공연/축제(contentTypeId = 15)
-            String playtime,
-
-            // 레포츠(contentTypeId = 28)
-            String usetimeleports,
-            String restdateleports,
-
             // 쇼핑(contentTypeId = 38)
             String opentime,
             String restdateshopping,

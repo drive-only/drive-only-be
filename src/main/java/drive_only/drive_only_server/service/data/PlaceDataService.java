@@ -141,8 +141,6 @@ public class PlaceDataService {
         return switch (typeId) {
             case 12 -> item.usetime();
             case 14 -> item.usetimeculture();
-            case 15 -> item.playtime();
-            case 28 -> item.usetimeleports();
             case 38 -> item.opentime();
             case 39 -> item.opentimefood();
             default -> "";
@@ -153,7 +151,6 @@ public class PlaceDataService {
         return switch (typeId) {
             case 12 -> item.restdate();
             case 14 -> item.restdateculture();
-            case 28 -> item.restdateleports();
             case 38 -> item.restdateshopping();
             case 39 -> item.restdatefood();
             default -> "";
