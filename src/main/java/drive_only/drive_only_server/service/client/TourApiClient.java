@@ -74,7 +74,10 @@ public class TourApiClient {
         if (!hasPlaces(response)) {
             return null;
         }
-        return response.response().body().items().item();
+
+        return response.response().body().items().item().stream()
+                .filter(place -> isValidContentTypeId(Integer.parseInt(place.contenttypeid())))
+                .toList();
     }
 
     public DetailIntroResponse.Item fetchPlaceDetail(String contentId, String contentTypeId) {
@@ -156,5 +159,9 @@ public class TourApiClient {
                 response.response().body() != null &&
                 response.response().body().items() != null &&
                 response.response().body().items().item() != null;
+    }
+
+    private boolean isValidContentTypeId(int contentTypeId) {
+        return contentTypeId == 12 || contentTypeId == 14 || contentTypeId == 38 || contentTypeId == 39;
     }
 }

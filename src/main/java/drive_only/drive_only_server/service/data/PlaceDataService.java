@@ -24,8 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class PlaceDataService {
     private final static int DEFAULT_ROWS = 100;
-    private final static int PLACE_START_PAGE = 22;
-    private final static int PLACE_TOTAL_PAGES = 28;
+    private final static int PLACE_START_PAGE = 1;
+    private final static int PLACE_TOTAL_PAGES = 5;
 
     private final TourApiClient tourApiClient;
     private final PlaceRepository placeRepository;
@@ -52,7 +52,7 @@ public class PlaceDataService {
     public void syncAllPlaces() {
         for (int pageNo = PLACE_START_PAGE; pageNo <= PLACE_TOTAL_PAGES; pageNo++) {
             List<PlaceDataInitResponse.Item> places = tourApiClient.fetchPlaces(pageNo, DEFAULT_ROWS);
-            places.forEach(this::syncPlace);
+            places.forEach(this::syncPlaces);
         }
     }
 
@@ -82,11 +82,12 @@ public class PlaceDataService {
         }
     }
 
-    private void syncPlace(Item place) {
+    private void syncPlaces(Item place) {
         DetailIntroResponse.Item placeDetail = tourApiClient.fetchPlaceDetail(place.contentid(), place.contenttypeid());
         if (placeDetail == null) {
             return;
         }
+
         Optional<Place> findPlace = placeRepository.findByContentId(Integer.parseInt(place.contentid()));
         if (findPlace.isPresent()) {
             Place existingPlace = findPlace.get();
