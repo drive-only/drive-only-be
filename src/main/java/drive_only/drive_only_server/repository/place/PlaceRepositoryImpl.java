@@ -52,7 +52,7 @@ public class PlaceRepositoryImpl implements PlaceRepositoryCustom {
             return null;
         }
         if (type.equals("tourist-spots")) {
-            return place.contentTypeId.in(12, 14);
+            return place.contentTypeId.in(12, 14, 38);
         }
         if (type.equals("restaurants")) {
             return place.contentTypeId.eq(39);
