@@ -53,6 +53,9 @@ dependencies {
 
     //Reids
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    //Json
+    implementation 'org.json:json:20240303'
 }
 
 tasks.named('test') {
