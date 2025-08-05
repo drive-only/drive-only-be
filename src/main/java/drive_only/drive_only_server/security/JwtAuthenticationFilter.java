@@ -37,7 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        // ✅ 쿠키에서 access-token 추출
+        // 쿠키에서 access-token 추출
         String token = null;
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
