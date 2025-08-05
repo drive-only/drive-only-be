@@ -10,7 +10,7 @@ import drive_only.drive_only_server.dto.member.OtherMemberResponse;
 import drive_only.drive_only_server.security.CustomUserPrincipal;
 import drive_only.drive_only_server.security.JwtTokenProvider;
 import drive_only.drive_only_server.security.LoginMemberProvider;
-import drive_only.drive_only_server.service.Member.MemberService;
+import drive_only.drive_only_server.service.member.MemberService;
 import drive_only.drive_only_server.service.auth.RefreshTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

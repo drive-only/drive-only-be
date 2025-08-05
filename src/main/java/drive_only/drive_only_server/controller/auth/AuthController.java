@@ -5,7 +5,7 @@ import drive_only.drive_only_server.dto.auth.SocialLoginRequest;
 import drive_only.drive_only_server.dto.auth.TokenResponse;
 import drive_only.drive_only_server.dto.oauth.OAuthUserInfo;
 import drive_only.drive_only_server.security.JwtTokenProvider;
-import drive_only.drive_only_server.service.Member.MemberService;
+import drive_only.drive_only_server.service.member.MemberService;
 import drive_only.drive_only_server.service.auth.RefreshTokenService;
 import drive_only.drive_only_server.service.oauth.OAuth2UserInfoService;
 import io.swagger.v3.oas.annotations.Operation;

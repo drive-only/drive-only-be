@@ -1,4 +1,4 @@
-package drive_only.drive_only_server.service.Member;
+package drive_only.drive_only_server.service.member;
 
 import drive_only.drive_only_server.domain.Course;
 import drive_only.drive_only_server.domain.LikedCourse;

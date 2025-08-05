@@ -4,7 +4,7 @@ import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.domain.ProviderType;
 import drive_only.drive_only_server.dto.auth.TokenResponse;
 import drive_only.drive_only_server.security.JwtTokenProvider;
-import drive_only.drive_only_server.service.Member.MemberService;
+import drive_only.drive_only_server.service.member.MemberService;
 import drive_only.drive_only_server.service.auth.RefreshTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
