@@ -7,19 +7,23 @@ public record AreaCodeResponse(
 ) {
     public record Response(
             Body body
-    ) {}
+    ) {
+    }
 
     public record Body(
             Items items,
             int totalCount
-    ) {}
+    ) {
+    }
 
     public record Items(
             List<Item> item
-    ) {}
+    ) {
+    }
 
     public record Item(
             String code,
             String name
-    ) {}
+    ) {
+    }
 }

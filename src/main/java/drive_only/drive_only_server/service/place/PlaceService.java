@@ -22,29 +22,23 @@ import drive_only.drive_only_server.repository.course.CourseRepository;
 import drive_only.drive_only_server.repository.course.SavedPlaceRepository;
 import drive_only.drive_only_server.repository.place.PlaceRepository;
 import drive_only.drive_only_server.security.LoginMemberProvider;
+import drive_only.drive_only_server.service.client.TourApiClient;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class PlaceService {
-    private static final int DEFAULT_RADIUS = 3000;
-    private static final int DEFAULT_PAGE_NO = 1;
     private static final String SUCCESS_CREATE = "해당 장소가 성공적으로 저장되었습니다.";
     private static final String SUCCESS_DELETE = "저장된 장소를 성공적으로 삭제했습니다.";
 
-    @Value("${tourapi.service-key}")
-    private String tourApiServiceKey;
-    private final WebClient webClient;
+    private final TourApiClient tourApiClient;
     private final PlaceRepository placeRepository;
     private final CourseRepository courseRepository;
     private final SavedPlaceRepository savedPlaceRepository;
@@ -68,7 +62,7 @@ public class PlaceService {
         List<NearbyPlacesResponse> results = new ArrayList<>();
 
         for (int i = 0; i < coursePlaceCount; i++) {
-            results.add(createNearbyPlacesResponse(coursePlaces.get(i), getContentTypeId(type), distribution.get(i)));
+            results.add(createNearbyPlacesResponse(coursePlaces.get(i), type, distribution.get(i)));
         }
 
         return new PaginatedResponse<>(results, null);
@@ -116,45 +110,28 @@ public class PlaceService {
         };
     }
 
-    private int getContentTypeId(String type) {
-        return switch (type) {
-            case "tourist-spot" -> 12;
-            case "restaurant" -> 39;
-            default -> throw new IllegalArgumentException("지원하지 않는 장소 타입입니다.");
-        };
-    }
-
-    private NearbyPlacesResponse createNearbyPlacesResponse(CoursePlace coursePlace, int contentTypeId, int numOfRows) {
+    private NearbyPlacesResponse createNearbyPlacesResponse(CoursePlace coursePlace, String type, int numOfRows) {
         Double mapX = coursePlace.getPlace().getLat();
         Double mapY = coursePlace.getPlace().getLng();
 
-        List<Item> nearbyItems = getNearbyPlaces(contentTypeId, mapX, mapY, numOfRows)
-                .response().body().items().item();
-        List<PlaceSearchResponse> searchResponses = createPlaceSearchResponses(nearbyItems);
-
+        List<Integer> contentTypeIds = getContentTypeIds(type);
+        List<NearbyPlaceTourApiResponse.Item> allNearbyPlaces = new ArrayList<>();
+        for (int contentTypeId : contentTypeIds) {
+            List<NearbyPlaceTourApiResponse.Item> nearbyPlaces = tourApiClient.fetchNearbyPlaces(contentTypeId, mapX, mapY, numOfRows);
+            if (nearbyPlaces != null) {
+                allNearbyPlaces.addAll(nearbyPlaces);
+            }
+        }
+        List<PlaceSearchResponse> searchResponses = createPlaceSearchResponses(allNearbyPlaces);
         return NearbyPlacesResponse.from(coursePlace, searchResponses);
     }
 
-    private NearbyPlaceTourApiResponse getNearbyPlaces(int contentTypeId, Double mapX, Double mapY, int numOfRows) {
-        return webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/locationBasedList2")
-                        .queryParam("serviceKey", tourApiServiceKey)
-                        .queryParam("MobileOS", "ETC")
-                        .queryParam("MobileApp", "drive-only")
-                        .queryParam("_type", "json")
-                        .queryParam("arrange", "E")
-                        .queryParam("contentTypeId", contentTypeId)
-                        .queryParam("mapX", mapX)
-                        .queryParam("mapY", mapY)
-                        .queryParam("radius", DEFAULT_RADIUS)
-                        .queryParam("numOfRows", numOfRows)
-                        .queryParam("pageNo", DEFAULT_PAGE_NO)
-                        .build())
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .bodyToMono(NearbyPlaceTourApiResponse.class)
-                .block();
+    private List<Integer> getContentTypeIds(String type) {
+        return switch (type) {
+            case "tourist-spot" -> List.of(12, 14, 38);
+            case "restaurant" -> List.of(39);
+            default -> throw new IllegalArgumentException("지원하지 않는 장소 타입입니다.");
+        };
     }
 
     private List<PlaceSearchResponse> createPlaceSearchResponses(List<Item> nearbyPlaces) {
