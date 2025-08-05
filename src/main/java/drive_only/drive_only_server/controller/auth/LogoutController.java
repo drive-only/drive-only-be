@@ -38,35 +38,36 @@ public class LogoutController {
     })
     @PostMapping("/api/logout")
     public ResponseEntity<Void> logout(
-            @RequestHeader("Authorization") String authHeader,
+            @CookieValue(value = "access-token", required = false) String accessToken,
             @CookieValue(value = "refresh-token", required = false) String refreshToken
     ) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.badRequest().build();
+        // 1. access token 유효성 검사 및 블랙리스트 등록
+        if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
+            Date expiration = jwtTokenProvider.getExpirationDate(accessToken);
+            long now = System.currentTimeMillis();
+            long remainingMillis = expiration.getTime() - now;
+
+            if (remainingMillis > 0) {
+                logoutService.blacklistToken(accessToken, remainingMillis);
+            }
         }
 
-        String token = authHeader.substring(7);
-        if (!jwtTokenProvider.validateToken(token)) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        // Access token 블랙리스트 처리
-        Date expiration = jwtTokenProvider.getExpirationDate(token);
-        long now = System.currentTimeMillis();
-        long remainingMillis = expiration.getTime() - now;
-
-        if (remainingMillis > 0) {
-            logoutService.blacklistToken(token, remainingMillis);
-        }
-
-        // Refresh token Redis에서 삭제
+        // 2. refresh token 삭제
         if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
             String email = jwtTokenProvider.getEmail(refreshToken);
             refreshTokenService.deleteRefreshToken(email);
         }
 
-        // 클라이언트 쿠키도 제거
-        ResponseCookie deleteCookie = ResponseCookie.from("refresh-token", "")
+        // 3. 쿠키 삭제
+        ResponseCookie deleteAccessTokenCookie = ResponseCookie.from("access-token", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+
+        ResponseCookie deleteRefreshTokenCookie = ResponseCookie.from("refresh-token", "")
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
@@ -75,7 +76,8 @@ public class LogoutController {
                 .build();
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, deleteAccessTokenCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, deleteRefreshTokenCookie.toString())
                 .build();
     }
 }
