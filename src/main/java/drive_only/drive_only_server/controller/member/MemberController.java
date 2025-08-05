@@ -130,8 +130,8 @@ public class MemberController {
             refreshTokenService.deleteRefreshToken(email);
         }
 
-        // 3. 쿠키 삭제 설정
-        ResponseCookie deleteCookie = ResponseCookie.from("refresh-token", "")
+        // 3. access-token 및 refresh-token 쿠키 삭제 설정
+        ResponseCookie deleteRefreshTokenCookie = ResponseCookie.from("refresh-token", "")
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
@@ -139,9 +139,22 @@ public class MemberController {
                 .sameSite("Strict")
                 .build();
 
-        // 4. 응답
+        ResponseCookie deleteAccessTokenCookie = ResponseCookie.from("access-token", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+
+        // 4. 다중 쿠키 설정을 위한 헤더 구성
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.SET_COOKIE, deleteRefreshTokenCookie.toString());
+        headers.add(HttpHeaders.SET_COOKIE, deleteAccessTokenCookie.toString());
+
+        // 5. 응답 반환
         return ResponseEntity.noContent()
-                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
+                .headers(headers)
                 .build();
     }
 
