@@ -2,7 +2,6 @@ package drive_only.drive_only_server.controller.auth;
 
 import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.dto.auth.SocialLoginRequest;
-import drive_only.drive_only_server.dto.auth.TokenResponse;
 import drive_only.drive_only_server.dto.oauth.OAuthUserInfo;
 import drive_only.drive_only_server.security.JwtTokenProvider;
 import drive_only.drive_only_server.service.member.MemberService;
@@ -42,7 +41,7 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
     })
     @PostMapping("/api/login")
-    public ResponseEntity<TokenResponse> socialLogin(@RequestBody SocialLoginRequest request) {
+    public ResponseEntity<Void> socialLogin(@RequestBody SocialLoginRequest request) {
         OAuthUserInfo userInfo;
 
         if ("KAKAO".equalsIgnoreCase(request.getProvider())) {

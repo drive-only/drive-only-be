@@ -2,7 +2,6 @@ package drive_only.drive_only_server.controller.auth;
 
 import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.domain.ProviderType;
-import drive_only.drive_only_server.dto.auth.TokenResponse;
 import drive_only.drive_only_server.security.JwtTokenProvider;
 import drive_only.drive_only_server.service.member.MemberService;
 import drive_only.drive_only_server.service.auth.RefreshTokenService;
@@ -11,7 +10,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,11 +40,15 @@ public class TokenRefreshController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류", content = @Content)
     })
     @PostMapping("/api/auth/refresh")
-    public ResponseEntity<?> refreshAccessToken(@CookieValue(value = "refresh-token", required = false) String refreshToken) {
+    public ResponseEntity<?> refreshAccessToken(
+            @CookieValue(value = "refresh-token", required = false) String refreshToken
+    ) {
+        // 1. 유효성 검사
         if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token이 유효하지 않음");
         }
 
+        // 2. 이메일 추출 및 저장된 토큰 비교
         String email = jwtTokenProvider.getEmail(refreshToken);
         String savedToken = refreshTokenService.getRefreshToken(email);
 
@@ -51,12 +56,24 @@ public class TokenRefreshController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token 불일치 또는 만료");
         }
 
-        // 💡 provider는 refresh token에서 가져오지 말고 DB에서 가져오자
+        // 3. DB에서 provider 가져와서 새 access token 생성
         Member member = memberService.findByEmail(email);
         ProviderType provider = member.getProvider();
-
         String newAccessToken = jwtTokenProvider.createAccessToken(email, provider);
-        return ResponseEntity.ok().body(new TokenResponse(newAccessToken));
+
+        // 4. access token을 쿠키로 설정
+        ResponseCookie accessTokenCookie = ResponseCookie.from("access-token", newAccessToken)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(jwtTokenProvider.getAccessTokenExpiration()) // ex) 1800 (30분)
+                .sameSite("Strict")
+                .build();
+
+        // 5. 응답 반환 (body 없이 쿠키만)
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
+                .build();
     }
 }
 

@@ -10,8 +10,8 @@ import drive_only.drive_only_server.dto.member.OtherMemberResponse;
 import drive_only.drive_only_server.security.CustomUserPrincipal;
 import drive_only.drive_only_server.security.JwtTokenProvider;
 import drive_only.drive_only_server.security.LoginMemberProvider;
-import drive_only.drive_only_server.service.member.MemberService;
 import drive_only.drive_only_server.service.auth.RefreshTokenService;
+import drive_only.drive_only_server.service.member.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -92,7 +92,13 @@ public class MemberController {
     public ResponseEntity<MemberResponse> updateMyProfile(
             @RequestBody MemberUpdateRequest request
     ) {
-        Member updatedMember = loginMemberProvider.getLoginMember();
+        Member loginMember = loginMemberProvider.getLoginMember();
+
+        Member updatedMember = memberService.updateMember(
+                loginMember.getEmail(),
+                loginMember.getProvider(),
+                request
+        );
 
         MemberResponse response = new MemberResponse(
                 updatedMember.getId(),
@@ -130,8 +136,8 @@ public class MemberController {
             refreshTokenService.deleteRefreshToken(email);
         }
 
-        // 3. 쿠키 삭제 설정
-        ResponseCookie deleteCookie = ResponseCookie.from("refresh-token", "")
+        // 3. access-token 및 refresh-token 쿠키 삭제 설정
+        ResponseCookie deleteRefreshTokenCookie = ResponseCookie.from("refresh-token", "")
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
@@ -139,9 +145,22 @@ public class MemberController {
                 .sameSite("Strict")
                 .build();
 
-        // 4. 응답
+        ResponseCookie deleteAccessTokenCookie = ResponseCookie.from("access-token", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+
+        // 4. 다중 쿠키 설정을 위한 헤더 구성
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.SET_COOKIE, deleteRefreshTokenCookie.toString());
+        headers.add(HttpHeaders.SET_COOKIE, deleteAccessTokenCookie.toString());
+
+        // 5. 응답 반환
         return ResponseEntity.noContent()
-                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
+                .headers(headers)
                 .build();
     }
 
