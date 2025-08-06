@@ -5,8 +5,8 @@ import drive_only.drive_only_server.domain.Place;
 public record PlaceSearchResponse(
         Long placeId,
         String placeType,
-        String name,
-        String address,
+        String placeName,
+        String placeAddress,
         String thumbnailUrl,
         String usetime,
         String restdate,

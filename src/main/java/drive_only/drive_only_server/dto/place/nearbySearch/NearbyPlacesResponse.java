@@ -7,7 +7,7 @@ import java.util.List;
 public record NearbyPlacesResponse(
         Long coursePlaceId,
         Long placeId,
-        String name,
+        String placeName,
         List<PlaceSearchResponse> nearbyPlaces
 ) {
     public static NearbyPlacesResponse from(CoursePlace coursePlace, List<PlaceSearchResponse> searchResponses) {

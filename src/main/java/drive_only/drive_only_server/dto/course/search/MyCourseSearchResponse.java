@@ -2,6 +2,7 @@ package drive_only.drive_only_server.dto.course.search;
 
 import drive_only.drive_only_server.domain.Course;
 import drive_only.drive_only_server.domain.CoursePlace;
+import drive_only.drive_only_server.domain.Photo;
 import drive_only.drive_only_server.dto.category.CategoryResponse;
 
 import java.time.format.DateTimeFormatter;
@@ -29,7 +30,7 @@ public record MyCourseSearchResponse(
                 course.getTitle(),
                 course.getCoursePlaces().stream()
                         .flatMap(cp -> cp.getPhotos().stream())
-                        .map(photo -> photo.getUrl())
+                        .map(Photo::getUrl)
                         .findFirst()
                         .orElse(null),
                 course.getCoursePlaces().stream()
