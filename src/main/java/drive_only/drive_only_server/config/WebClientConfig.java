@@ -19,7 +19,7 @@ public class WebClientConfig {
     private final static String BASE_URL = "http://apis.data.go.kr/B551011/KorService2";
 
     @Bean
-    public WebClient webClient() {
+    public WebClient tourApiWebClient() {
         HttpClient httpClient = HttpClient.create()
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000) // 10초로 증가
                 .responseTimeout(Duration.ofSeconds(15))             // 15초로 증가

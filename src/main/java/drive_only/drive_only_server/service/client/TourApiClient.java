@@ -24,12 +24,12 @@ public class TourApiClient {
     private static final int DEFAULT_RADIUS = 3000;
     private static final int DEFAULT_PAGE_NO = 1;
 
-    private final WebClient webClient;
+    private final WebClient tourApiWebClient;
     @Value("${tourapi.service-key}")
     private String serviceKey;
 
     public List<AreaCodeResponse.Item> fetchAreaCodes(String regionCode) {
-        AreaCodeResponse response = webClient.get()
+        AreaCodeResponse response = tourApiWebClient.get()
                 .uri(uriBuilder -> {
                     UriBuilder ub = uriBuilder.path(PATH_AREA_CODE)
                             .queryParam("serviceKey", serviceKey)
@@ -56,7 +56,7 @@ public class TourApiClient {
     }
 
     public List<PlaceDataInitResponse.Item> fetchPlaces(int pageNo, int numOfRows) {
-        PlaceDataInitResponse response = webClient.get()
+        PlaceDataInitResponse response = tourApiWebClient.get()
                 .uri(uriBuilder -> uriBuilder.path(PATH_PLACE_LIST)
                         .queryParam("serviceKey", serviceKey)
                         .queryParam("MobileOS", MOBILE_OS)
@@ -81,7 +81,7 @@ public class TourApiClient {
     }
 
     public DetailIntroResponse.Item fetchPlaceDetail(String contentId, String contentTypeId) {
-        DetailIntroResponse response = webClient.get()
+        DetailIntroResponse response = tourApiWebClient.get()
                 .uri(uriBuilder -> uriBuilder.path(PATH_PLACE_DETAIL)
                         .queryParam("serviceKey", serviceKey)
                         .queryParam("MobileOS", MOBILE_OS)
@@ -103,7 +103,7 @@ public class TourApiClient {
     }
 
     public List<NearbyPlaceTourApiResponse.Item> fetchNearbyPlaces(int contentTypeId, Double mapX, Double mapY, int numOfRows) {
-        NearbyPlaceTourApiResponse response = webClient.get()
+        NearbyPlaceTourApiResponse response = tourApiWebClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/locationBasedList2")
                         .queryParam("serviceKey", serviceKey)
