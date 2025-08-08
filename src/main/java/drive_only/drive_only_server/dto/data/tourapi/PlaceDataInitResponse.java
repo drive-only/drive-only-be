@@ -1,4 +1,4 @@
-package drive_only.drive_only_server.dto.data;
+package drive_only.drive_only_server.dto.data.tourapi;
 
 import java.util.List;
 
