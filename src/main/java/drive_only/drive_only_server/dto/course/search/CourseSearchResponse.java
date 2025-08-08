@@ -44,6 +44,9 @@ public record CourseSearchResponse(
     }
 
     private static String getCourseThumbnailUrl(Course course) {
+        if (course.getCoursePlaces().get(0).getPhotos().isEmpty()) {
+            return "";
+        }
         return course.getCoursePlaces().get(0).getPhotos().get(0).getUrl();
     }
 
