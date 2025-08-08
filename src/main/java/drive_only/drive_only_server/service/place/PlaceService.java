@@ -115,22 +115,36 @@ public class PlaceService {
     private NearbyPlacesResponse createNearbyPlacesResponse(CoursePlace coursePlace, String type, int numOfRows) {
         Double mapX = coursePlace.getPlace().getLat();
         Double mapY = coursePlace.getPlace().getLng();
-
         String selfContentId = String.valueOf(coursePlace.getPlace().getContentId());
+
         List<Integer> contentTypeIds = getContentTypeIds(type);
-        List<NearbyPlaceTourApiResponse.Item> allNearbyPlaces = new ArrayList<>();
+        Map<String, NearbyPlaceTourApiResponse.Item> unique = new LinkedHashMap<>();
+
         for (int contentTypeId : contentTypeIds) {
-            List<NearbyPlaceTourApiResponse.Item> nearbyPlaces = tourApiClient.fetchNearbyPlaces(contentTypeId, mapX, mapY, numOfRows);
-            if (nearbyPlaces != null) {
-                allNearbyPlaces.addAll(nearbyPlaces);
+            int remaining = numOfRows - unique.size();
+            if (remaining <= 0) {
+                break;
+            }
+            List<NearbyPlaceTourApiResponse.Item> nearbyPlaces = tourApiClient.fetchNearbyPlaces(contentTypeId, mapX, mapY, remaining);
+            if (nearbyPlaces == null) {
+                continue;
+            }
+            for (Item nearbyPlace : nearbyPlaces) {
+                if (selfContentId.equals(nearbyPlace.contentid())) {
+                    continue;
+                }
+                unique.putIfAbsent(nearbyPlace.contentid(), nearbyPlace);
+                if (unique.size() >= numOfRows) {
+                    break;
+                }
             }
         }
 
-        List<NearbyPlaceTourApiResponse.Item> filteredPlaces = allNearbyPlaces.stream()
-                .filter(place -> !selfContentId.equals(place.contentid()))
-                .toList();
-        List<NearbyPlaceTourApiResponse.Item> removedSelf = removeSelf(filteredPlaces);
-        List<PlaceSearchResponse> searchResponses = createPlaceSearchResponses(removedSelf);
+        List<NearbyPlaceTourApiResponse.Item> finalItems = new ArrayList<>(unique.values());
+        if (finalItems.size() > numOfRows) {
+            finalItems = finalItems.subList(0, numOfRows);
+        }
+        List<PlaceSearchResponse> searchResponses = createPlaceSearchResponses(finalItems);
         return NearbyPlacesResponse.from(coursePlace, searchResponses);
     }
 
@@ -140,14 +154,6 @@ public class PlaceService {
             case "restaurant" -> List.of(39);
             default -> throw new IllegalArgumentException("지원하지 않는 장소 타입입니다.");
         };
-    }
-
-    private List<NearbyPlaceTourApiResponse.Item> removeSelf(List<NearbyPlaceTourApiResponse.Item> filteredPlaces) {
-        Map<String, NearbyPlaceTourApiResponse.Item> map = new LinkedHashMap<>();
-        for (Item filteredPlace : filteredPlaces) {
-            map.putIfAbsent(filteredPlace.contentid(), filteredPlace);
-        }
-        return new ArrayList<>(map.values());
     }
 
     private List<PlaceSearchResponse> createPlaceSearchResponses(List<Item> nearbyPlaces) {

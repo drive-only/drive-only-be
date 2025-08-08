@@ -1,10 +1,10 @@
 package drive_only.drive_only_server.service.data;
 
 import drive_only.drive_only_server.domain.Place;
-import drive_only.drive_only_server.dto.data.AreaCodeResponse;
-import drive_only.drive_only_server.dto.data.DetailIntroResponse;
-import drive_only.drive_only_server.dto.data.PlaceDataInitResponse;
-import drive_only.drive_only_server.dto.data.PlaceDataInitResponse.Item;
+import drive_only.drive_only_server.dto.data.tourapi.AreaCodeResponse;
+import drive_only.drive_only_server.dto.data.tourapi.DetailIntroResponse;
+import drive_only.drive_only_server.dto.data.tourapi.PlaceDataInitResponse;
+import drive_only.drive_only_server.dto.data.tourapi.PlaceDataInitResponse.Item;
 import drive_only.drive_only_server.repository.place.PlaceRepository;
 import drive_only.drive_only_server.service.client.TourApiClient;
 import jakarta.annotation.PostConstruct;
@@ -23,9 +23,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class PlaceDataService {
+    //TODO: 나중에 TourAPI를 운영계정으로 변경되면 모든 데이터들에 대해 fetch하도록 변경
     private final static int DEFAULT_ROWS = 100;
-    private final static int PLACE_START_PAGE = 1;
-    private final static int PLACE_TOTAL_PAGES = 5;
+    private final static int PLACE_START_PAGE = 107;
+    private final static int PLACE_TOTAL_PAGES = 108;
 
     private final TourApiClient tourApiClient;
     private final PlaceRepository placeRepository;
