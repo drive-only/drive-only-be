@@ -24,7 +24,9 @@ import drive_only.drive_only_server.repository.place.PlaceRepository;
 import drive_only.drive_only_server.security.LoginMemberProvider;
 import drive_only.drive_only_server.service.client.TourApiClient;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -114,6 +116,7 @@ public class PlaceService {
         Double mapX = coursePlace.getPlace().getLat();
         Double mapY = coursePlace.getPlace().getLng();
 
+        String selfContentId = String.valueOf(coursePlace.getPlace().getContentId());
         List<Integer> contentTypeIds = getContentTypeIds(type);
         List<NearbyPlaceTourApiResponse.Item> allNearbyPlaces = new ArrayList<>();
         for (int contentTypeId : contentTypeIds) {
@@ -122,7 +125,12 @@ public class PlaceService {
                 allNearbyPlaces.addAll(nearbyPlaces);
             }
         }
-        List<PlaceSearchResponse> searchResponses = createPlaceSearchResponses(allNearbyPlaces);
+
+        List<NearbyPlaceTourApiResponse.Item> filteredPlaces = allNearbyPlaces.stream()
+                .filter(place -> !selfContentId.equals(place.contentid()))
+                .toList();
+        List<NearbyPlaceTourApiResponse.Item> removedSelf = removeSelf(filteredPlaces);
+        List<PlaceSearchResponse> searchResponses = createPlaceSearchResponses(removedSelf);
         return NearbyPlacesResponse.from(coursePlace, searchResponses);
     }
 
@@ -132,6 +140,14 @@ public class PlaceService {
             case "restaurant" -> List.of(39);
             default -> throw new IllegalArgumentException("지원하지 않는 장소 타입입니다.");
         };
+    }
+
+    private List<NearbyPlaceTourApiResponse.Item> removeSelf(List<NearbyPlaceTourApiResponse.Item> filteredPlaces) {
+        Map<String, NearbyPlaceTourApiResponse.Item> map = new LinkedHashMap<>();
+        for (Item filteredPlace : filteredPlaces) {
+            map.putIfAbsent(filteredPlace.contentid(), filteredPlace);
+        }
+        return new ArrayList<>(map.values());
     }
 
     private List<PlaceSearchResponse> createPlaceSearchResponses(List<Item> nearbyPlaces) {
