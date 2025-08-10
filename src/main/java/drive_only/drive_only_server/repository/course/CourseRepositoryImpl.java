@@ -128,11 +128,7 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
         if (sort.equals("likeCount")) {
             return course.likeCount.desc();
         }
-        if (sort.equals("viewCount")) {
-            return course.viewCount.desc();
-        }
 
         return course.createdDate.desc();
     }
-
 }
