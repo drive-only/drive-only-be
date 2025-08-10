@@ -49,7 +49,7 @@ public class CourseController {
     public ResponseEntity<PaginatedResponse<CourseSearchResponse>> getCourses(
             CourseSearchRequest request,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "9") int size
     ) {
         PaginatedResponse<CourseSearchResponse> response = courseService.searchCourses(request, page, size);
         return ResponseEntity.ok().body(response);
