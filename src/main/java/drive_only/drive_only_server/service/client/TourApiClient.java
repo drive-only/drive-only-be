@@ -1,12 +1,13 @@
 package drive_only.drive_only_server.service.client;
 
-import drive_only.drive_only_server.dto.data.AreaCodeResponse;
-import drive_only.drive_only_server.dto.data.DetailIntroResponse;
-import drive_only.drive_only_server.dto.data.PlaceDataInitResponse;
+import drive_only.drive_only_server.dto.data.tourapi.AreaCodeResponse;
+import drive_only.drive_only_server.dto.data.tourapi.DetailIntroResponse;
+import drive_only.drive_only_server.dto.data.tourapi.PlaceDataInitResponse;
 import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlaceTourApiResponse;
 import java.time.Duration;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriBuilder;
 import reactor.util.retry.Retry;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class TourApiClient {
@@ -24,12 +26,12 @@ public class TourApiClient {
     private static final int DEFAULT_RADIUS = 3000;
     private static final int DEFAULT_PAGE_NO = 1;
 
-    private final WebClient webClient;
+    private final WebClient tourApiWebClient;
     @Value("${tourapi.service-key}")
     private String serviceKey;
 
     public List<AreaCodeResponse.Item> fetchAreaCodes(String regionCode) {
-        AreaCodeResponse response = webClient.get()
+        AreaCodeResponse response = tourApiWebClient.get()
                 .uri(uriBuilder -> {
                     UriBuilder ub = uriBuilder.path(PATH_AREA_CODE)
                             .queryParam("serviceKey", serviceKey)
@@ -56,7 +58,7 @@ public class TourApiClient {
     }
 
     public List<PlaceDataInitResponse.Item> fetchPlaces(int pageNo, int numOfRows) {
-        PlaceDataInitResponse response = webClient.get()
+        PlaceDataInitResponse response = tourApiWebClient.get()
                 .uri(uriBuilder -> uriBuilder.path(PATH_PLACE_LIST)
                         .queryParam("serviceKey", serviceKey)
                         .queryParam("MobileOS", MOBILE_OS)
@@ -81,7 +83,7 @@ public class TourApiClient {
     }
 
     public DetailIntroResponse.Item fetchPlaceDetail(String contentId, String contentTypeId) {
-        DetailIntroResponse response = webClient.get()
+        DetailIntroResponse response = tourApiWebClient.get()
                 .uri(uriBuilder -> uriBuilder.path(PATH_PLACE_DETAIL)
                         .queryParam("serviceKey", serviceKey)
                         .queryParam("MobileOS", MOBILE_OS)
@@ -103,7 +105,7 @@ public class TourApiClient {
     }
 
     public List<NearbyPlaceTourApiResponse.Item> fetchNearbyPlaces(int contentTypeId, Double mapX, Double mapY, int numOfRows) {
-        NearbyPlaceTourApiResponse response = webClient.get()
+        NearbyPlaceTourApiResponse response = tourApiWebClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/locationBasedList2")
                         .queryParam("serviceKey", serviceKey)
@@ -121,12 +123,18 @@ public class TourApiClient {
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(NearbyPlaceTourApiResponse.class)
+                .retryWhen(RETRY)
                 .block();
 
-        if (!hasNearbyPlaces(response)) {
-            return null;
+        if (response == null ||
+                response.response() == null ||
+                response.response().body() == null) {
+            return List.of();
         }
-        return response.response().body().items().item();
+
+        List<NearbyPlaceTourApiResponse.Item> items = response.response().body().items();
+
+        return items == null ? List.of() : items;
     }
 
     private boolean hasAreas(AreaCodeResponse response) {
@@ -146,14 +154,6 @@ public class TourApiClient {
     }
 
     private boolean hasPlaceDetails(DetailIntroResponse response) {
-        return response != null &&
-                response.response() != null &&
-                response.response().body() != null &&
-                response.response().body().items() != null &&
-                response.response().body().items().item() != null;
-    }
-
-    private boolean hasNearbyPlaces(NearbyPlaceTourApiResponse response) {
         return response != null &&
                 response.response() != null &&
                 response.response().body() != null &&

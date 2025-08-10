@@ -1,7 +1,7 @@
 package drive_only.drive_only_server.service.category;
 
 import drive_only.drive_only_server.dto.category.RegionAndSubRegionResponse;
-import drive_only.drive_only_server.dto.data.AreaCodeResponse.Item;
+import drive_only.drive_only_server.dto.data.tourapi.AreaCodeResponse.Item;
 import drive_only.drive_only_server.service.client.TourApiClient;
 import java.util.ArrayList;
 import java.util.List;

@@ -24,5 +24,10 @@ public class LikedComment {
     public LikedComment(Member member, Comment comment) {
         this.member = member;
         this.comment = comment;
+        member.addLikedComment(this);
+    }
+
+    public void setMember(Member member) {
+        this.member = member;
     }
 }

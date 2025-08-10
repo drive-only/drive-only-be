@@ -24,7 +24,9 @@ import drive_only.drive_only_server.repository.place.PlaceRepository;
 import drive_only.drive_only_server.security.LoginMemberProvider;
 import drive_only.drive_only_server.service.client.TourApiClient;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -113,16 +115,36 @@ public class PlaceService {
     private NearbyPlacesResponse createNearbyPlacesResponse(CoursePlace coursePlace, String type, int numOfRows) {
         Double mapX = coursePlace.getPlace().getLat();
         Double mapY = coursePlace.getPlace().getLng();
+        String selfContentId = String.valueOf(coursePlace.getPlace().getContentId());
 
         List<Integer> contentTypeIds = getContentTypeIds(type);
-        List<NearbyPlaceTourApiResponse.Item> allNearbyPlaces = new ArrayList<>();
+        Map<String, NearbyPlaceTourApiResponse.Item> unique = new LinkedHashMap<>();
+
         for (int contentTypeId : contentTypeIds) {
-            List<NearbyPlaceTourApiResponse.Item> nearbyPlaces = tourApiClient.fetchNearbyPlaces(contentTypeId, mapX, mapY, numOfRows);
-            if (nearbyPlaces != null) {
-                allNearbyPlaces.addAll(nearbyPlaces);
+            int remaining = numOfRows - unique.size();
+            if (remaining <= 0) {
+                break;
+            }
+            List<NearbyPlaceTourApiResponse.Item> nearbyPlaces = tourApiClient.fetchNearbyPlaces(contentTypeId, mapX, mapY, remaining);
+            if (nearbyPlaces == null) {
+                continue;
+            }
+            for (Item nearbyPlace : nearbyPlaces) {
+                if (selfContentId.equals(nearbyPlace.contentid())) {
+                    continue;
+                }
+                unique.putIfAbsent(nearbyPlace.contentid(), nearbyPlace);
+                if (unique.size() >= numOfRows) {
+                    break;
+                }
             }
         }
-        List<PlaceSearchResponse> searchResponses = createPlaceSearchResponses(allNearbyPlaces);
+
+        List<NearbyPlaceTourApiResponse.Item> finalItems = new ArrayList<>(unique.values());
+        if (finalItems.size() > numOfRows) {
+            finalItems = finalItems.subList(0, numOfRows);
+        }
+        List<PlaceSearchResponse> searchResponses = createPlaceSearchResponses(finalItems);
         return NearbyPlacesResponse.from(coursePlace, searchResponses);
     }
 
