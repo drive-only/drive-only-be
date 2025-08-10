@@ -83,6 +83,22 @@ public class CommentService {
         return new CommentDeleteResponse(comment.getId(), SUCCESS_DELETE);
     }
 
+    @Transactional
+    public CommentLikeResponse toggleCommentLike(Long commentId, Member loginMember) {
+        Comment comment = commentRepository.findById(commentId).orElseThrow(CommentNotFoundException::new);
+        boolean isLiked = likedCommentRepository.existsByCommentAndMember(comment, loginMember);
+
+        if (isLiked) {
+            likedCommentRepository.deleteByCommentAndMember(comment, loginMember);
+            comment.decreaseLikeCount();
+            return CommentLikeResponse.from("댓글의 좋아요를 취소 하였습니다.", comment.getLikeCount(), false);
+        } else {
+            likedCommentRepository.save(new LikedComment(loginMember, comment));
+            comment.increaseLikeCount();
+            return CommentLikeResponse.from("댓글에 좋아요를 눌렀습니다.", comment.getLikeCount(), true);
+        }
+    }
+
     private Course findCourse(Long courseId) {
         return courseRepository.findById(courseId).orElseThrow(CourseNotFoundException::new);
     }
@@ -99,23 +115,6 @@ public class CommentService {
         Member loginMember = loginMemberProvider.getLoginMember();
         if (!comment.isWrittenBy(loginMember)) {
             throw new OwnerMismatchException();
-        }
-    }
-
-    @Transactional
-    public CommentLikeResponse toggleCommentLike(Long commentId, Member member) {
-        Comment comment = commentRepository.findById(commentId).orElseThrow(CourseNotFoundException::new);
-
-        boolean isLiked = likedCommentRepository.existsByCommentAndMember(comment, member);
-
-        if (isLiked) {
-            likedCommentRepository.deleteByCommentAndMember(comment, member);
-            comment.decreaseLikeCount();
-            return CommentLikeResponse.from("댓글의 좋아요를 취소 하였습니다.", comment.getLikeCount(), false);
-        } else {
-            likedCommentRepository.save(new LikedComment(member, comment));
-            comment.increaseLikeCount();
-            return CommentLikeResponse.from("댓글에 좋아요를 눌렀습니다.", comment.getLikeCount(), true);
         }
     }
 }

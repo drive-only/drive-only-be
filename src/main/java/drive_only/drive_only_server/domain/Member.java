@@ -57,4 +57,9 @@ public class Member {
     public void updateProfileImageUrl(String profileImageUrl) {
         this.profileImageUrl = profileImageUrl;
     }
+
+    public void addLikedComment(LikedComment likedComment) {
+        this.getLikedComments().add(likedComment);
+        likedComment.setMember(this);
+    }
 }

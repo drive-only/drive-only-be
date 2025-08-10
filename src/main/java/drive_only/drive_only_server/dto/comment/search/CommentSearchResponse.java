@@ -21,7 +21,7 @@ public record CommentSearchResponse(
     public static CommentSearchResponse from(Comment comment, Member loginMember) {
         boolean isMine = comment.getMember().equals(loginMember);
         boolean isLiked = loginMember.getLikedComments().stream()
-                .anyMatch(likedComment -> likedComment.getId().equals(comment.getId()));
+                .anyMatch(likedComment -> likedComment.getComment().getId().equals(comment.getId()));
 
         List<CommentSearchResponse> replies = comment.getChildComments().stream()
                 .map(child -> CommentSearchResponse.from(child, loginMember))
