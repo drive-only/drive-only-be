@@ -36,6 +36,9 @@ public class Member {
     @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<SavedPlace> savedPlaces = new ArrayList<>();
 
+    @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<LikedComment> likedComments = new ArrayList<>();
+
     // 정적 팩토리 메서드 (여기서 필드 세팅)
     public static Member createMember(String email, String nickname, String profileImageUrl, ProviderType provider) {
         Member member = new Member();

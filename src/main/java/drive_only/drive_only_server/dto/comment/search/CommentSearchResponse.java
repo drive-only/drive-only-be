@@ -14,11 +14,14 @@ public record CommentSearchResponse(
         LocalDateTime createdDate,
         int likeCount,
         Boolean isMine,
+        Boolean isLiked,
         Boolean isDeleted,
         List<CommentSearchResponse> replies
 ) {
     public static CommentSearchResponse from(Comment comment, Member loginMember) {
         boolean isMine = comment.getMember().equals(loginMember);
+        boolean isLiked = loginMember.getLikedComments().stream()
+                .anyMatch(likedComment -> likedComment.getId().equals(comment.getId()));
 
         List<CommentSearchResponse> replies = comment.getChildComments().stream()
                 .map(child -> CommentSearchResponse.from(child, loginMember))
@@ -33,6 +36,7 @@ public record CommentSearchResponse(
                 comment.getCreatedDate(),
                 comment.getLikeCount(),
                 isMine,
+                isLiked,
                 comment.isDeleted(),
                 replies
         );
