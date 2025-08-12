@@ -25,8 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class PlaceDataService {
     //TODO: 나중에 TourAPI를 운영계정으로 변경되면 모든 데이터들에 대해 fetch하도록 변경
     private final static int DEFAULT_ROWS = 100;
-    private final static int PLACE_START_PAGE = 173;
-    private final static int PLACE_TOTAL_PAGES = 180;
+    private final static int PLACE_START_PAGE = 309;
+    private final static int PLACE_TOTAL_PAGES = 316;
 
     private final TourApiClient tourApiClient;
     private final PlaceRepository placeRepository;
