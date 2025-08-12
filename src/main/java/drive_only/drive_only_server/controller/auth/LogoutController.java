@@ -1,12 +1,12 @@
 package drive_only.drive_only_server.controller.auth;
 
+import drive_only.drive_only_server.exception.annotation.ApiErrorCodeExamples;
+import drive_only.drive_only_server.exception.errorcode.ErrorCode;
+
 import drive_only.drive_only_server.security.JwtTokenProvider;
 import drive_only.drive_only_server.service.auth.LogoutService;
 import drive_only.drive_only_server.service.auth.RefreshTokenService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -14,7 +14,6 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
@@ -29,12 +28,11 @@ public class LogoutController {
     private final RefreshTokenService refreshTokenService;
 
     @Operation(summary = "로그아웃", description = "로그아웃 요청")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "로그아웃 성공"),
-            @ApiResponse(responseCode = "400", description = "소셜 access token 누락 또는 provider 잘못됨", content = @Content),
-            @ApiResponse(responseCode = "401", description = "유효하지 않은 JWT access token", content = @Content),
-            @ApiResponse(responseCode = "403", description = "이미 로그아웃 되었거나 무효한 사용자", content = @Content),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    @ApiErrorCodeExamples({
+            ErrorCode.INVALID_TOKEN,          // 토큰 형식/유효성 실패
+            ErrorCode.UNAUTHENTICATED_MEMBER, // 인증 불가 시
+            ErrorCode.INTERNAL_SERVER_ERROR
+            // 이미 로그아웃된 경우 403을 쓰려면 ErrorCode에 별도 항목 추가(예: ALREADY_LOGGED_OUT)
     })
     @PostMapping("/api/logout")
     public ResponseEntity<Void> logout(

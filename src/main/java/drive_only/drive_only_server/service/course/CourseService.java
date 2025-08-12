@@ -163,9 +163,21 @@ public class CourseService {
     }
 
     private List<Photo> createPhotos(CoursePlaceCreateRequest request) {
+        // null 허용: 사진 없이도 코스 장소 등록 가능
+        if (request.photoUrls() == null || request.photoUrls().isEmpty()) {
+            return List.of();
+        }
+
+        // 최대 5장 제한
+        if (request.photoUrls().size() > 5) {
+            throw new BusinessException(ErrorCode.INVALID_COURSE_PLACE_PHOTOS);
+        }
+
+        // 각 URL은 Photo.create()에서 유효성 검사(빈값/길이 등) 수행
         List<Photo> photos = request.photoUrls().stream()
-                .map(photoRequest -> new Photo(photoRequest.photoUrl()))
+                .map(photoRequest -> Photo.create(photoRequest.photoUrl()))
                 .toList();
+
         photoRepository.saveAll(photos);
         return photos;
     }
