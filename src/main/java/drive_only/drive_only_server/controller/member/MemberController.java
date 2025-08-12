@@ -1,5 +1,8 @@
 package drive_only.drive_only_server.controller.member;
 
+import drive_only.drive_only_server.exception.annotation.ApiErrorCodeExamples;
+import drive_only.drive_only_server.exception.errorcode.ErrorCode;
+
 import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.domain.ProviderType;
 import drive_only.drive_only_server.dto.course.list.MyCourseListResponse;
@@ -13,9 +16,6 @@ import drive_only.drive_only_server.security.LoginMemberProvider;
 import drive_only.drive_only_server.service.auth.RefreshTokenService;
 import drive_only.drive_only_server.service.member.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -38,11 +38,10 @@ public class MemberController {
     private final RefreshTokenService refreshTokenService;
 
     @Operation(summary = "마이페이지", description = "마이페이지 조회")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "마이페이지 조회 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 쿼리 파라미터", content = @Content),
-            @ApiResponse(responseCode = "401", description = "유효하지 않은 JWT access token", content = @Content),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    @ApiErrorCodeExamples({
+            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.INVALID_TOKEN,
+            ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/members/me")
     public ResponseEntity<MemberResponse> getMyProfile() {
@@ -60,12 +59,11 @@ public class MemberController {
     }
 
     @Operation(summary = "다른 회원 정보 조회", description = "회원 ID로 다른 회원 정보 조회")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "다른 회원 조회 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
-            @ApiResponse(responseCode = "401", description = "유효하지 않은 JWT access token", content = @Content),
-            @ApiResponse(responseCode = "404", description = "회원 정보 없음", content = @Content),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    @ApiErrorCodeExamples({
+            ErrorCode.MEMBER_NOT_FOUND,
+            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.INVALID_TOKEN,
+            ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/members/{id}")
     public ResponseEntity<OtherMemberResponse> getOtherMemberProfile(@PathVariable Long id) {
@@ -81,12 +79,12 @@ public class MemberController {
     }
 
     @Operation(summary = "회원 정보 수정", description = "로그인한 사용자의 닉네임, 프로필 이미지를 수정합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "회원 정보 수정 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
-            @ApiResponse(responseCode = "401", description = "유효하지 않은 JWT access token", content = @Content),
-            @ApiResponse(responseCode = "404", description = "회원 정보 없음", content = @Content),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    @ApiErrorCodeExamples({
+            ErrorCode.INVALID_NICKNAME,
+            ErrorCode.MEMBER_NOT_FOUND,
+            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.INVALID_TOKEN,
+            ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PatchMapping("/api/members/me")
     public ResponseEntity<MemberResponse> updateMyProfile(
@@ -112,12 +110,11 @@ public class MemberController {
     }
 
     @Operation(summary = "회원 탈퇴", description = "현재 로그인한 회원 탈퇴")
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "회원 탈퇴 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
-            @ApiResponse(responseCode = "401", description = "유효하지 않은 JWT access token", content = @Content),
-            @ApiResponse(responseCode = "404", description = "회원 정보 없음", content = @Content),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    @ApiErrorCodeExamples({
+            ErrorCode.MEMBER_NOT_FOUND,
+            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.INVALID_TOKEN,
+            ErrorCode.INTERNAL_SERVER_ERROR
     })
     @DeleteMapping("/api/members/me")
     public ResponseEntity<Void> deleteMyAccount(
@@ -165,12 +162,12 @@ public class MemberController {
     }
 
     @Operation(summary = "좋아요한 코스 조회", description = "회원이 좋아요한 드라이브 코스를 최신순으로 조회")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "조회 성공"),
-            @ApiResponse(responseCode = "401", description = "유효하지 않은 인증", content = @Content),
-            @ApiResponse(responseCode = "403", description = "접근 권한 없음", content = @Content),
-            @ApiResponse(responseCode = "404", description = "회원 정보 없음", content = @Content),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    @ApiErrorCodeExamples({
+            ErrorCode.MEMBER_NOT_FOUND,
+            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.INVALID_TOKEN,
+            ErrorCode.INTERNAL_SERVER_ERROR
+            // 403 전용 코드가 필요하면 ErrorCode에 FORBIDDEN(예: ACCESS_FORBIDDEN) 추가
     })
     @GetMapping("/api/members/me/likedCourses")
     public ResponseEntity<LikedCourseListResponse> getLikedCourses(
@@ -183,10 +180,10 @@ public class MemberController {
     }
 
     @Operation(summary = "내가 작성한 코스 조회", description = "인증된 사용자의 작성 코스를 커서 기반으로 조회합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "작성한 코스 목록 조회 성공"),
-            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    @ApiErrorCodeExamples({
+            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.INVALID_TOKEN,
+            ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/members/me/courses")
     public ResponseEntity<MyCourseListResponse> getMyCourses(

@@ -25,7 +25,15 @@ public enum ErrorCode {
     INVALID_NICKNAME(HttpStatus.BAD_REQUEST, "닉네임은 2~20자, 영문/숫자/한글/._- 만 가능합니다."),
     INVALID_PROVIDER(HttpStatus.BAD_REQUEST, "유효하지 않은 소셜 제공자입니다."),
 
+    OAUTH_COMMUNICATION_FAILED(HttpStatus.BAD_GATEWAY, "OAuth 서버 통신에 실패했습니다."),
+    INVALID_OAUTH_CODE(HttpStatus.BAD_REQUEST, "유효하지 않은 인가 코드입니다."),
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "리프레시 토큰이 존재하지 않습니다."),
+    DUPLICATE_MEMBER(HttpStatus.CONFLICT, "이미 가입된 회원입니다."), // (선택) 동시가입 경합 구분용
+    TOKEN_BLACKLISTED(HttpStatus.UNAUTHORIZED, "로그아웃된 토큰입니다."), // (선택) 구분 필요 시
+    TOUR_API_COMMUNICATION_FAILED(HttpStatus.BAD_GATEWAY, "관광공사 API 통신에 실패했습니다."),
+
     //404 NOT FOUND
+    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 회원을 찾을 수 없습니다."),
     COURSE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 코스(게시글)를 찾을 수 없습니다."),
     PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 장소를 찾을 수 없습니다."),
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 댓글을 찾을 수 없습니다."),
