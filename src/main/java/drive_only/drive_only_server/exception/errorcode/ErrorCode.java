@@ -24,6 +24,7 @@ public enum ErrorCode {
     INVALID_EMAIL(HttpStatus.BAD_REQUEST, "유효한 이메일 형식이 아닙니다."),
     INVALID_NICKNAME(HttpStatus.BAD_REQUEST, "닉네임은 2~20자, 영문/숫자/한글/._- 만 가능합니다."),
     INVALID_PROVIDER(HttpStatus.BAD_REQUEST, "유효하지 않은 소셜 제공자입니다."),
+    INVALID_IMAGE_DATA(HttpStatus.BAD_REQUEST, "잘못된 이미지 데이터입니다."),
 
     OAUTH_COMMUNICATION_FAILED(HttpStatus.BAD_GATEWAY, "OAuth 서버 통신에 실패했습니다."),
     INVALID_OAUTH_CODE(HttpStatus.BAD_REQUEST, "유효하지 않은 인가 코드입니다."),
