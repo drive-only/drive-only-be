@@ -29,22 +29,33 @@ public class MemberService {
     private final LikedCourseRepository likedCourseRepository;
     private final CourseRepository courseRepository;
 
+    private static String normalizeEmail(String e) {
+        return e == null ? null : e.trim().toLowerCase(java.util.Locale.ROOT);
+    }
+    private static String normalizeNullable(String s) {
+        return s == null ? null : s.trim();
+    }
+
     @Transactional
     public Member registerOrLogin(OAuthUserInfo userInfo) {
-        return memberRepository.findByEmailAndProvider(userInfo.getEmail(), userInfo.getProvider())
+        String email = normalizeEmail(userInfo.getEmail());
+        ProviderType provider = userInfo.getProvider();
+
+        return memberRepository.findByEmailAndProvider(email, provider)
                 .orElseGet(() -> {
+                    // createMember 내부에서도 정규화/검증하지만, 조회 키 일치 위해 find 전에 정규화 필수
                     Member newMember = Member.createMember(
-                            userInfo.getEmail(),
-                            userInfo.getNickname(),
-                            userInfo.getProfileImageUrl(),
-                            userInfo.getProvider()
+                            email,
+                            normalizeNullable(userInfo.getNickname()),
+                            normalizeNullable(userInfo.getProfileImageUrl()),
+                            provider
                     );
                     return memberRepository.save(newMember);
                 });
     }
 
     public Member findByEmailAndProvider(String email, ProviderType provider) {
-        return memberRepository.findByEmailAndProvider(email, provider)
+        return memberRepository.findByEmailAndProvider(normalizeEmail(email), provider)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
     }
 
@@ -54,29 +65,27 @@ public class MemberService {
     }
 
     public Member findByEmail(String email) {
-        return memberRepository.findByEmail(email)
+        return memberRepository.findByEmail(normalizeEmail(email))
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
     }
 
     @Transactional
     public Member updateMember(String email, ProviderType provider, MemberUpdateRequest request) {
-        Member member = memberRepository.findByEmailAndProvider(email, provider)
+        Member member = memberRepository.findByEmailAndProvider(normalizeEmail(email), provider)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
 
         if (request.getNickname() != null) {
-            member.updateNickname(request.getNickname());
+            member.updateNickname(request.getNickname()); // 엔티티에서 검증
         }
-
         if (request.getProfileImageUrl() != null) {
             member.updateProfileImageUrl(request.getProfileImageUrl());
         }
-
-        return member;
+        return member; // JPA 더티체킹으로 저장
     }
 
     @Transactional
     public void deleteMemberByEmailAndProvider(String email, ProviderType provider) {
-        Member member = memberRepository.findByEmailAndProvider(email, provider)
+        Member member = memberRepository.findByEmailAndProvider(normalizeEmail(email), provider)
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
         memberRepository.delete(member);
     }

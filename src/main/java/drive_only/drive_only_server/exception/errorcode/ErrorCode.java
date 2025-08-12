@@ -19,8 +19,11 @@ public enum ErrorCode {
     INVALID_CATEGORY_AREA_TYPE(HttpStatus.BAD_REQUEST, "근교/외곽 구분은 필수 입력 항목입니다."),
     COURSE_PLACES_REQUIRED(HttpStatus.BAD_REQUEST, "코스 장소는 최소 1개 이상 등록되어야 합니다."),
     KEYWORD_REQUIRED(HttpStatus.BAD_REQUEST, "검색어를 입력해주세요."),
-    PLACE_ID_WITH_ANYTHING_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "장소ID와 검색어 맟 카테고리 필터는 동시에 적용될 수 없습니다."),
+    PLACE_ID_WITH_ANYTHING_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "장소ID와 검색어 및 카테고리 필터는 동시에 적용될 수 없습니다."),
     KEYWORD_WITH_CATEGORY_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "검색어와 카테고리 필터는 동시에 적용될 수 없습니다."),
+    INVALID_EMAIL(HttpStatus.BAD_REQUEST, "유효한 이메일 형식이 아닙니다."),
+    INVALID_NICKNAME(HttpStatus.BAD_REQUEST, "닉네임은 2~20자, 영문/숫자/한글/._- 만 가능합니다."),
+    INVALID_PROVIDER(HttpStatus.BAD_REQUEST, "유효하지 않은 소셜 제공자입니다."),
 
     //404 NOT FOUND
     COURSE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 코스(게시글)를 찾을 수 없습니다."),
