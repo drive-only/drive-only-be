@@ -40,7 +40,7 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI driveOnlyOpenAPI() {
         return new OpenAPI()
-                .addServersItem(new Server().url("https://api.drive-only.com"))
+                .addServersItem(new Server().url("/"))
                 .info(new Info()
                         .title("Drive-Only API")
                         .version("v1")
