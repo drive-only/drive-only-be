@@ -19,6 +19,8 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
+
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "토큰 재발급", description = "Access Token 재발급 API")
@@ -71,9 +73,10 @@ public class TokenRefreshController {
         ResponseCookie accessTokenCookie = ResponseCookie.from("access-token", newAccessToken)
                 .httpOnly(true)
                 .secure(true)
+                .domain("api.drive-only.com")
                 .path("/")
-                .maxAge(jwtTokenProvider.getAccessTokenExpiration())
-                .sameSite("Strict")
+                .maxAge(Duration.ofMillis(jwtTokenProvider.getAccessTokenExpiration()))
+                .sameSite("None")
                 .build();
 
         return ResponseEntity.ok()

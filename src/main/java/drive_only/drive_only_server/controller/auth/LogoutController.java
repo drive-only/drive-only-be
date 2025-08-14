@@ -60,17 +60,19 @@ public class LogoutController {
         ResponseCookie deleteAccessTokenCookie = ResponseCookie.from("access-token", "")
                 .httpOnly(true)
                 .secure(true)
+                .domain("api.drive-only.com")
                 .path("/")
                 .maxAge(0)
-                .sameSite("Strict")
+                .sameSite("None")
                 .build();
 
         ResponseCookie deleteRefreshTokenCookie = ResponseCookie.from("refresh-token", "")
                 .httpOnly(true)
                 .secure(true)
+                .domain("api.drive-only.com")
                 .path("/")
                 .maxAge(0)
-                .sameSite("Strict")
+                .sameSite("None")
                 .build();
 
         return ResponseEntity.ok()

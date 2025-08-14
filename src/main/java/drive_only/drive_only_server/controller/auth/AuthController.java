@@ -69,17 +69,19 @@ public class AuthController {
         ResponseCookie accessCookie = ResponseCookie.from("access-token", accessToken)
                 .httpOnly(true)
                 .secure(true)
+                .domain("api.drive-only.com")
                 .path("/")
                 .maxAge(Duration.ofMillis(jwtTokenProvider.getAccessTokenExpiration()))
-                .sameSite("Strict")
+                .sameSite("None")
                 .build();
 
         ResponseCookie refreshCookie = ResponseCookie.from("refresh-token", refreshToken)
                 .httpOnly(true)
                 .secure(true)
+                .domain("api.drive-only.com")
                 .path("/")
                 .maxAge(Duration.ofMillis(refreshTokenExpiration))
-                .sameSite("Strict")
+                .sameSite("None")
                 .build();
 
         // 5. 응답
