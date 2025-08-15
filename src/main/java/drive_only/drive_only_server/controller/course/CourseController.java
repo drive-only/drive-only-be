@@ -64,8 +64,8 @@ public class CourseController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/courses/{courseId}")
-    public ResponseEntity<ApiResult<CourseDetailSearchResponse>> searchCourseDetails(@PathVariable Long courseId) {
-        CourseDetailSearchResponse result = courseService.searchCourseDetail(courseId);
+    public ResponseEntity<ApiResult<PaginatedResponse<CourseDetailSearchResponse>>> searchCourseDetails(@PathVariable Long courseId) {
+        PaginatedResponse<CourseDetailSearchResponse> result = courseService.searchCourseDetail(courseId);
         return ApiResultSupport.ok(SuccessCode.SUCCESS_GET_COURSE_DETAIL, result);
     }
 

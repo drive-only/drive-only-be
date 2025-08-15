@@ -32,6 +32,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,11 +75,12 @@ public class CourseService {
         return new PaginatedResponse<>(responses, meta);
     }
 
-    public CourseDetailSearchResponse searchCourseDetail(Long courseId) {
+    public PaginatedResponse<CourseDetailSearchResponse> searchCourseDetail(Long courseId) {
         Course course = findCourse(courseId);
         List<CoursePlace> coursePlaces = coursePlaceRepository.findByCourse(course);
         Member loginMember = loginMemberProvider.getLoginMemberIfExists();
-        return CourseDetailSearchResponse.from(course, coursePlaces, loginMember);
+        CourseDetailSearchResponse response = CourseDetailSearchResponse.from(course, coursePlaces, loginMember);
+        return new PaginatedResponse<>(List.of(response), null);
     }
 
     @Transactional
