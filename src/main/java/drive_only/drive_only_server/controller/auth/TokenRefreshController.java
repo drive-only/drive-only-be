@@ -73,7 +73,7 @@ public class TokenRefreshController {
         ResponseCookie accessTokenCookie = ResponseCookie.from("access-token", newAccessToken)
                 .httpOnly(true)
                 .secure(true)
-                .domain("api.drive-only.com")
+//                .domain("api.drive-only.com")
                 .path("/")
                 .maxAge(Duration.ofMillis(jwtTokenProvider.getAccessTokenExpiration()))
                 .sameSite("None")
