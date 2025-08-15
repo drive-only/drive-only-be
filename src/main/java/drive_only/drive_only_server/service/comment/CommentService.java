@@ -34,9 +34,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @Slf4j
 public class CommentService {
-    private static final String SUCCESS_CREATE ="댓글이 성공적으로 등록되었습니다.";
-    private static final String SUCCESS_UPDATE ="댓글이 성공적으로 수정되었습니다.";
-    private static final String SUCCESS_DELETE ="댓글이 성공적으로 삭제되었습니다.";
 
     private final CourseRepository courseRepository;
     private final CommentRepository commentRepository;
@@ -53,7 +50,7 @@ public class CommentService {
             parentComment.addChildComment(comment);
         }
         commentRepository.save(comment);
-        return new CommentCreateResponse(comment.getId(), SUCCESS_CREATE);
+        return new CommentCreateResponse(comment.getId());
     }
 
     public PaginatedResponse<CommentSearchResponse> searchComments(Long courseId, int page, int size) {
@@ -71,7 +68,7 @@ public class CommentService {
         Comment comment = findComment(commentId);
         validateCommentOwner(comment);
         comment.update(request);
-        return new CommentUpdateResponse(comment.getId(), SUCCESS_UPDATE);
+        return new CommentUpdateResponse(comment.getId());
     }
 
     @Transactional
@@ -80,7 +77,7 @@ public class CommentService {
         validateCommentOwner(comment);
         comment.clearChildComments();
         commentRepository.delete(comment);
-        return new CommentDeleteResponse(comment.getId(), SUCCESS_DELETE);
+        return new CommentDeleteResponse(comment.getId());
     }
 
     @Transactional
