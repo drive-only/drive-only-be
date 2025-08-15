@@ -41,7 +41,7 @@ public class CommentController {
     private final CommentService commentService;
     private final LoginMemberProvider loginMemberProvider;
 
-    @Operation(summary = "댓글 조회", description = "댓글 및 대댓글들을 조회")
+    @Operation(summary = "댓글 및 대댓글 조회", description = "댓글 및 대댓글들을 조회")
     @ApiErrorCodeExamples({
             ErrorCode.COMMENT_NOT_FOUND,
             ErrorCode.PARENT_COMMENT_NOT_FOUND,
