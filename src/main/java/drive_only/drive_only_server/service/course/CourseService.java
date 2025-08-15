@@ -40,10 +40,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class CourseService {
-    private static final String SUCCESS_CREATE = "게시글이 성공적으로 등록되었습니다.";
-    private static final String SUCCESS_UPDATE = "게시글이 성공적으로 수정되었습니다.";
-    private static final String SUCCESS_DELETE = "게시글이 성공적으로 삭제되었습니다.";
-
     private final CourseRepository courseRepository;
     private final PlaceRepository placeRepository;
     private final CoursePlaceRepository coursePlaceRepository;
@@ -65,7 +61,7 @@ public class CourseService {
                 loginMember, category, coursePlaces, tags
         );
         courseRepository.save(course);
-        return new CourseCreateResponse(course.getId(), SUCCESS_CREATE);
+        return new CourseCreateResponse(course.getId());
     }
 
     public PaginatedResponse<CourseSearchResponse> searchCourses(CourseSearchRequest request, int page, int size) {
@@ -93,7 +89,7 @@ public class CourseService {
         List<CoursePlace> newCoursePlaces = createCoursePlaces(request);
         List<Tag> newTags = getTags(request);
         course.update(request, newCategory, newCoursePlaces, newTags);
-        return new CoursePlaceUpdateResponse(course.getId(), SUCCESS_UPDATE);
+        return new CoursePlaceUpdateResponse(course.getId());
     }
 
     @Transactional
@@ -101,7 +97,7 @@ public class CourseService {
         Course course = findCourse(courseId);
         validateCourseOwner(course);
         courseRepository.delete(course);
-        return new CourseDeleteResponse(courseId, SUCCESS_DELETE);
+        return new CourseDeleteResponse(courseId);
     }
 
     @Transactional
