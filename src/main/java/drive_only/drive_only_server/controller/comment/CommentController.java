@@ -41,7 +41,7 @@ public class CommentController {
     private final CommentService commentService;
     private final LoginMemberProvider loginMemberProvider;
 
-    @Operation(summary = "댓글 및 대댓글 조회", description = "댓글 및 대댓글들을 조회")
+    @Operation(summary = "댓글 및 대댓글 조회", description = "댓글과 대댓글을 조회")
     @ApiErrorCodeExamples({
             ErrorCode.COMMENT_NOT_FOUND,
             ErrorCode.PARENT_COMMENT_NOT_FOUND,
@@ -57,7 +57,7 @@ public class CommentController {
         return ApiResultSupport.ok(SuccessCode.SUCCESS_GET_COMMENTS, result);
     }
 
-    @Operation(summary = "댓글 등록", description = "새로운 댓글을 등록")
+    @Operation(summary = "댓글 및 대댓글 등록", description = "새로운 댓글 또는 대댓글을 등록")
     @ApiErrorCodeExamples({
             ErrorCode.INVALID_COMMENT_CONTENT,
             ErrorCode.UNAUTHENTICATED_MEMBER,
@@ -73,7 +73,7 @@ public class CommentController {
         return ApiResultSupport.ok(SuccessCode.SUCCESS_CREATE_COMMENT, result);
     }
 
-    @Operation(summary = "댓글 수정", description = "commentId를 이용해 기존 댓글을 수정")
+    @Operation(summary = "댓글 및 대댓글 수정", description = "commentId를 이용해 기존 댓글 또는 대댓글을 수정")
     @ApiErrorCodeExamples({
             ErrorCode.COMMENT_NOT_FOUND,
             ErrorCode.INVALID_COMMENT_CONTENT,
@@ -91,7 +91,7 @@ public class CommentController {
         return ApiResultSupport.ok(SuccessCode.SUCCESS_UPDATE_COMMENT, result);
     }
 
-    @Operation(summary = "댓글 삭제", description = "commentId를 이용해 댓글을 삭제")
+    @Operation(summary = "댓글 및 대댓글 삭제", description = "commentId를 이용해 댓글 또는 대댓글을 삭제")
     @ApiErrorCodeExamples({
             ErrorCode.COMMENT_NOT_FOUND,
             ErrorCode.OWNER_MISMATCH,
@@ -105,7 +105,7 @@ public class CommentController {
         return ApiResultSupport.ok(SuccessCode.SUCCESS_DELETE_COMMENT, result);
     }
 
-    @Operation(summary = "댓글 좋아요 전송", description = "특정 댓글에 대해 좋아요 또는 좋아요 취소 요청을 처리합니다.")
+    @Operation(summary = "댓글 및 대댓글 좋아요 전송", description = "특정 댓글 또는 대댓글에 대해 좋아요 또는 좋아요 취소 요청을 처리합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "좋아요 취소 성공"),
             @ApiResponse(responseCode = "201", description = "좋아요 등록 성공"),
