@@ -4,17 +4,22 @@ import drive_only.drive_only_server.domain.Course;
 import drive_only.drive_only_server.domain.LikedCourse;
 import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.domain.ProviderType;
+import drive_only.drive_only_server.dto.common.PaginatedResponse;
 import drive_only.drive_only_server.dto.course.list.MyCourseListResponse;
 import drive_only.drive_only_server.dto.course.search.MyCourseSearchResponse;
 import drive_only.drive_only_server.dto.likedCourse.list.LikedCourseListResponse;
 import drive_only.drive_only_server.dto.likedCourse.search.LikedCourseSearchResponse;
+import drive_only.drive_only_server.dto.member.MemberResponse;
 import drive_only.drive_only_server.dto.member.MemberUpdateRequest;
+import drive_only.drive_only_server.dto.member.OtherMemberResponse;
 import drive_only.drive_only_server.dto.oauth.OAuthUserInfo;
 import drive_only.drive_only_server.exception.custom.MemberNotFoundException;
 import drive_only.drive_only_server.repository.course.CourseRepository;
 import drive_only.drive_only_server.repository.course.LikedCourseRepository;
 import drive_only.drive_only_server.repository.member.MemberRepository;
+import drive_only.drive_only_server.security.LoginMemberProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,26 +31,67 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MemberService {
-
     private final MemberRepository memberRepository;
+    private final LoginMemberProvider loginMemberProvider;
     private final LikedCourseRepository likedCourseRepository;
     private final CourseRepository courseRepository;
 
-    // -----------------------
-    // 생성/로그인
-    // -----------------------
+    public PaginatedResponse<MemberResponse> getMyProfile() {
+        Member member = loginMemberProvider.getLoginMember();
+        MemberResponse response = new MemberResponse(
+                member.getId(),
+                member.getEmail(),
+                member.getNickname(),
+                member.getProfileImageUrl(),
+                member.getProvider()
+        );
+        return new PaginatedResponse<>(List.of(response), null);
+    }
+
+    public PaginatedResponse<OtherMemberResponse> findOtherMember(Long id) {
+        Member member = findById(id);
+        OtherMemberResponse response = new OtherMemberResponse(
+                member.getId(),
+                member.getNickname(),
+                member.getProfileImageUrl()
+        );
+        return new PaginatedResponse<>(List.of(response), null);
+    }
+
+    @Transactional
+    public PaginatedResponse<MemberResponse> updateMember(MemberUpdateRequest request) {
+        String email = loginMemberProvider.getLoginMember().getEmail();
+        ProviderType provider = loginMemberProvider.getLoginMember().getProvider();
+        Member member = memberRepository.findByEmailAndProvider(normalizeEmail(email), provider)
+                .orElseThrow(MemberNotFoundException::new);
+
+        if (request.getNickname() != null) {
+            member.updateNickname(request.getNickname());
+        }
+        if (request.getProfileImageUrl() != null) {
+            member.updateProfileImageUrl(request.getProfileImageUrl());
+        }
+
+        MemberResponse response = new MemberResponse(
+                member.getId(),
+                member.getEmail(),
+                member.getNickname(),
+                member.getProfileImageUrl(),
+                member.getProvider()
+        );
+        return new PaginatedResponse<>(List.of(response), null);
+    }
+
     @Transactional
     public Member registerOrLogin(OAuthUserInfo userInfo) {
         String email = normalizeEmail(userInfo.getEmail());
         ProviderType provider = userInfo.getProvider();
 
-        // 정규화된 키로 조회
         Optional<Member> found = memberRepository.findByEmailAndProvider(email, provider);
         if (found.isPresent()) {
             return found.get();
         }
 
-        // 없으면 생성 (엔티티 내부에서 검증/정규화 재확인)
         Member newMember = Member.createMember(
                 email,
                 normalizeNullable(userInfo.getNickname()),
@@ -55,43 +101,6 @@ public class MemberService {
         return memberRepository.save(newMember);
     }
 
-    // -----------------------
-    // 조회 계열
-    // -----------------------
-    public Member findByEmailAndProvider(String email, ProviderType provider) {
-        return memberRepository.findByEmailAndProvider(normalizeEmail(email), provider)
-                .orElseThrow(MemberNotFoundException::new);
-    }
-
-    public Member findById(Long id) {
-        return memberRepository.findById(id)
-                .orElseThrow(MemberNotFoundException::new);
-    }
-
-    public Member findByEmail(String email) {
-        return memberRepository.findByEmail(normalizeEmail(email))
-                .orElseThrow(MemberNotFoundException::new);
-    }
-
-    // -----------------------
-    // 수정/삭제
-    // -----------------------
-    @Transactional
-    public Member updateMember(String email, ProviderType provider, MemberUpdateRequest request) {
-        Member member = memberRepository.findByEmailAndProvider(normalizeEmail(email), provider)
-                .orElseThrow(MemberNotFoundException::new);
-
-        if (request.getNickname() != null) {
-            // 엔티티에서 규칙 검증 및 trim
-            member.updateNickname(request.getNickname());
-        }
-        if (request.getProfileImageUrl() != null) {
-            member.updateProfileImageUrl(request.getProfileImageUrl());
-        }
-        // JPA 더티 체킹
-        return member;
-    }
-
     @Transactional
     public void deleteMemberByEmailAndProvider(String email, ProviderType provider) {
         Member member = memberRepository.findByEmailAndProvider(normalizeEmail(email), provider)
@@ -99,10 +108,8 @@ public class MemberService {
         memberRepository.delete(member);
     }
 
-    // -----------------------
-    // 좋아요/내 코스 커서 조회
-    // -----------------------
-    public LikedCourseListResponse getLikedCourses(Member member, Long lastId, int size) {
+    public LikedCourseListResponse getLikedCourses(Long lastId, int size) {
+        Member member = loginMemberProvider.getLoginMember();
         List<LikedCourse> likedCourses = likedCourseRepository.findLikedCoursesByMember(member, lastId, size);
 
         List<LikedCourseSearchResponse> responses = likedCourses.stream()
@@ -115,7 +122,8 @@ public class MemberService {
         return LikedCourseListResponse.from(responses, newLastId, size, hasNext);
     }
 
-    public MyCourseListResponse getMyCourses(Member member, Long lastId, int size) {
+    public MyCourseListResponse getMyCourses(Long lastId, int size) {
+        Member member = loginMemberProvider.getLoginMember();
         List<Course> courses = courseRepository.findCoursesByMember(member.getId(), lastId, size);
 
         List<MyCourseSearchResponse> responseList = courses.stream()
@@ -128,9 +136,11 @@ public class MemberService {
         return MyCourseListResponse.from(responseList, newLastId, size, hasNext);
     }
 
-    // -----------------------
-    // 유틸(정규화)
-    // -----------------------
+    private Member findById(Long id) {
+        return memberRepository.findById(id)
+                .orElseThrow(MemberNotFoundException::new);
+    }
+
     private static String normalizeEmail(String e) {
         return e == null ? null : e.trim().toLowerCase(Locale.ROOT);
     }
