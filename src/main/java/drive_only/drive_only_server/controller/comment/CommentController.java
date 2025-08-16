@@ -7,12 +7,15 @@ import drive_only.drive_only_server.dto.comment.delete.CommentDeleteResponse;
 import drive_only.drive_only_server.dto.comment.search.CommentSearchResponse;
 import drive_only.drive_only_server.dto.comment.update.CommentUpdateRequest;
 import drive_only.drive_only_server.dto.comment.update.CommentUpdateResponse;
+import drive_only.drive_only_server.dto.common.ApiResult;
+import drive_only.drive_only_server.dto.common.ApiResultSupport;
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
 import drive_only.drive_only_server.dto.like.comment.CommentLikeResponse;
 import drive_only.drive_only_server.exception.annotation.ApiErrorCodeExamples;
 import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import drive_only.drive_only_server.security.LoginMemberProvider;
 import drive_only.drive_only_server.service.comment.CommentService;
+import drive_only.drive_only_server.success.SuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -38,23 +41,23 @@ public class CommentController {
     private final CommentService commentService;
     private final LoginMemberProvider loginMemberProvider;
 
-    @Operation(summary = "댓글 조회", description = "댓글 및 대댓글들을 조회")
+    @Operation(summary = "댓글 및 대댓글 조회", description = "댓글과 대댓글을 조회")
     @ApiErrorCodeExamples({
             ErrorCode.COMMENT_NOT_FOUND,
             ErrorCode.PARENT_COMMENT_NOT_FOUND,
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/courses/{courseId}/comments")
-    public ResponseEntity<PaginatedResponse<CommentSearchResponse>> getComments(
+    public ResponseEntity<ApiResult<PaginatedResponse<CommentSearchResponse>>> getComments(
             @PathVariable Long courseId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        PaginatedResponse<CommentSearchResponse> response = commentService.searchComments(courseId, page, size);
-        return ResponseEntity.ok().body(response);
+        PaginatedResponse<CommentSearchResponse> result = commentService.searchComments(courseId, page, size);
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_GET_COMMENTS, result);
     }
 
-    @Operation(summary = "댓글 등록", description = "새로운 댓글을 등록")
+    @Operation(summary = "댓글 및 대댓글 등록", description = "새로운 댓글 또는 대댓글을 등록")
     @ApiErrorCodeExamples({
             ErrorCode.INVALID_COMMENT_CONTENT,
             ErrorCode.UNAUTHENTICATED_MEMBER,
@@ -62,15 +65,15 @@ public class CommentController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PostMapping("/api/courses/{courseId}/comments")
-    public ResponseEntity<CommentCreateResponse> createComment(
+    public ResponseEntity<ApiResult<CommentCreateResponse>> createComment(
             @PathVariable Long courseId,
             @RequestBody CommentCreateRequest request
     ) {
-        CommentCreateResponse response = commentService.createComment(courseId, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        CommentCreateResponse result = commentService.createComment(courseId, request);
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_CREATE_COMMENT, result);
     }
 
-    @Operation(summary = "댓글 수정", description = "commentId를 이용해 기존 댓글을 수정")
+    @Operation(summary = "댓글 및 대댓글 수정", description = "commentId를 이용해 기존 댓글 또는 대댓글을 수정")
     @ApiErrorCodeExamples({
             ErrorCode.COMMENT_NOT_FOUND,
             ErrorCode.INVALID_COMMENT_CONTENT,
@@ -80,15 +83,15 @@ public class CommentController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PatchMapping("/api/comments/{commentId}")
-    public ResponseEntity<CommentUpdateResponse> updateComment(
+    public ResponseEntity<ApiResult<CommentUpdateResponse>> updateComment(
             @PathVariable Long commentId,
             @RequestBody CommentUpdateRequest request
     ) {
-        CommentUpdateResponse response = commentService.updateComment(commentId, request);
-        return ResponseEntity.ok().body(response);
+        CommentUpdateResponse result = commentService.updateComment(commentId, request);
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_UPDATE_COMMENT, result);
     }
 
-    @Operation(summary = "댓글 삭제", description = "commentId를 이용해 댓글을 삭제")
+    @Operation(summary = "댓글 및 대댓글 삭제", description = "commentId를 이용해 댓글 또는 대댓글을 삭제")
     @ApiErrorCodeExamples({
             ErrorCode.COMMENT_NOT_FOUND,
             ErrorCode.OWNER_MISMATCH,
@@ -97,12 +100,12 @@ public class CommentController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @DeleteMapping("/api/comments/{commentId}")
-    public ResponseEntity<CommentDeleteResponse> deleteComment(@PathVariable Long commentId) {
-        CommentDeleteResponse response = commentService.deleteComment(commentId);
-        return ResponseEntity.ok().body(response);
+    public ResponseEntity<ApiResult<CommentDeleteResponse>> deleteComment(@PathVariable Long commentId) {
+        CommentDeleteResponse result = commentService.deleteComment(commentId);
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_DELETE_COMMENT, result);
     }
 
-    @Operation(summary = "댓글 좋아요 전송", description = "특정 댓글에 대해 좋아요 또는 좋아요 취소 요청을 처리합니다.")
+    @Operation(summary = "댓글 및 대댓글 좋아요 전송", description = "특정 댓글 또는 대댓글에 대해 좋아요 또는 좋아요 취소 요청을 처리합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "좋아요 취소 성공"),
             @ApiResponse(responseCode = "201", description = "좋아요 등록 성공"),

@@ -1,5 +1,7 @@
 package drive_only.drive_only_server.controller.place;
 
+import drive_only.drive_only_server.dto.common.ApiResult;
+import drive_only.drive_only_server.dto.common.ApiResultSupport;
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
 import drive_only.drive_only_server.dto.place.myPlace.DeleteSavedPlaceResponse;
 import drive_only.drive_only_server.dto.place.myPlace.SavePlaceResponse;
@@ -9,10 +11,10 @@ import drive_only.drive_only_server.dto.place.search.PlaceSearchResponse;
 import drive_only.drive_only_server.exception.annotation.ApiErrorCodeExamples;
 import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import drive_only.drive_only_server.service.place.PlaceService;
+import drive_only.drive_only_server.success.SuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,13 +36,13 @@ public class PlaceController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/places")
-    public ResponseEntity<PaginatedResponse<PlaceSearchResponse>> getPlaces(
+    public ResponseEntity<ApiResult<PaginatedResponse<PlaceSearchResponse>>> getPlaces(
             PlaceSearchRequest request,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        PaginatedResponse<PlaceSearchResponse> response = placeService.searchPlaces(request, page, size);
-        return ResponseEntity.ok().body(response);
+        PaginatedResponse<PlaceSearchResponse> result = placeService.searchPlaces(request, page, size);
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_GET_PLACES, result);
     }
 
     @Operation(summary = "주변 장소 리스트 조회", description = "분배 로직 반영하여 위치에 따른 주변 관광지/음식점 조회")
@@ -49,12 +51,12 @@ public class PlaceController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/courses/{courseId}/nearby-places")
-    public ResponseEntity<PaginatedResponse<NearbyPlacesResponse>> getNearbyPlaces(
+    public ResponseEntity<ApiResult<PaginatedResponse<NearbyPlacesResponse>>> getNearbyPlaces(
             @PathVariable Long courseId,
             @RequestParam(defaultValue = "tourist-spot") String type
     ) {
-        PaginatedResponse<NearbyPlacesResponse> response = placeService.searchNearbyPlaces(courseId, type);
-        return ResponseEntity.ok().body(response);
+        PaginatedResponse<NearbyPlacesResponse> result = placeService.searchNearbyPlaces(courseId, type);
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_GET_NEARBY_PLACES, result);
     }
 
     @Operation(summary = "저장한 장소 리스트 조회", description = "사용자가 저장했던 장소들을 조회")
@@ -65,9 +67,9 @@ public class PlaceController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/my-places")
-    public ResponseEntity<PaginatedResponse<PlaceSearchResponse>> getSavedPlaces() {
-        PaginatedResponse<PlaceSearchResponse> response = placeService.searchSavedPlaces();
-        return ResponseEntity.ok().body(response);
+    public ResponseEntity<ApiResult<PaginatedResponse<PlaceSearchResponse>>> getSavedPlaces() {
+        PaginatedResponse<PlaceSearchResponse> result = placeService.searchSavedPlaces();
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_GET_SAVED_PLACES, result);
     }
 
     @Operation(summary = "장소 저장", description = "사용자가 저장하고 싶은 장소 등록")
@@ -78,9 +80,9 @@ public class PlaceController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PostMapping("/api/my-places/{placeId}")
-    public ResponseEntity<SavePlaceResponse> savePlace(@PathVariable Long placeId) {
-        SavePlaceResponse response = placeService.savePlace(placeId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<ApiResult<SavePlaceResponse>> savePlace(@PathVariable Long placeId) {
+        SavePlaceResponse result = placeService.savePlace(placeId);
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_SAVE_PLACE, result);
     }
 
     @Operation(summary = "저장한 장소 삭제", description = "사용자가 저장했던 장소를 삭제")
@@ -91,8 +93,8 @@ public class PlaceController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @DeleteMapping("/api/my-places/{savedPlaceId}")
-    public ResponseEntity<DeleteSavedPlaceResponse> deleteSavedPlace(@PathVariable Long savedPlaceId) {
-        DeleteSavedPlaceResponse response = placeService.deleteSavedPlace(savedPlaceId);
-        return ResponseEntity.ok().body(response);
+    public ResponseEntity<ApiResult<DeleteSavedPlaceResponse>> deleteSavedPlace(@PathVariable Long savedPlaceId) {
+        DeleteSavedPlaceResponse result = placeService.deleteSavedPlace(savedPlaceId);
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_DELETE_SAVED_PLACE, result);
     }
 }

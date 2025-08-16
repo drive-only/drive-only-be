@@ -1,5 +1,8 @@
 package drive_only.drive_only_server.controller.member;
 
+import drive_only.drive_only_server.dto.common.ApiResult;
+import drive_only.drive_only_server.dto.common.ApiResultSupport;
+import drive_only.drive_only_server.dto.common.PaginatedResponse;
 import drive_only.drive_only_server.exception.annotation.ApiErrorCodeExamples;
 import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 
@@ -15,6 +18,7 @@ import drive_only.drive_only_server.security.JwtTokenProvider;
 import drive_only.drive_only_server.security.LoginMemberProvider;
 import drive_only.drive_only_server.service.auth.RefreshTokenService;
 import drive_only.drive_only_server.service.member.MemberService;
+import drive_only.drive_only_server.success.SuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -31,9 +35,7 @@ import org.springframework.http.ResponseCookie;
 @RequiredArgsConstructor
 @Tag(name = "회원", description = "회원 관련 API")
 public class MemberController {
-
     private final MemberService memberService;
-    private final LoginMemberProvider loginMemberProvider;
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
 
@@ -44,18 +46,9 @@ public class MemberController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/members/me")
-    public ResponseEntity<MemberResponse> getMyProfile() {
-        Member member = loginMemberProvider.getLoginMember();
-
-        MemberResponse response = new MemberResponse(
-                member.getId(),
-                member.getEmail(),
-                member.getNickname(),
-                member.getProfileImageUrl(),
-                member.getProvider()
-        );
-
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResult<PaginatedResponse<MemberResponse>>> getMyProfile() {
+        PaginatedResponse<MemberResponse> result = memberService.getMyProfile();
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_GET_MY_PROFILE, result);
     }
 
     @Operation(summary = "다른 회원 정보 조회", description = "회원 ID로 다른 회원 정보 조회")
@@ -66,16 +59,9 @@ public class MemberController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/members/{id}")
-    public ResponseEntity<OtherMemberResponse> getOtherMemberProfile(@PathVariable Long id) {
-        Member member = memberService.findById(id);
-
-        OtherMemberResponse response = new OtherMemberResponse(
-                member.getId(),
-                member.getNickname(),
-                member.getProfileImageUrl()
-        );
-
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResult<PaginatedResponse<OtherMemberResponse>>> getOtherMemberProfile(@PathVariable Long id) {
+        PaginatedResponse<OtherMemberResponse> result = memberService.findOtherMember(id);
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_GET_OTHER_MEMBER, result);
     }
 
     @Operation(summary = "회원 정보 수정", description = "로그인한 사용자의 닉네임, 프로필 이미지를 수정합니다.")
@@ -87,26 +73,11 @@ public class MemberController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PatchMapping("/api/members/me")
-    public ResponseEntity<MemberResponse> updateMyProfile(
+    public ResponseEntity<ApiResult<PaginatedResponse<MemberResponse>>> updateMyProfile(
             @RequestBody MemberUpdateRequest request
     ) {
-        Member loginMember = loginMemberProvider.getLoginMember();
-
-        Member updatedMember = memberService.updateMember(
-                loginMember.getEmail(),
-                loginMember.getProvider(),
-                request
-        );
-
-        MemberResponse response = new MemberResponse(
-                updatedMember.getId(),
-                updatedMember.getEmail(),
-                updatedMember.getNickname(),
-                updatedMember.getProfileImageUrl(),
-                updatedMember.getProvider()
-        );
-
-        return ResponseEntity.ok(response);
+        PaginatedResponse<MemberResponse> result = memberService.updateMember(request);
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_UPDATE_MEMBER, result);
     }
 
     @Operation(summary = "회원 탈퇴", description = "현재 로그인한 회원 탈퇴")
@@ -167,31 +138,28 @@ public class MemberController {
             ErrorCode.UNAUTHENTICATED_MEMBER,
             ErrorCode.INVALID_TOKEN,
             ErrorCode.INTERNAL_SERVER_ERROR
-            // 403 전용 코드가 필요하면 ErrorCode에 FORBIDDEN(예: ACCESS_FORBIDDEN) 추가
     })
     @GetMapping("/api/members/me/likedCourses")
-    public ResponseEntity<LikedCourseListResponse> getLikedCourses(
+    public ResponseEntity<ApiResult<LikedCourseListResponse>> getLikedCourses(
             @RequestParam(required = false) Long lastId,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Member member = loginMemberProvider.getLoginMember();
-        LikedCourseListResponse response = memberService.getLikedCourses(member, lastId, size);
-        return ResponseEntity.ok(response);
+        LikedCourseListResponse result = memberService.getLikedCourses(lastId, size);
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_GET_LIKED_COURSES, result);
     }
 
-    @Operation(summary = "내가 작성한 코스 조회", description = "인증된 사용자의 작성 코스를 커서 기반으로 조회합니다.")
+    @Operation(summary = "작성한 코스 조회", description = "인증된 사용자의 작성 코스를 커서 기반으로 조회")
     @ApiErrorCodeExamples({
             ErrorCode.UNAUTHENTICATED_MEMBER,
             ErrorCode.INVALID_TOKEN,
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/members/me/courses")
-    public ResponseEntity<MyCourseListResponse> getMyCourses(
+    public ResponseEntity<ApiResult<MyCourseListResponse>> getMyCourses(
             @RequestParam(required = false) Long lastId,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Member member = loginMemberProvider.getLoginMember();
-        MyCourseListResponse response = memberService.getMyCourses(member, lastId, size);
-        return ResponseEntity.ok(response);
+        MyCourseListResponse result = memberService.getMyCourses(lastId, size);
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_GET_MY_COURSES, result);
     }
 }

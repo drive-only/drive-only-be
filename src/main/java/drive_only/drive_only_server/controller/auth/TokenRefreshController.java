@@ -6,6 +6,7 @@ import drive_only.drive_only_server.exception.annotation.ApiErrorCodeExamples;
 import drive_only.drive_only_server.exception.custom.BusinessException;
 import drive_only.drive_only_server.exception.custom.RefreshTokenNotFoundException;
 import drive_only.drive_only_server.exception.errorcode.ErrorCode;
+import drive_only.drive_only_server.repository.member.MemberRepository;
 import drive_only.drive_only_server.security.JwtTokenProvider;
 import drive_only.drive_only_server.service.auth.RefreshTokenService;
 import drive_only.drive_only_server.service.member.MemberService;
@@ -25,10 +26,9 @@ import java.time.Duration;
 @RequiredArgsConstructor
 @Tag(name = "토큰 재발급", description = "Access Token 재발급 API")
 public class TokenRefreshController {
-
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
-    private final MemberService memberService;
+    private final MemberRepository memberRepository;
 
     @Operation(
             summary = "Access Token 재발급",
@@ -63,7 +63,8 @@ public class TokenRefreshController {
         }
 
         // 3) 회원/프로바이더 로드 (없으면 MemberNotFoundException)
-        Member member = memberService.findByEmail(email);
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
         ProviderType provider = member.getProvider();
 
         // 4) 새 access token 발급
@@ -73,7 +74,7 @@ public class TokenRefreshController {
         ResponseCookie accessTokenCookie = ResponseCookie.from("access-token", newAccessToken)
                 .httpOnly(true)
                 .secure(true)
-                .domain("api.drive-only.com")
+//                .domain("api.drive-only.com")
                 .path("/")
                 .maxAge(Duration.ofMillis(jwtTokenProvider.getAccessTokenExpiration()))
                 .sameSite("None")

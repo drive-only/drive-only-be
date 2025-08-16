@@ -37,9 +37,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class PlaceService {
-    private static final String SUCCESS_CREATE = "해당 장소가 성공적으로 저장되었습니다.";
-    private static final String SUCCESS_DELETE = "저장된 장소를 성공적으로 삭제했습니다.";
-
     private final TourApiClient tourApiClient;
     private final PlaceRepository placeRepository;
     private final CourseRepository courseRepository;
@@ -87,7 +84,7 @@ public class PlaceService {
         Member member = loginMemberProvider.getLoginMember();
         Place place = findPlaceById(placeId);
         SavedPlace savedPlace = savedPlaceRepository.save(new SavedPlace(member, place));
-        return new SavePlaceResponse(savedPlace.getId(), SUCCESS_CREATE);
+        return new SavePlaceResponse(savedPlace.getId());
     }
 
     @Transactional
@@ -98,7 +95,7 @@ public class PlaceService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("저장되지 않은 장소입니다."));
         savedPlaceRepository.delete(savedPlace);
-        return new DeleteSavedPlaceResponse(savedPlace.getId(), SUCCESS_DELETE);
+        return new DeleteSavedPlaceResponse(savedPlace.getId());
     }
 
     private List<Integer> getDistribution(int coursePlaceCount) {

@@ -37,10 +37,8 @@ public class CategoryService {
 
             return results;
         } catch (BusinessException e) {
-            // 클라이언트에서 올라온 전용 코드 그대로 전파
             throw e;
         } catch (RuntimeException e) {
-            // 기타 예외 → 통신 실패로 표준화
             throw new BusinessException(ErrorCode.TOUR_API_COMMUNICATION_FAILED);
         }
     }
