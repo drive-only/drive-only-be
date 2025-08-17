@@ -113,14 +113,19 @@ public class CommentController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
     })
     @PostMapping("/api/comments/{commentId}/like")
-    public ResponseEntity<CommentLikeResponse> toggleLikeComment(
+    public ResponseEntity<ApiResult<CommentLikeResponse>> toggleLikeComment(
             @PathVariable Long commentId
     ) {
         Member member = loginMemberProvider.getLoginMember();
 
-        CommentLikeResponse response = commentService.toggleCommentLike(commentId, member);
-        HttpStatus status = response.liked() ? HttpStatus.CREATED : HttpStatus.OK;
-        return ResponseEntity.status(status).body(response);
+        CommentLikeResponse result = commentService.toggleCommentLike(commentId, member);
+        HttpStatus status = result.liked() ? HttpStatus.CREATED : HttpStatus.OK;
+
+        return ApiResultSupport.okWithStatus(
+                SuccessCode.SUCCESS_TOGGLE_COMMENT_LIKE,
+                status,
+                result
+        );
     }
 
 }
