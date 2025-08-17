@@ -24,6 +24,7 @@ public enum SuccessCode {
 
     // Place
     SUCCESS_GET_PLACES(HttpStatus.OK, "장소 목록을 불러오는 데 성공했습니다."),
+    SUCCESS_GET_PLACE_DETAIL(HttpStatus.OK, "장소 상세 정보를 불러오는 데 성공했습니다."),
     SUCCESS_GET_NEARBY_PLACES(HttpStatus.OK, "주변 장소 목록을 불러오는 데 성공했습니다."),
     SUCCESS_GET_SAVED_PLACES(HttpStatus.OK, "저장한 장소 목록을 불러오는 데 성공했습니다."),
     SUCCESS_SAVE_PLACE(HttpStatus.CREATED, "장소가 성공적으로 저장되었습니다."),
