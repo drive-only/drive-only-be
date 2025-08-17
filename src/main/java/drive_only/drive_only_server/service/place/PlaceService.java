@@ -53,6 +53,12 @@ public class PlaceService {
         return new PaginatedResponse<>(responses, meta);
     }
 
+    public PaginatedResponse<PlaceSearchResponse> searchPlaceDetail(Long placeId) {
+        Place place = findPlaceById(placeId);
+        PlaceSearchResponse response = PlaceSearchResponse.from(place);
+        return new PaginatedResponse<>(List.of(response), null);
+    }
+
     public PaginatedResponse<NearbyPlacesResponse> searchNearbyPlaces(Long courseId, String type) {
         Course course = findCourse(courseId);
         List<CoursePlace> coursePlaces = course.getCoursePlaces();

@@ -45,6 +45,17 @@ public class PlaceController {
         return ApiResultSupport.ok(SuccessCode.SUCCESS_GET_PLACES, result);
     }
 
+    @Operation(summary = "장소 상세 조회", description = "장소 Id에 관련된 상세 조회")
+    @ApiErrorCodeExamples({
+            ErrorCode.PLACE_NOT_FOUND,
+            ErrorCode.INTERNAL_SERVER_ERROR
+    })
+    @GetMapping("/api/places/{placeId}")
+    public ResponseEntity<ApiResult<PaginatedResponse<PlaceSearchResponse>>> getPlaceDetail(@PathVariable Long placeId) {
+        PaginatedResponse<PlaceSearchResponse> result = placeService.searchPlaceDetail(placeId);
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_GET_PLACE_DETAIL, result);
+    }
+
     @Operation(summary = "주변 장소 리스트 조회", description = "분배 로직 반영하여 위치에 따른 주변 관광지/음식점 조회")
     @ApiErrorCodeExamples({
             ErrorCode.PLACE_NOT_FOUND,

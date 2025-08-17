@@ -7,6 +7,7 @@ import static drive_only.drive_only_server.domain.QCoursePlace.coursePlace;
 import static drive_only.drive_only_server.domain.QPlace.place;
 
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import drive_only.drive_only_server.domain.Course;
@@ -35,6 +36,7 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
                 .where(
                         keywordContains(request.keyword()),
                         placeEq(request.placeId()),
+                        memberEq(request.memberId()),
                         regionEq(request.region()),
                         subRegionEq(request.subRegion()),
                         timeEq(request.time()),
@@ -93,6 +95,10 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
 
     private BooleanExpression placeEq(Long placeId) {
         return placeId != null ? coursePlace.place.id.eq(placeId) : null;
+    }
+
+    private BooleanExpression memberEq(Long memberId) {
+        return memberId != null ? course.member.id.eq(memberId) : null;
     }
 
     private BooleanExpression regionEq(String region) {
