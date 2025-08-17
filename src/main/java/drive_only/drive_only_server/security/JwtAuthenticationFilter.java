@@ -23,77 +23,85 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-
     private final JwtTokenProvider jwtTokenProvider;
     private final LogoutService logoutService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+                                    FilterChain chain) throws ServletException, IOException {
 
-        String path = request.getRequestURI();
+        final String path = request.getRequestURI();
+        final String method = request.getMethod();
 
-        // 1) permitAll 경로는 즉시 통과 (SecurityConfig와 동일하게 맞춤)
         boolean isPermitAll =
-                path.startsWith("/api/login") ||
+                "OPTIONS".equalsIgnoreCase(method) ||
+                        path.startsWith("/api/login") ||
                         path.startsWith("/api/auth/") ||
                         path.startsWith("/swagger-ui/") ||
                         path.startsWith("/v3/api-docs/") ||
-                        ("GET".equals(request.getMethod()) &&
-                                (path.startsWith("/api/courses/") || path.startsWith("/api/places/") || path.equals("/api/categories")));
+                        ("GET".equals(method) && (
+                                path.equals("/api/courses") || path.startsWith("/api/courses/") ||
+                                        path.equals("/api/places")  || path.startsWith("/api/places/")  ||
+                                        path.equals("/api/categories") || path.startsWith("/api/categories/")
+                        ));
 
-        if (isPermitAll) {
-            filterChain.doFilter(request, response);
-            return;
+        String token = resolveToken(request);
+
+        if (token != null && !token.isBlank()) {
+            // 블랙리스트
+            if (logoutService.isBlacklisted(token)) {
+                if (!isPermitAll) {
+                    request.setAttribute("ERROR_CODE", ErrorCode.TOKEN_BLACKLISTED);
+                    throw new org.springframework.security.core.AuthenticationException("blacklisted") {};
+                }
+                SecurityContextHolder.clearContext();
+                chain.doFilter(request, response);
+                return;
+            }
+
+            JwtValidationStatus status = jwtTokenProvider.getStatus(token);
+            if (status == JwtValidationStatus.VALID) {
+                setAuthentication(token, request);
+            } else {
+                if (!isPermitAll) {
+                    request.setAttribute("ERROR_CODE",
+                            status == JwtValidationStatus.EXPIRED ? ErrorCode.TOKEN_EXPIRED : ErrorCode.INVALID_TOKEN);
+                    throw new org.springframework.security.core.AuthenticationException("invalid/expired") {};
+                }
+                SecurityContextHolder.clearContext();
+            }
+        } else {
+            if (!isPermitAll) {
+                request.setAttribute("ERROR_CODE", ErrorCode.UNAUTHENTICATED_MEMBER);
+                throw new org.springframework.security.core.AuthenticationException("missing token") {};
+            }
+            SecurityContextHolder.clearContext();
         }
 
-        // 2) access-token 추출
-        String token = null;
+        chain.doFilter(request, response);
+    }
+
+    private String resolveToken(HttpServletRequest request) {
+        String auth = request.getHeader("Authorization");
+        if (auth != null && auth.startsWith("Bearer ")) {
+            return auth.substring(7);
+        }
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("access-token".equals(cookie.getName())) {
-                    token = cookie.getValue();
-                    break;
+                    return cookie.getValue();
                 }
             }
         }
+        return null;
+    }
 
-        // 3) 토큰 없음 → 401 (UNAUTHENTICATED_MEMBER)
-        if (token == null || token.isBlank()) {
-            request.setAttribute("ERROR_CODE", ErrorCode.UNAUTHENTICATED_MEMBER);
-            throw new org.springframework.security.core.AuthenticationException("no token") {};
-        }
-
-        // 4) 블랙리스트 → 401
-        if (logoutService.isBlacklisted(token)) {
-            request.setAttribute("ERROR_CODE", ErrorCode.TOKEN_BLACKLISTED);
-            throw new org.springframework.security.core.AuthenticationException("blacklisted") {};
-        }
-
-        // 5) 유효성/만료 구분
-        JwtValidationStatus status = jwtTokenProvider.getStatus(token);
-        if (status == JwtValidationStatus.EXPIRED) {
-            request.setAttribute("ERROR_CODE", ErrorCode.TOKEN_EXPIRED);
-            throw new org.springframework.security.core.AuthenticationException("expired") {};
-        }
-        if (status == JwtValidationStatus.INVALID) {
-            request.setAttribute("ERROR_CODE", ErrorCode.INVALID_TOKEN);
-            throw new org.springframework.security.core.AuthenticationException("invalid") {};
-        }
-
-        // 6) Claims 추출 + provider 파싱 실패는 401로
+    private void setAuthentication(String token, HttpServletRequest request) {
         String email = jwtTokenProvider.getEmail(token);
         String providerStr = jwtTokenProvider.getProvider(token);
-        ProviderType provider;
-        try {
-            provider = ProviderType.valueOf(providerStr.toUpperCase());
-        } catch (Exception e) {
-            request.setAttribute("ERROR_CODE", ErrorCode.INVALID_TOKEN);
-            throw new org.springframework.security.core.AuthenticationException("provider parse fail", e) {};
-        }
+        ProviderType provider = ProviderType.valueOf(providerStr.toUpperCase());
 
-        // 7) 인증 객체 설정
         CustomUserPrincipal principal = new CustomUserPrincipal(email, provider);
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
@@ -101,7 +109,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 );
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        filterChain.doFilter(request, response);
     }
 }
