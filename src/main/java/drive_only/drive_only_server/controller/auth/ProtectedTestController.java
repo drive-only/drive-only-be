@@ -1,7 +1,10 @@
 package drive_only.drive_only_server.controller.auth;
 
+import drive_only.drive_only_server.dto.common.ApiResult;
+import drive_only.drive_only_server.dto.common.ApiResultSupport;
 import drive_only.drive_only_server.exception.annotation.ApiErrorCodeExamples;
 import drive_only.drive_only_server.exception.errorcode.ErrorCode;
+import drive_only.drive_only_server.success.SuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +27,7 @@ public class ProtectedTestController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/protected")
-    public ResponseEntity<String> protectedApi() {
-        return ResponseEntity.ok("You have accessed a protected resource!");
+    public ResponseEntity<ApiResult<Void>> protectedApi() {
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_PROTECTED, null);
     }
 }

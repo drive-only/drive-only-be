@@ -38,6 +38,9 @@ public enum SuccessCode {
     SUCCESS_GET_LIKED_COURSES(HttpStatus.OK, "좋아요한 코스 목록을 불러오는 데 성공했습니다."),
     SUCCESS_GET_MY_COURSES(HttpStatus.OK, "내가 작성한 코스 목록을 불러오는 데 성공했습니다."),
     SUCCESS_REFRESH_ACCESS_TOKEN(HttpStatus.OK, "새 액세스 토큰이 발급되었습니다."),
+    SUCCESS_LOGIN(HttpStatus.OK, "로그인에 성공했습니다."),
+    SUCCESS_LOGOUT(HttpStatus.OK, "로그아웃이 완료되었습니다."),
+    SUCCESS_PROTECTED(HttpStatus.OK, "보호 리소스 접근 성공"),
 
     // Category
     SUCCESS_GET_CATEGORIES(HttpStatus.OK, "지역/시군구 목록을 불러오는 데 성공했습니다.");
