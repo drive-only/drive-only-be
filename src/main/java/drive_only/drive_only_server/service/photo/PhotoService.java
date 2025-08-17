@@ -6,11 +6,11 @@ import drive_only.drive_only_server.s3.S3ImageStorageProvider;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
 public class PhotoService {
-
     private final S3ImageStorageProvider s3Provider;
 
     // data URL 대략 검증 (필요 최소)
@@ -29,7 +29,17 @@ public class PhotoService {
         try {
             return s3Provider.saveBase64Image(data, email);
         } catch (RuntimeException ex) {
-            // 스토리지 예외를 업로드 실패로 표준화
+            throw new BusinessException(ErrorCode.FILE_UPLOAD_FAIL);
+        }
+    }
+
+    public String uploadFile(MultipartFile file, String email) {
+        if (file == null || file.isEmpty()) {
+            throw new BusinessException(ErrorCode.INVALID_IMAGE_DATA);
+        }
+        try {
+            return s3Provider.saveMultipartFile(file, email);
+        } catch (RuntimeException ex) {
             throw new BusinessException(ErrorCode.FILE_UPLOAD_FAIL);
         }
     }

@@ -34,7 +34,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @Slf4j
 public class CommentService {
-
     private final CourseRepository courseRepository;
     private final CommentRepository commentRepository;
     private final LikedCommentRepository likedCommentRepository;
