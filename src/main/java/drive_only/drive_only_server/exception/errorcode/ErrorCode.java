@@ -32,6 +32,8 @@ public enum ErrorCode {
     DUPLICATE_MEMBER(HttpStatus.CONFLICT, "이미 가입된 회원입니다."), // (선택) 동시가입 경합 구분용
     TOKEN_BLACKLISTED(HttpStatus.UNAUTHORIZED, "로그아웃된 토큰입니다."), // (선택) 구분 필요 시
     TOUR_API_COMMUNICATION_FAILED(HttpStatus.BAD_GATEWAY, "관광공사 API 통신에 실패했습니다."),
+    TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다."),
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
 
     //404 NOT FOUND
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 회원을 찾을 수 없습니다."),

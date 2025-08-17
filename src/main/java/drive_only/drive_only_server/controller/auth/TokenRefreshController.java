@@ -19,6 +19,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import drive_only.drive_only_server.dto.common.ApiResult;
+import drive_only.drive_only_server.dto.common.ApiResultSupport;
+import drive_only.drive_only_server.success.SuccessCode;
 
 import java.time.Duration;
 
@@ -47,7 +50,7 @@ public class TokenRefreshController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PostMapping("/api/auth/refresh")
-    public ResponseEntity<Void> refreshAccessToken(
+    public ResponseEntity<ApiResult<Void>> refreshAccessToken(
             @CookieValue(value = "refresh-token", required = false) String refreshToken
     ) {
         // 1) 쿠키 미전달/형식/서명 오류
@@ -70,7 +73,7 @@ public class TokenRefreshController {
         // 4) 새 access token 발급
         String newAccessToken = jwtTokenProvider.createAccessToken(email, provider);
 
-        // 5) Set-Cookie 로 내려줌 (바디 없음)
+        // 5) Set-Cookie 로 내려줌
         ResponseCookie accessTokenCookie = ResponseCookie.from("access-token", newAccessToken)
                 .httpOnly(true)
                 .secure(true)
@@ -80,8 +83,11 @@ public class TokenRefreshController {
                 .sameSite("None")
                 .build();
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
-                .build();
+        // 성공 시에도 JSON(ApiResult) + Set-Cookie 같이 반환
+        return ApiResultSupport.okWithCookies(
+                SuccessCode.SUCCESS_REFRESH_ACCESS_TOKEN,
+                null,                // 최소 변경: result 필요 없으면 null
+                accessTokenCookie
+        );
     }
 }

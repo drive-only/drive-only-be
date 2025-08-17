@@ -59,6 +59,20 @@ public class JwtTokenProvider {
         }
     }
 
+    public enum JwtValidationStatus { VALID, EXPIRED, INVALID }
+
+    // 상태 구분 메서드
+    public JwtValidationStatus getStatus(String token) {
+        try {
+            Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token);
+            return JwtValidationStatus.VALID;
+        } catch (ExpiredJwtException e) {
+            return JwtValidationStatus.EXPIRED;
+        } catch (JwtException | IllegalArgumentException e) {
+            return JwtValidationStatus.INVALID;
+        }
+    }
+
     // 토큰에서 이메일 추출
     public String getEmail(String token) {
         return getClaims(token).getSubject();

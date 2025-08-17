@@ -88,7 +88,7 @@ public class MemberController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @DeleteMapping("/api/members/me")
-    public ResponseEntity<Void> deleteMyAccount(
+    public ResponseEntity<ApiResult<Void>> deleteMyAccount(
             Authentication authentication,
             @CookieValue(value = "refresh-token", required = false) String refreshToken
     ) {
@@ -108,17 +108,19 @@ public class MemberController {
         ResponseCookie deleteRefreshTokenCookie = ResponseCookie.from("refresh-token", "")
                 .httpOnly(true)
                 .secure(true)
+//                .domain("api.drive-only.com")
                 .path("/")
                 .maxAge(0)
-                .sameSite("Strict")
+                .sameSite("None")
                 .build();
 
         ResponseCookie deleteAccessTokenCookie = ResponseCookie.from("access-token", "")
                 .httpOnly(true)
                 .secure(true)
+//                .domain("api.drive-only.com")
                 .path("/")
                 .maxAge(0)
-                .sameSite("Strict")
+                .sameSite("None")
                 .build();
 
         // 4. 다중 쿠키 설정을 위한 헤더 구성
@@ -127,9 +129,11 @@ public class MemberController {
         headers.add(HttpHeaders.SET_COOKIE, deleteAccessTokenCookie.toString());
 
         // 5. 응답 반환
-        return ResponseEntity.noContent()
-                .headers(headers)
-                .build();
+        return ApiResultSupport.okWithCookies(
+                SuccessCode.SUCCESS_DELETE_MEMBER,
+                null,
+                deleteRefreshTokenCookie, deleteAccessTokenCookie
+        );
     }
 
     @Operation(summary = "좋아요한 코스 조회", description = "회원이 좋아요한 드라이브 코스를 최신순으로 조회")

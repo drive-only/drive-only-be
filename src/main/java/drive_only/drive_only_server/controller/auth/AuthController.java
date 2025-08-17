@@ -19,6 +19,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import drive_only.drive_only_server.dto.common.ApiResult;
+import drive_only.drive_only_server.dto.common.ApiResultSupport;
+import drive_only.drive_only_server.success.SuccessCode;
 
 import java.time.Duration;
 
@@ -43,7 +46,7 @@ public class AuthController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PostMapping("/api/login")
-    public ResponseEntity<Void> socialLogin(@RequestBody SocialLoginRequest request) {
+    public ResponseEntity<ApiResult<Void>> socialLogin(@RequestBody SocialLoginRequest request) {
         OAuthUserInfo userInfo;
 
         if ("KAKAO".equalsIgnoreCase(request.getProvider())) {
@@ -85,9 +88,11 @@ public class AuthController {
                 .build();
 
         // 5. 응답
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
-                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                .build();
+        return ApiResultSupport.okWithCookies(
+                SuccessCode.SUCCESS_LOGIN,
+                null,
+                accessCookie,
+                refreshCookie
+        );
     }
 }

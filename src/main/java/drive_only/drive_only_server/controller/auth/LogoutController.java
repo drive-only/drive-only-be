@@ -15,6 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
+import drive_only.drive_only_server.dto.common.ApiResult;
+import drive_only.drive_only_server.dto.common.ApiResultSupport;
+import drive_only.drive_only_server.success.SuccessCode;
 
 import java.util.Date;
 
@@ -35,7 +38,7 @@ public class LogoutController {
             // 이미 로그아웃된 경우 403을 쓰려면 ErrorCode에 별도 항목 추가(예: ALREADY_LOGGED_OUT)
     })
     @PostMapping("/api/logout")
-    public ResponseEntity<Void> logout(
+    public ResponseEntity<ApiResult<Void>> logout(
             @CookieValue(value = "access-token", required = false) String accessToken,
             @CookieValue(value = "refresh-token", required = false) String refreshToken
     ) {
@@ -60,7 +63,7 @@ public class LogoutController {
         ResponseCookie deleteAccessTokenCookie = ResponseCookie.from("access-token", "")
                 .httpOnly(true)
                 .secure(true)
-                .domain("api.drive-only.com")
+//                .domain("api.drive-only.com")
                 .path("/")
                 .maxAge(0)
                 .sameSite("None")
@@ -69,15 +72,16 @@ public class LogoutController {
         ResponseCookie deleteRefreshTokenCookie = ResponseCookie.from("refresh-token", "")
                 .httpOnly(true)
                 .secure(true)
-                .domain("api.drive-only.com")
+//                .domain("api.drive-only.com")
                 .path("/")
                 .maxAge(0)
                 .sameSite("None")
                 .build();
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, deleteAccessTokenCookie.toString())
-                .header(HttpHeaders.SET_COOKIE, deleteRefreshTokenCookie.toString())
-                .build();
+        return ApiResultSupport.okWithCookies(
+                SuccessCode.SUCCESS_LOGOUT,
+                null,
+                deleteAccessTokenCookie, deleteRefreshTokenCookie
+        );
     }
 }
