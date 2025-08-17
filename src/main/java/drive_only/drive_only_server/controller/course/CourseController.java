@@ -132,13 +132,18 @@ public class CourseController {
             @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
     })
     @PostMapping("/api/courses/{courseId}/like")
-    public ResponseEntity<CourseLikeResponse> toggleLikeCourse(
+    public ResponseEntity<ApiResult<CourseLikeResponse>> toggleLikeCourse(
             @PathVariable Long courseId
     ) {
         Member member = loginMemberProvider.getLoginMember();
 
-        CourseLikeResponse response = courseService.toggleCourseLike(courseId, member);
-        HttpStatus status = response.liked() ? HttpStatus.CREATED : HttpStatus.OK;
-        return ResponseEntity.status(status).body(response);
+        CourseLikeResponse result = courseService.toggleCourseLike(courseId, member);
+        HttpStatus status = result.liked() ? HttpStatus.CREATED : HttpStatus.OK;
+
+        return ApiResultSupport.okWithStatus(
+                SuccessCode.SUCCESS_TOGGLE_COURSE_LIKE,
+                status,
+                result
+        );
     }
 }
