@@ -37,6 +37,7 @@ public enum SuccessCode {
     SUCCESS_DELETE_MEMBER(HttpStatus.NO_CONTENT, "회원 탈퇴가 성공적으로 처리되었습니다."),
     SUCCESS_GET_LIKED_COURSES(HttpStatus.OK, "좋아요한 코스 목록을 불러오는 데 성공했습니다."),
     SUCCESS_GET_MY_COURSES(HttpStatus.OK, "내가 작성한 코스 목록을 불러오는 데 성공했습니다."),
+    SUCCESS_REFRESH_ACCESS_TOKEN(HttpStatus.OK, "새 액세스 토큰이 발급되었습니다."),
 
     // Category
     SUCCESS_GET_CATEGORIES(HttpStatus.OK, "지역/시군구 목록을 불러오는 데 성공했습니다.");
