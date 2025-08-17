@@ -21,6 +21,7 @@ import drive_only.drive_only_server.repository.category.CategoryRepository;
 import drive_only.drive_only_server.repository.course.LikedCourseRepository;
 import drive_only.drive_only_server.repository.coursePlace.CoursePlaceRepository;
 import drive_only.drive_only_server.repository.course.CourseRepository;
+import drive_only.drive_only_server.repository.member.MemberRepository;
 import drive_only.drive_only_server.repository.photo.PhotoRepository;
 import drive_only.drive_only_server.repository.place.PlaceRepository;
 import drive_only.drive_only_server.repository.tag.TagRepository;
@@ -49,6 +50,7 @@ public class CourseService {
     private final PhotoRepository photoRepository;
     private final LoginMemberProvider loginMemberProvider;
     private final LikedCourseRepository likedCourseRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional
     public CourseCreateResponse createCourse(CourseCreateRequest request) {
@@ -218,6 +220,10 @@ public class CourseService {
 
         if (hasKeyword && hasCategory) {
             throw new BusinessException(ErrorCode.KEYWORD_WITH_CATEGORY_NOT_ALLOWED);
+        }
+
+        if (memberRepository.findById(request.memberId()).isEmpty()) {
+            throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
         }
     }
 
