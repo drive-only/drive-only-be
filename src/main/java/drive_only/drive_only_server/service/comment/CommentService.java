@@ -13,10 +13,12 @@ import drive_only.drive_only_server.dto.comment.update.CommentUpdateResponse;
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
 import drive_only.drive_only_server.dto.like.comment.CommentLikeResponse;
 import drive_only.drive_only_server.dto.meta.Meta;
+import drive_only.drive_only_server.exception.custom.BusinessException;
 import drive_only.drive_only_server.exception.custom.CommentNotFoundException;
 import drive_only.drive_only_server.exception.custom.CourseNotFoundException;
 import drive_only.drive_only_server.exception.custom.OwnerMismatchException;
 import drive_only.drive_only_server.exception.custom.ParentCommentNotFoundException;
+import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import drive_only.drive_only_server.repository.comment.CommentRepository;
 import drive_only.drive_only_server.repository.comment.LikedCommentRepository;
 import drive_only.drive_only_server.repository.course.CourseRepository;
@@ -53,6 +55,9 @@ public class CommentService {
     }
 
     public PaginatedResponse<CommentSearchResponse> searchComments(Long courseId, int page, int size) {
+        if (!courseRepository.existsById(courseId)) {
+            throw new BusinessException(ErrorCode.COURSE_NOT_FOUND);
+        }
         Member loginMember = loginMemberProvider.getLoginMemberIfExists();
         Page<Comment> parentComments = commentRepository.findParentCommentsByCourseId(courseId, PageRequest.of(page, size));
         List<CommentSearchResponse> responses = parentComments.stream()
