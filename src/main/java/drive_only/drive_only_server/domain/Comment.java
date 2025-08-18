@@ -56,6 +56,9 @@ public class Comment {
     @OneToMany(mappedBy = "parentComment", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Comment> childComments = new ArrayList<>();
 
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<LikedComment> likes = new ArrayList<>();
+
     public static Comment createComment(String content, Member loginMember, Course course, Comment parentComment) {
         validateContent(content);
         
