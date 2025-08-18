@@ -4,6 +4,7 @@ import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.dto.common.ApiResult;
 import drive_only.drive_only_server.dto.common.ApiResultSupport;
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
+import drive_only.drive_only_server.dto.course.create.CourseCreateForm;
 import drive_only.drive_only_server.dto.course.create.CourseCreateRequest;
 import drive_only.drive_only_server.dto.course.create.CourseCreateResponse;
 import drive_only.drive_only_server.dto.course.delete.CourseDeleteResponse;
@@ -22,8 +23,10 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,7 +35,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -83,9 +88,12 @@ public class CourseController {
             ErrorCode.INVALID_TOKEN,
             ErrorCode.INTERNAL_SERVER_ERROR
     })
-    @PostMapping("/api/courses")
-    public ResponseEntity<ApiResult<CourseCreateResponse>> createCourse(@RequestBody CourseCreateRequest request) {
-        CourseCreateResponse result = courseService.createCourse(request);
+    @PostMapping(value = "/api/courses", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResult<CourseCreateResponse>> createCourse(
+            @RequestPart("course") CourseCreateForm request,
+            @RequestPart(name = "photos", required = false) List<MultipartFile> files
+    ) {
+        CourseCreateResponse result = courseService.createCourseFromMultipart(request, files);
         return ApiResultSupport.ok(SuccessCode.SUCCESS_CREATE_COURSE, result);
     }
 
@@ -105,9 +113,13 @@ public class CourseController {
             ErrorCode.INVALID_TOKEN,
             ErrorCode.INTERNAL_SERVER_ERROR
     })
-    @PutMapping("/api/courses/{courseId}")
-    public ResponseEntity<ApiResult<CoursePlaceUpdateResponse>> updateCourse(@PathVariable Long courseId, @RequestBody CourseCreateRequest request) {
-        CoursePlaceUpdateResponse result = courseService.updateCourse(courseId, request);
+    @PutMapping(value = "/api/courses/{courseId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResult<CoursePlaceUpdateResponse>> updateCourse(
+            @PathVariable Long courseId,
+            @RequestPart("course") CourseCreateForm form,
+            @RequestPart(value = "photos", required = false) List<MultipartFile> photos
+    ) {
+        CoursePlaceUpdateResponse result = courseService.updateCourseFromMultipart(courseId, form, photos);
         return ApiResultSupport.ok(SuccessCode.SUCCESS_UPDATE_COURSE, result);
     }
 

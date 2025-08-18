@@ -2,6 +2,7 @@ package drive_only.drive_only_server.service.course;
 
 import drive_only.drive_only_server.domain.*;
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
+import drive_only.drive_only_server.dto.course.create.CourseCreateForm;
 import drive_only.drive_only_server.dto.course.create.CourseCreateRequest;
 import drive_only.drive_only_server.dto.course.create.CourseCreateResponse;
 import drive_only.drive_only_server.dto.course.delete.CourseDeleteResponse;
@@ -12,6 +13,7 @@ import drive_only.drive_only_server.dto.coursePlace.create.CoursePlaceCreateRequ
 import drive_only.drive_only_server.dto.coursePlace.update.CoursePlaceUpdateResponse;
 import drive_only.drive_only_server.dto.like.course.CourseLikeResponse;
 import drive_only.drive_only_server.dto.meta.Meta;
+import drive_only.drive_only_server.dto.photo.PhotoRequest;
 import drive_only.drive_only_server.exception.custom.BusinessException;
 import drive_only.drive_only_server.exception.custom.CourseNotFoundException;
 import drive_only.drive_only_server.exception.custom.OwnerMismatchException;
@@ -26,17 +28,19 @@ import drive_only.drive_only_server.repository.photo.PhotoRepository;
 import drive_only.drive_only_server.repository.place.PlaceRepository;
 import drive_only.drive_only_server.repository.tag.TagRepository;
 import drive_only.drive_only_server.security.LoginMemberProvider;
+import drive_only.drive_only_server.service.photo.PhotoService;
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional(readOnly = true)
@@ -51,20 +55,13 @@ public class CourseService {
     private final LoginMemberProvider loginMemberProvider;
     private final LikedCourseRepository likedCourseRepository;
     private final MemberRepository memberRepository;
+    private final PhotoService photoService;
 
     @Transactional
-    public CourseCreateResponse createCourse(CourseCreateRequest request) {
-        List<CoursePlace> coursePlaces = createCoursePlaces(request);
+    public CourseCreateResponse createCourseFromMultipart(CourseCreateForm form, List<MultipartFile> photos) {
         Member loginMember = loginMemberProvider.getLoginMember();
-        Category category = getCategory(request);
-        List<Tag> tags = getTags(request);
-        Course course = Course.createCourse(
-                request.title(), LocalDate.now(), request.recommendation(), request.difficulty(),
-                0, 0, 0, false,
-                loginMember, category, coursePlaces, tags
-        );
-        courseRepository.save(course);
-        return new CourseCreateResponse(course.getId());
+        CourseCreateRequest request = buildCreateRequestFromMultipart(form, photos, loginMember);
+        return createCourse(request);
     }
 
     public PaginatedResponse<CourseSearchResponse> searchCourses(CourseSearchRequest request, int page, int size) {
@@ -86,14 +83,10 @@ public class CourseService {
     }
 
     @Transactional
-    public CoursePlaceUpdateResponse updateCourse(Long courseId, CourseCreateRequest request) {
-        Course course = findCourse(courseId);
-        validateCourseOwner(course);
-        Category newCategory = getCategory(request);
-        List<CoursePlace> newCoursePlaces = createCoursePlaces(request);
-        List<Tag> newTags = getTags(request);
-        course.update(request, newCategory, newCoursePlaces, newTags);
-        return new CoursePlaceUpdateResponse(course.getId());
+    public CoursePlaceUpdateResponse updateCourseFromMultipart(Long courseId, CourseCreateForm form, List<MultipartFile> photos) {
+        Member loginMember = loginMemberProvider.getLoginMember();
+        CourseCreateRequest request = buildCreateRequestFromMultipart(form, photos, loginMember);
+        return updateCourse(courseId, request);
     }
 
     @Transactional
@@ -112,23 +105,97 @@ public class CourseService {
 
         boolean isLiked;
         if (liked.isPresent()) {
-            // 좋아요 취소
             likedCourseRepository.delete(liked.get());
-            course.decreaseLikeCount(); // 아래에 구현
+            course.decreaseLikeCount();
             isLiked = false;
         } else {
-            // 좋아요 추가
             likedCourseRepository.save(new LikedCourse(member, course));
-            course.increaseLikeCount(); // 아래에 구현
+            course.increaseLikeCount();
             isLiked = true;
         }
 
-        // JPA 더티 체킹으로 자동 update
         return new CourseLikeResponse(
                 isLiked ? "게시글에 좋아요를 눌렀습니다." : "게시글의 좋아요를 취소했습니다.",
                 course.getLikeCount(),
                 isLiked
         );
+    }
+
+    private CourseCreateRequest buildCreateRequestFromMultipart(CourseCreateForm form, List<MultipartFile> files, Member loginMember) {
+        List<String> order = form.photoKeyOrder() == null ? List.of() : form.photoKeyOrder();
+        List<MultipartFile> safeFiles = files == null ? List.of() : files;
+        if (order.size() != safeFiles.size()) {
+            throw new BusinessException(ErrorCode.INVALID_PHOTO_MAPPING);
+        }
+
+        Map<String, String> keyToUrl = new LinkedHashMap<>();
+        for (int i = 0; i < safeFiles.size(); i++) {
+            String key = order.get(i);
+            String url = photoService.uploadFile(safeFiles.get(i), loginMember.getEmail());
+            keyToUrl.put(key, url);
+        }
+        return buildCreateRequestWithUrls(form, keyToUrl);
+    }
+
+    private CourseCreateRequest buildCreateRequestWithUrls(CourseCreateForm form, Map<String, String> keyToUrl) {
+        List<CoursePlaceCreateRequest> places = form.coursePlaces().stream()
+                .map(coursePlaceDraft -> {
+                    List<PhotoRequest> photoUrls = (coursePlaceDraft.photoKeys() == null ? List.<String>of() : coursePlaceDraft.photoKeys())
+                            .stream()
+                            .map(k -> {
+                                String url = keyToUrl.get(k);
+                                if (url == null) throw new BusinessException(ErrorCode.INVALID_PHOTO_MAPPING);
+                                return new PhotoRequest(url);
+                            })
+                            .toList();
+
+                    return new CoursePlaceCreateRequest(
+                            coursePlaceDraft.placeId(),
+                            coursePlaceDraft.content(),
+                            photoUrls,
+                            coursePlaceDraft.sequence()
+                    );
+                })
+                .toList();
+
+        return new CourseCreateRequest(
+                form.region(),
+                form.subRegion(),
+                form.time(),
+                form.season(),
+                form.theme(),
+                form.areaType(),
+                form.title(),
+                places,
+                form.tags(),
+                form.recommendation(),
+                form.difficulty(),
+                form.isPrivate()
+        );
+    }
+
+    private CourseCreateResponse createCourse(CourseCreateRequest request) {
+        List<CoursePlace> coursePlaces = createCoursePlaces(request);
+        Member loginMember = loginMemberProvider.getLoginMember();
+        Category category = getCategory(request);
+        List<Tag> tags = getTags(request);
+        Course course = Course.createCourse(
+                request.title(), LocalDate.now(), request.recommendation(), request.difficulty(),
+                0, 0, 0, false,
+                loginMember, category, coursePlaces, tags
+        );
+        courseRepository.save(course);
+        return new CourseCreateResponse(course.getId());
+    }
+
+    private CoursePlaceUpdateResponse updateCourse(Long courseId, CourseCreateRequest request) {
+        Course course = findCourse(courseId);
+        validateCourseOwner(course);
+        Category newCategory = getCategory(request);
+        List<CoursePlace> newCoursePlaces = createCoursePlaces(request);
+        List<Tag> newTags = getTags(request);
+        course.update(request, newCategory, newCoursePlaces, newTags);
+        return new CoursePlaceUpdateResponse(course.getId());
     }
 
     private List<CoursePlace> createCoursePlaces(CourseCreateRequest request) {
@@ -154,32 +221,26 @@ public class CourseService {
         return coursePlace;
     }
 
+    private List<Photo> createPhotos(CoursePlaceCreateRequest request) {
+        if (request.photoUrls() == null || request.photoUrls().isEmpty()) {
+            return List.of();
+        }
+        if (request.photoUrls().size() > 5) {
+            throw new BusinessException(ErrorCode.INVALID_COURSE_PLACE_PHOTOS);
+        }
+        List<Photo> photos = request.photoUrls().stream()
+                .map(photoRequest -> Photo.create(photoRequest.photoUrl()))
+                .toList();
+        photoRepository.saveAll(photos);
+        return photos;
+    }
+
     private String getType(int contentTypeId) {
         return switch (contentTypeId) {
             case 12, 14, 38 -> "tourist-spot";
             case 39 -> "restaurant";
             default -> "";
         };
-    }
-
-    private List<Photo> createPhotos(CoursePlaceCreateRequest request) {
-        // null 허용: 사진 없이도 코스 장소 등록 가능
-        if (request.photoUrls() == null || request.photoUrls().isEmpty()) {
-            return List.of();
-        }
-
-        // 최대 5장 제한
-        if (request.photoUrls().size() > 5) {
-            throw new BusinessException(ErrorCode.INVALID_COURSE_PLACE_PHOTOS);
-        }
-
-        // 각 URL은 Photo.create()에서 유효성 검사(빈값/길이 등) 수행
-        List<Photo> photos = request.photoUrls().stream()
-                .map(photoRequest -> Photo.create(photoRequest.photoUrl()))
-                .toList();
-
-        photoRepository.saveAll(photos);
-        return photos;
     }
 
     private Category getCategory(CourseCreateRequest request) {
@@ -209,6 +270,13 @@ public class CourseService {
         return courseRepository.findById(courseId).orElseThrow(CourseNotFoundException::new);
     }
 
+    private void validateCourseOwner(Course course) {
+        Member loginMember = loginMemberProvider.getLoginMember();
+        if (!course.isWrittenBy(loginMember)) {
+            throw new OwnerMismatchException();
+        }
+    }
+
     private void validateSearchRequest(CourseSearchRequest request) {
         boolean hasPlaceId = isNotNull(request.placeId());
         boolean hasKeyword = isNotBlank(request.keyword());
@@ -217,20 +285,11 @@ public class CourseService {
         if ((hasPlaceId && hasKeyword) || (hasPlaceId && hasCategory)) {
             throw new BusinessException(ErrorCode.PLACE_ID_WITH_ANYTHING_NOT_ALLOWED);
         }
-
         if (hasKeyword && hasCategory) {
             throw new BusinessException(ErrorCode.KEYWORD_WITH_CATEGORY_NOT_ALLOWED);
         }
-
-        if (memberRepository.findById(request.memberId()).isEmpty()) {
+        if (request.memberId() != null && memberRepository.findById(request.memberId()).isEmpty()) {
             throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
-        }
-    }
-
-    private void validateCourseOwner(Course course) {
-        Member loginMember = loginMemberProvider.getLoginMember();
-        if (!course.isWrittenBy(loginMember)) {
-            throw new OwnerMismatchException();
         }
     }
 
@@ -250,5 +309,4 @@ public class CourseService {
                 || isNotBlank(request.theme())
                 || isNotBlank(request.areaType());
     }
-
 }
