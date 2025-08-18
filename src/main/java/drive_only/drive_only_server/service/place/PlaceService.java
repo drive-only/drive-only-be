@@ -14,6 +14,7 @@ import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlaceTourApiRes
 import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlacesResponse;
 import drive_only.drive_only_server.dto.place.search.PlaceSearchRequest;
 import drive_only.drive_only_server.dto.place.search.PlaceSearchResponse;
+import drive_only.drive_only_server.dto.place.search.SavedPlaceSearchResponse;
 import drive_only.drive_only_server.exception.custom.BusinessException;
 import drive_only.drive_only_server.exception.custom.CourseNotFoundException;
 import drive_only.drive_only_server.exception.custom.PlaceNotFoundException;
@@ -73,13 +74,13 @@ public class PlaceService {
         return new PaginatedResponse<>(results, null);
     }
 
-    public PaginatedResponse<PlaceSearchResponse> searchSavedPlaces() {
+    public PaginatedResponse<SavedPlaceSearchResponse> searchSavedPlaces() {
         Member member = loginMemberProvider.getLoginMember();
         List<SavedPlace> savedPlaces = savedPlaceRepository.findByMember(member);
-        List<PlaceSearchResponse> results = savedPlaces.stream()
+        List<SavedPlaceSearchResponse> results = savedPlaces.stream()
                 .map(savedPlace -> {
                     Place place = savedPlace.getPlace();
-                    return PlaceSearchResponse.from(place);
+                    return SavedPlaceSearchResponse.from(place, savedPlace.getId());
                 })
                 .toList();
         return new PaginatedResponse<>(results, null);

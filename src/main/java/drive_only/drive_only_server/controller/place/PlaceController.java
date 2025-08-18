@@ -8,6 +8,7 @@ import drive_only.drive_only_server.dto.place.myPlace.SavePlaceResponse;
 import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlacesResponse;
 import drive_only.drive_only_server.dto.place.search.PlaceSearchRequest;
 import drive_only.drive_only_server.dto.place.search.PlaceSearchResponse;
+import drive_only.drive_only_server.dto.place.search.SavedPlaceSearchResponse;
 import drive_only.drive_only_server.exception.annotation.ApiErrorCodeExamples;
 import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import drive_only.drive_only_server.service.place.PlaceService;
@@ -78,8 +79,8 @@ public class PlaceController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/my-places")
-    public ResponseEntity<ApiResult<PaginatedResponse<PlaceSearchResponse>>> getSavedPlaces() {
-        PaginatedResponse<PlaceSearchResponse> result = placeService.searchSavedPlaces();
+    public ResponseEntity<ApiResult<PaginatedResponse<SavedPlaceSearchResponse>>> getSavedPlaces() {
+        PaginatedResponse<SavedPlaceSearchResponse> result = placeService.searchSavedPlaces();
         return ApiResultSupport.ok(SuccessCode.SUCCESS_GET_SAVED_PLACES, result);
     }
 
