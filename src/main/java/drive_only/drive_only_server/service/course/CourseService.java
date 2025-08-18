@@ -130,7 +130,7 @@ public class CourseService {
 
         Map<String, String> keyToUrl = new LinkedHashMap<>();
         for (int i = 0; i < safeFiles.size(); i++) {
-            String key = order.get(i);
+            String key = order.get(i).trim();
             String url = photoService.uploadFile(safeFiles.get(i), loginMember.getEmail());
             keyToUrl.put(key, url);
         }
@@ -143,7 +143,7 @@ public class CourseService {
                     List<PhotoRequest> photoUrls = (coursePlaceDraft.photoKeys() == null ? List.<String>of() : coursePlaceDraft.photoKeys())
                             .stream()
                             .map(k -> {
-                                String url = keyToUrl.get(k);
+                                String url = keyToUrl.get(k.trim());
                                 if (url == null) throw new BusinessException(ErrorCode.INVALID_PHOTO_MAPPING);
                                 return new PhotoRequest(url);
                             })
