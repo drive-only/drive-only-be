@@ -49,7 +49,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = resolveToken(request);
 
         if (token != null && !token.isBlank()) {
-            // 블랙리스트
             if (logoutService.isBlacklisted(token)) {
                 if (!isPermitAll) {
                     request.setAttribute("ERROR_CODE", ErrorCode.TOKEN_BLACKLISTED);
@@ -63,6 +62,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             JwtValidationStatus status = jwtTokenProvider.getStatus(token);
             if (status == JwtValidationStatus.VALID) {
                 setAuthentication(token, request);
+                chain.doFilter(request, response);
+                return;
             } else {
                 if (!isPermitAll) {
                     request.setAttribute("ERROR_CODE",
@@ -98,15 +99,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private void setAuthentication(String token, HttpServletRequest request) {
-        String email = jwtTokenProvider.getEmail(token);
-        String providerStr = jwtTokenProvider.getProvider(token);
-        ProviderType provider = ProviderType.valueOf(providerStr.toUpperCase());
+        final String email = jwtTokenProvider.getEmail(token);
+        final String providerStr = jwtTokenProvider.getProvider(token);
 
-        CustomUserPrincipal principal = new CustomUserPrincipal(email, provider);
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(
-                        principal, null, List.of(new SimpleGrantedAuthority("ROLE_USER"))
-                );
+        final ProviderType provider;
+        try {
+            provider = ProviderType.valueOf(String.valueOf(providerStr).toUpperCase());
+        } catch (RuntimeException e) {
+            request.setAttribute("ERROR_CODE", ErrorCode.INVALID_TOKEN);
+            throw new org.springframework.security.core.AuthenticationException("provider parse fail", e) {};
+        }
+
+        var principal = new CustomUserPrincipal(email, provider);
+        var authentication = new UsernamePasswordAuthenticationToken(
+                principal, null, List.of(new SimpleGrantedAuthority("ROLE_USER"))
+        );
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
