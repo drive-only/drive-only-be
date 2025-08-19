@@ -138,11 +138,12 @@ public class CourseController {
     }
 
     @Operation(summary = "코스(게시글) 좋아요 전송", description = "특정 코스에 대해 좋아요 또는 좋아요 취소 요청을 처리합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "좋아요 취소 성공"),
-            @ApiResponse(responseCode = "201", description = "좋아요 등록 성공"),
-            @ApiResponse(responseCode = "404", description = "해당 코스(게시글)을 찾을 수 없음", content = @Content),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    @ApiErrorCodeExamples({
+            ErrorCode.COURSE_NOT_FOUND,
+            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.INVALID_TOKEN,
+            ErrorCode.ACCESS_DENIED,
+            ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PostMapping("/api/courses/{courseId}/like")
     public ResponseEntity<ApiResult<CourseLikeResponse>> toggleLikeCourse(
@@ -161,12 +162,12 @@ public class CourseController {
     }
 
     @Operation(summary = "코스(게시글) 신고(숨김)", description = "해당 게시글을 신고하여 신고자 본인 화면에서만 숨깁니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "신규 숨김 적용"),
-            @ApiResponse(responseCode = "200", description = "이미 숨김 상태(멱등)"),
-            @ApiResponse(responseCode = "404", description = "해당 코스(게시글)을 찾을 수 없음", content = @Content),
-            @ApiResponse(responseCode = "401", description = "인증 필요", content = @Content),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    @ApiErrorCodeExamples({
+            ErrorCode.COURSE_NOT_FOUND,
+            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.INVALID_TOKEN,
+            ErrorCode.ACCESS_DENIED,
+            ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PostMapping("/api/courses/{courseId}/report")
     public ResponseEntity<ApiResult<ReportResponse>> reportCourse(@PathVariable Long courseId) {
@@ -178,11 +179,12 @@ public class CourseController {
     }
 
     @Operation(summary = "코스(게시글) 신고(숨김) 해제", description = "신고자 본인 화면에서 숨긴 게시글을 다시 보이도록 합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "숨김 해제(또는 이미 해제 상태)"),
-            @ApiResponse(responseCode = "404", description = "해당 코스(게시글)을 찾을 수 없음", content = @Content),
-            @ApiResponse(responseCode = "401", description = "인증 필요", content = @Content),
-            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    @ApiErrorCodeExamples({
+            ErrorCode.COURSE_NOT_FOUND,
+            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.INVALID_TOKEN,
+            ErrorCode.ACCESS_DENIED,
+            ErrorCode.INTERNAL_SERVER_ERROR
     })
     @DeleteMapping("/api/courses/{courseId}/report")
     public ResponseEntity<ApiResult<ReportResponse>> unreportCourse(@PathVariable Long courseId) {
