@@ -1,23 +1,22 @@
 package drive_only.drive_only_server.repository.course;
 
 import static drive_only.drive_only_server.domain.QCategory.category;
-import static drive_only.drive_only_server.domain.QCourse.*;
+import static drive_only.drive_only_server.domain.QCourse.course;
 import static drive_only.drive_only_server.domain.QMember.member;
 import static drive_only.drive_only_server.domain.QCoursePlace.coursePlace;
 import static drive_only.drive_only_server.domain.QPlace.place;
+import static drive_only.drive_only_server.domain.QHiddenCourse.hiddenCourse;
 
 import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import drive_only.drive_only_server.domain.Course;
+
 import drive_only.drive_only_server.dto.course.search.CourseSearchRequest;
 import jakarta.persistence.EntityManager;
 import java.util.List;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-
+import org.springframework.data.domain.*;
 public class CourseRepositoryImpl implements CourseRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
@@ -26,7 +25,14 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
     }
 
     @Override
-    public Page<Course> searchCourses(CourseSearchRequest request, Pageable pageable) {
+    public Page<Course> searchCourses(CourseSearchRequest request, Pageable pageable, Long viewerId) {
+        BooleanExpression notHiddenByViewer = viewerId != null
+                ? JPAExpressions.selectOne().from(hiddenCourse)
+                .where(hiddenCourse.course.eq(course)
+                        .and(hiddenCourse.member.id.eq(viewerId)))
+                .notExists()
+                : null;
+
         List<Course> content = queryFactory
                 .selectFrom(course)
                 .join(course.member, member).fetchJoin()
@@ -42,7 +48,8 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
                         timeEq(request.time()),
                         seasonEq(request.season()),
                         themeEq(request.theme()),
-                        areaTypeEq(request.areaType())
+                        areaTypeEq(request.areaType()),
+                        notHiddenByViewer
                 )
                 .distinct()
                 .orderBy(getSortMethod(request))
@@ -65,7 +72,8 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
                         timeEq(request.time()),
                         seasonEq(request.season()),
                         themeEq(request.theme()),
-                        areaTypeEq(request.areaType())
+                        areaTypeEq(request.areaType()),
+                        notHiddenByViewer
                 )
                 .fetchOne();
 

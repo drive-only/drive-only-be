@@ -11,6 +11,7 @@ import drive_only.drive_only_server.dto.common.ApiResult;
 import drive_only.drive_only_server.dto.common.ApiResultSupport;
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
 import drive_only.drive_only_server.dto.like.comment.CommentLikeResponse;
+import drive_only.drive_only_server.dto.report.ReportResponse;
 import drive_only.drive_only_server.exception.annotation.ApiErrorCodeExamples;
 import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import drive_only.drive_only_server.security.LoginMemberProvider;
@@ -128,4 +129,33 @@ public class CommentController {
         );
     }
 
+    @Operation(summary = "댓글/대댓글 신고(숨김)", description = "해당 댓글을 신고하여 신고자 본인 화면에서만 숨깁니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "신규 숨김 적용"),
+            @ApiResponse(responseCode = "200", description = "이미 숨김 상태(멱등)"),
+            @ApiResponse(responseCode = "404", description = "해당 댓글을 찾을 수 없음", content = @Content),
+            @ApiResponse(responseCode = "401", description = "인증 필요", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
+    @PostMapping("/api/comments/{commentId}/report")
+    public ResponseEntity<ApiResult<ReportResponse>> reportComment(@PathVariable Long commentId) {
+        ReportResponse result = commentService.reportComment(commentId);
+        SuccessCode sc = result.created()
+                ? SuccessCode.SUCCESS_REPORT_COMMENT_CREATED
+                : SuccessCode.SUCCESS_REPORT_COMMENT_ALREADY;
+        return ApiResultSupport.ok(sc, result);
+    }
+
+    @Operation(summary = "댓글/대댓글 신고(숨김) 해제", description = "신고자 본인 화면에서 숨긴 댓글을 다시 보이도록 합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "숨김 해제(또는 이미 해제 상태)"),
+            @ApiResponse(responseCode = "404", description = "해당 댓글을 찾을 수 없음", content = @Content),
+            @ApiResponse(responseCode = "401", description = "인증 필요", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
+    @DeleteMapping("/api/comments/{commentId}/report")
+    public ResponseEntity<ApiResult<ReportResponse>> unreportComment(@PathVariable Long commentId) {
+        ReportResponse result = commentService.unreportComment(commentId);
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_UNREPORT_COMMENT, result);
+    }
 }

@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface CourseRepositoryCustom {
-    Page<Course> searchCourses(CourseSearchRequest request, Pageable pageable);
-
     List<Course> findCoursesByMember(Long memberId, Long lastId, int size);
+
+    Page<Course> searchCourses(CourseSearchRequest request, Pageable pageable, Long viewerId);
 }

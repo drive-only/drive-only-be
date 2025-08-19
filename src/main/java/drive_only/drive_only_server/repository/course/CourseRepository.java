@@ -9,5 +9,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Long>, CourseRepositoryCustom {
-    Page<Course> searchCourses(CourseSearchRequest request, Pageable pageable);
+    // 기존 메서드는 Custom에서 대체하므로 아래 라인은 삭제 또는 사용 중지 권장
+    //Page<Course> searchCourses(CourseSearchRequest request, Pageable pageable);
 }

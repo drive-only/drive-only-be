@@ -14,6 +14,7 @@ import drive_only.drive_only_server.dto.coursePlace.update.CoursePlaceUpdateResp
 import drive_only.drive_only_server.dto.like.course.CourseLikeResponse;
 import drive_only.drive_only_server.dto.meta.Meta;
 import drive_only.drive_only_server.dto.photo.PhotoRequest;
+import drive_only.drive_only_server.dto.report.ReportResponse;
 import drive_only.drive_only_server.exception.custom.BusinessException;
 import drive_only.drive_only_server.exception.custom.CourseNotFoundException;
 import drive_only.drive_only_server.exception.custom.OwnerMismatchException;
@@ -23,6 +24,7 @@ import drive_only.drive_only_server.repository.category.CategoryRepository;
 import drive_only.drive_only_server.repository.course.LikedCourseRepository;
 import drive_only.drive_only_server.repository.coursePlace.CoursePlaceRepository;
 import drive_only.drive_only_server.repository.course.CourseRepository;
+import drive_only.drive_only_server.repository.hide.HiddenCourseRepository;
 import drive_only.drive_only_server.repository.member.MemberRepository;
 import drive_only.drive_only_server.repository.photo.PhotoRepository;
 import drive_only.drive_only_server.repository.place.PlaceRepository;
@@ -56,6 +58,7 @@ public class CourseService {
     private final LikedCourseRepository likedCourseRepository;
     private final MemberRepository memberRepository;
     private final PhotoService photoService;
+    private final HiddenCourseRepository hiddenCourseRepository;
 
     @Transactional
     public CourseCreateResponse createCourseFromMultipart(CourseCreateForm form, List<MultipartFile> photos) {
@@ -64,9 +67,15 @@ public class CourseService {
         return createCourse(request);
     }
 
+    // 목록 조회에서 viewerId 반영
     public PaginatedResponse<CourseSearchResponse> searchCourses(CourseSearchRequest request, int page, int size) {
         validateSearchRequest(request);
-        Page<Course> courses = courseRepository.searchCourses(request, PageRequest.of(page, size));
+        Long viewerId = null;
+        Member viewer = loginMemberProvider.getLoginMemberIfExists();
+        if (viewer != null) viewerId = viewer.getId();
+
+        Page<Course> courses = courseRepository.searchCourses(request, PageRequest.of(page, size), viewerId);
+
         List<CourseSearchResponse> responses = courses.stream()
                 .map(CourseSearchResponse::from)
                 .toList();
@@ -74,10 +83,14 @@ public class CourseService {
         return new PaginatedResponse<>(responses, meta);
     }
 
+    // 상세 조회에서 숨김이면 Not Found 처리
     public PaginatedResponse<CourseDetailSearchResponse> searchCourseDetail(Long courseId) {
         Course course = findCourse(courseId);
-        List<CoursePlace> coursePlaces = coursePlaceRepository.findByCourse(course);
         Member loginMember = loginMemberProvider.getLoginMemberIfExists();
+        if (loginMember != null && hiddenCourseRepository.existsByCourseAndMember(course, loginMember)) {
+            throw new CourseNotFoundException(); // 숨김이면 존재하지 않는 것처럼
+        }
+        List<CoursePlace> coursePlaces = coursePlaceRepository.findByCourse(course);
         CourseDetailSearchResponse response = CourseDetailSearchResponse.from(course, coursePlaces, loginMember);
         return new PaginatedResponse<>(List.of(response), null);
     }
@@ -308,5 +321,29 @@ public class CourseService {
                 || isNotBlank(request.season())
                 || isNotBlank(request.theme())
                 || isNotBlank(request.areaType());
+    }
+
+    // 신고(숨김) 등록
+    @Transactional
+    public ReportResponse reportCourse(Long courseId) {
+        Course course = findCourse(courseId);
+        Member member = loginMemberProvider.getLoginMember();
+
+        boolean exists = hiddenCourseRepository.existsByCourseAndMember(course, member);
+        if (!exists) {
+            hiddenCourseRepository.save(new HiddenCourse(member, course));
+            return new ReportResponse("게시글을 신고하여 숨김 처리했습니다.", true, true); // 201
+        }
+        return new ReportResponse("이미 숨김 처리된 게시글입니다.", true, false);       // 200
+    }
+
+    // 신고(숨김) 해제 (선택)
+    @Transactional
+    public ReportResponse unreportCourse(Long courseId) {
+        Course course = findCourse(courseId);
+        Member member = loginMemberProvider.getLoginMember();
+
+        hiddenCourseRepository.deleteByCourseAndMember(course, member); // 없으면 no-op
+        return new ReportResponse("게시글 숨김을 해제했습니다.", false, false);          // 200
     }
 }

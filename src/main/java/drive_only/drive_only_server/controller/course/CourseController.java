@@ -13,6 +13,7 @@ import drive_only.drive_only_server.dto.course.search.CourseSearchRequest;
 import drive_only.drive_only_server.dto.course.search.CourseSearchResponse;
 import drive_only.drive_only_server.dto.coursePlace.update.CoursePlaceUpdateResponse;
 import drive_only.drive_only_server.dto.like.course.CourseLikeResponse;
+import drive_only.drive_only_server.dto.report.ReportResponse;
 import drive_only.drive_only_server.exception.annotation.ApiErrorCodeExamples;
 import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import drive_only.drive_only_server.security.LoginMemberProvider;
@@ -157,5 +158,35 @@ public class CourseController {
                 status,
                 result
         );
+    }
+
+    @Operation(summary = "코스(게시글) 신고(숨김)", description = "해당 게시글을 신고하여 신고자 본인 화면에서만 숨깁니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "신규 숨김 적용"),
+            @ApiResponse(responseCode = "200", description = "이미 숨김 상태(멱등)"),
+            @ApiResponse(responseCode = "404", description = "해당 코스(게시글)을 찾을 수 없음", content = @Content),
+            @ApiResponse(responseCode = "401", description = "인증 필요", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
+    @PostMapping("/api/courses/{courseId}/report")
+    public ResponseEntity<ApiResult<ReportResponse>> reportCourse(@PathVariable Long courseId) {
+        ReportResponse result = courseService.reportCourse(courseId);
+        SuccessCode sc = result.created()
+                ? SuccessCode.SUCCESS_REPORT_COURSE_CREATED
+                : SuccessCode.SUCCESS_REPORT_COURSE_ALREADY;
+        return ApiResultSupport.ok(sc, result); // 상태코드는 sc.getStatus()로 자동 적용
+    }
+
+    @Operation(summary = "코스(게시글) 신고(숨김) 해제", description = "신고자 본인 화면에서 숨긴 게시글을 다시 보이도록 합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "숨김 해제(또는 이미 해제 상태)"),
+            @ApiResponse(responseCode = "404", description = "해당 코스(게시글)을 찾을 수 없음", content = @Content),
+            @ApiResponse(responseCode = "401", description = "인증 필요", content = @Content),
+            @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
+    })
+    @DeleteMapping("/api/courses/{courseId}/report")
+    public ResponseEntity<ApiResult<ReportResponse>> unreportCourse(@PathVariable Long courseId) {
+        ReportResponse result = courseService.unreportCourse(courseId);
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_UNREPORT_COURSE, result);
     }
 }
