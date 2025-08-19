@@ -62,35 +62,24 @@ public class CourseService {
     @Transactional
     public CourseCreateResponse createCourseFromMultipart(CourseCreateForm form, List<MultipartFile> photos) {
         Member loginMember = loginMemberProvider.getLoginMember();
-
-        // 0) 사전 검증: order와 coursePlaces[*].photoKeys 정합성, 개수 제한 등
         List<String> order = form.photoKeyOrder() == null ? List.of() : form.photoKeyOrder();
-        prevalidatePhotoMapping(form, order); // ← 추가
+        prevalidatePhotoMapping(form, order);
 
-        // 1) 업로드
         Map<String, PhotoService.UploadedPhoto> uploaded =
                 photoService.uploadManyInOrder(order, photos, loginMember.getEmail());
 
-        // 업로드가 끝났다면, 어떤 예외가 나더라도 이 키들로 롤백
         List<String> rollbackKeys = uploaded.values().stream()
                 .map(PhotoService.UploadedPhoto::getS3Key)
                 .toList();
 
         try {
-            // 2) 업로드 결과 → 요청 변환 (여기서도 매핑 재확인)
             CourseCreateRequest request = buildCreateRequestWithUploaded(form, uploaded);
-
-            // 3) 도메인 저장
             return createCourse(request);
         } catch (RuntimeException e) {
-            // 매핑/도메인 어느 단계에서든 실패 → 이미 업로드된 객체 전부 삭제
             s3Provider.deleteQuietly(rollbackKeys);
             throw e;
         }
     }
-
-
-    // 목록 조회에서 viewerId 반영
 
     public PaginatedResponse<CourseSearchResponse> searchCourses(CourseSearchRequest request, int page, int size) {
         validateSearchRequest(request);
@@ -106,18 +95,18 @@ public class CourseService {
         Meta meta = Meta.from(courses);
         return new PaginatedResponse<>(responses, meta);
     }
-    // 상세 조회에서 숨김이면 Not Found 처리
 
     public PaginatedResponse<CourseDetailSearchResponse> searchCourseDetail(Long courseId) {
         Course course = findCourse(courseId);
         Member loginMember = loginMemberProvider.getLoginMemberIfExists();
         if (loginMember != null && hiddenCourseRepository.existsByCourseAndMember(course, loginMember)) {
-            throw new CourseNotFoundException(); // 숨김이면 존재하지 않는 것처럼
+            throw new CourseNotFoundException();
         }
         List<CoursePlace> coursePlaces = coursePlaceRepository.findByCourse(course);
         CourseDetailSearchResponse response = CourseDetailSearchResponse.from(course, coursePlaces, loginMember);
         return new PaginatedResponse<>(List.of(response), null);
     }
+
     @Transactional
     public CoursePlaceUpdateResponse updateCourseFromMultipart(Long courseId, CourseCreateForm form, List<MultipartFile> photos) {
         Member loginMember = loginMemberProvider.getLoginMember();
@@ -125,7 +114,6 @@ public class CourseService {
         List<String> order = form.photoKeyOrder() == null ? List.of() : form.photoKeyOrder();
         prevalidatePhotoMapping(form, order);
 
-        // 수정 전 사진 키 수집
         Course course = findCourse(courseId);
         validateCourseOwner(course);
         List<CoursePlace> beforeCps = coursePlaceRepository.findByCourse(course);
@@ -141,22 +129,17 @@ public class CourseService {
         try {
             CourseCreateRequest request = buildCreateRequestWithUploaded(form, uploaded);
             CoursePlaceUpdateResponse res = updateCourse(courseId, request);
-
-            // 수정 후 사진 키 수집
             Course updated = findCourse(courseId);
             List<CoursePlace> afterCps = coursePlaceRepository.findByCourse(updated);
             Set<String> afterKeys = afterCps.stream()
                     .flatMap(cp -> cp.getPhotos().stream())
                     .map(Photo::getS3Key)
                     .collect(java.util.stream.Collectors.toSet());
-
-            // 제거된 키 = before - after
             beforeKeys.removeAll(afterKeys);
             if (!beforeKeys.isEmpty()) s3Provider.deleteQuietly(beforeKeys);
-
             return res;
         } catch (RuntimeException e) {
-            s3Provider.deleteQuietly(rollbackKeys); // 업로드 롤백
+            s3Provider.deleteQuietly(rollbackKeys);
             throw e;
         }
     }
@@ -165,18 +148,13 @@ public class CourseService {
     public CourseDeleteResponse deleteCourse(Long courseId) {
         Course course = findCourse(courseId);
         validateCourseOwner(course);
-
-        // 삭제 대상 사진 S3 키 수집
         List<CoursePlace> cps = coursePlaceRepository.findByCourse(course);
         List<String> keys = cps.stream()
-                .flatMap(cp -> cp.getPhotos().stream())  // CoursePlace.getPhotos() 있다고 가정
+                .flatMap(cp -> cp.getPhotos().stream())
                 .map(Photo::getS3Key)
                 .toList();
 
-        // S3 삭제
         s3Provider.deleteQuietly(keys);
-
-        // DB 삭제
         courseRepository.delete(course);
         return new CourseDeleteResponse(courseId);
     }
