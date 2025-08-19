@@ -1,46 +1,41 @@
 package drive_only.drive_only_server.service.photo;
 
-import drive_only.drive_only_server.exception.custom.BusinessException;
 import drive_only.drive_only_server.exception.errorcode.ErrorCode;
+import drive_only.drive_only_server.exception.custom.BusinessException;
 import drive_only.drive_only_server.s3.S3ImageStorageProvider;
-import java.util.regex.Pattern;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class PhotoService {
-    private final S3ImageStorageProvider s3Provider;
 
-    // data URL 대략 검증 (필요 최소)
-    private static final Pattern DATA_URL_REGEX =
-            Pattern.compile("^data:image/(png|jpeg|jpg|webp|gif);base64,.+", Pattern.CASE_INSENSITIVE);
+    private final S3ImageStorageProvider s3;
 
-    public String uploadImage(String imageData, String email) {
-        if (imageData == null || imageData.trim().isEmpty()) {
-            throw new BusinessException(ErrorCode.INVALID_IMAGE_DATA);
-        }
-        String data = imageData.trim();
-        if (!DATA_URL_REGEX.matcher(data).matches()) {
-            throw new BusinessException(ErrorCode.INVALID_IMAGE_DATA);
-        }
-
-        try {
-            return s3Provider.saveBase64Image(data, email);
-        } catch (RuntimeException ex) {
-            throw new BusinessException(ErrorCode.FILE_UPLOAD_FAIL);
-        }
+    @Getter @AllArgsConstructor
+    public static class UploadedPhoto {
+        private final String key;     // 논리키(cp1_1 등)
+        private final String s3Key;   // S3 object key
+        private final String cdnUrl;  // CloudFront 조회 URL
     }
 
+    public Map<String, UploadedPhoto> uploadManyInOrder(List<String> order, List<MultipartFile> files, String ownerEmail) {
+        Map<String, S3ImageStorageProvider.UploadResult> raw = s3.uploadManyInOrder(order, files, ownerEmail);
+        Map<String, UploadedPhoto> mapped = new LinkedHashMap<>();
+        raw.forEach((logicalKey, ur) -> mapped.put(
+                logicalKey, new UploadedPhoto(logicalKey, ur.getS3Key(), ur.getCdnUrl())
+        ));
+        return mapped;
+    }
+
+    // 호환용 구 메서드 비활성(선택)
     public String uploadFile(MultipartFile file, String email) {
-        if (file == null || file.isEmpty()) {
-            throw new BusinessException(ErrorCode.INVALID_IMAGE_DATA);
-        }
-        try {
-            return s3Provider.saveMultipartFile(file, email);
-        } catch (RuntimeException ex) {
-            throw new BusinessException(ErrorCode.FILE_UPLOAD_FAIL);
-        }
+        throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
+    public String uploadImage(String imageData, String email) {
+        throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
     }
 }

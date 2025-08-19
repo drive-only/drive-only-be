@@ -10,34 +10,41 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Photo {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "s3_key", nullable = false, length = 512)
+    private String s3Key;   // ★ 추가
+
     @Column(name = "url", nullable = false, length = 2048)
-    private String url;
+    private String url;     // (CloudFront URL 권장)
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "course_place_id", nullable = false)
     private CoursePlace coursePlace;
 
-    private Photo(String url) { // 생성자 private → 정적 팩토리 강제
+    private Photo(String s3Key, String url) {
+        this.s3Key = s3Key;
         this.url = url;
     }
 
-    public static Photo create(String url) {
-        if (url == null || url.trim().isEmpty()) {
+    public static Photo create(String s3Key, String url) {
+        if (s3Key == null || s3Key.isBlank() || url == null || url.isBlank()) {
             throw new BusinessException(ErrorCode.FILE_UPLOAD_FAIL);
         }
-        String normalized = url.trim();
-        if (normalized.length() > 2048) {
+        String k = s3Key.trim();
+        String u = url.trim();
+        if (k.length() > 512 || u.length() > 2048) {
             throw new BusinessException(ErrorCode.FILE_UPLOAD_FAIL);
         }
-        return new Photo(normalized);
+        return new Photo(k, u);
     }
 
-    public void setCoursePlace(CoursePlace coursePlace) {
-        if (coursePlace == null) throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
-        this.coursePlace = coursePlace;
+    public void setCoursePlace(CoursePlace cp) {
+        if (cp == null) throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+        this.coursePlace = cp;
     }
+
+    // 마이그용 임시 세터 (마이그 끝나면 제거)
+    public void setS3KeyForMigrate(String s3Key) { this.s3Key = s3Key; }
 }
