@@ -1,7 +1,9 @@
 package drive_only.drive_only_server.repository.comment;
 
 import static drive_only.drive_only_server.domain.QComment.*;
+import static drive_only.drive_only_server.domain.QHiddenComment.hiddenComment;
 
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import drive_only.drive_only_server.domain.Comment;
 import jakarta.persistence.EntityManager;
@@ -18,14 +20,21 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
     }
 
     @Override
-    public Page<Comment> findParentCommentsByCourseId(Long courseId, Pageable pageable) {
+    public Page<Comment> findParentCommentsByCourseId(Long courseId, Long viewerId, Pageable pageable) {
+        var notHiddenByViewer = viewerId != null
+                ? JPAExpressions.selectOne().from(hiddenComment)
+                .where(hiddenComment.comment.eq(comment)
+                        .and(hiddenComment.member.id.eq(viewerId)))
+                .notExists()
+                : null;
+
         List<Comment> content = queryFactory
-                .selectFrom(comment)
-                .distinct()
+                .selectFrom(comment).distinct()
                 .join(comment.member).fetchJoin()
                 .where(
                         comment.course.id.eq(courseId),
-                        comment.parentComment.isNull()
+                        comment.parentComment.isNull(),
+                        notHiddenByViewer
                 )
                 .orderBy(comment.createdDate.desc(), comment.id.desc())
                 .offset(pageable.getOffset())
@@ -37,7 +46,8 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
                 .from(comment)
                 .where(
                         comment.course.id.eq(courseId),
-                        comment.parentComment.isNull()
+                        comment.parentComment.isNull(),
+                        notHiddenByViewer
                 )
                 .fetchOne();
 

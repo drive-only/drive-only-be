@@ -44,4 +44,30 @@ public record CommentSearchResponse(
                 replies
         );
     }
+
+    // 신고자가 숨긴 대댓글을 제외하는 버전
+    public static CommentSearchResponse fromFiltered(Comment comment, Member loginMember, java.util.Set<Long> hiddenIds) {
+        boolean isMine = comment.getMember().equals(loginMember);
+        boolean isLiked = loginMember.getLikedComments().stream()
+                .anyMatch(likedComment -> likedComment.getComment().getId().equals(comment.getId()));
+
+        List<CommentSearchResponse> replies = comment.getChildComments().stream()
+                .filter(child -> !hiddenIds.contains(child.getId()))
+                .map(child -> CommentSearchResponse.fromFiltered(child, loginMember, hiddenIds))
+                .toList();
+
+        return new CommentSearchResponse(
+                comment.getId(),
+                comment.getMember().getId(),
+                comment.getMember().getProfileImageUrl(),
+                comment.getMember().getNickname(),
+                comment.getContent(),
+                comment.getCreatedDate(),
+                comment.getLikeCount(),
+                isMine,
+                isLiked,
+                comment.isDeleted(),
+                replies
+        );
+    }
 }
