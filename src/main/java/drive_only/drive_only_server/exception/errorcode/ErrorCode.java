@@ -26,15 +26,18 @@ public enum ErrorCode {
     INVALID_PROVIDER(HttpStatus.BAD_REQUEST, "유효하지 않은 소셜 제공자입니다."),
     INVALID_IMAGE_DATA(HttpStatus.BAD_REQUEST, "잘못된 이미지 데이터입니다."),
     INVALID_PHOTO_MAPPING(HttpStatus.BAD_REQUEST, "photo 매핑이 유요하지 않습니다."),
-
-    OAUTH_COMMUNICATION_FAILED(HttpStatus.BAD_GATEWAY, "OAuth 서버 통신에 실패했습니다."),
     INVALID_OAUTH_CODE(HttpStatus.BAD_REQUEST, "유효하지 않은 인가 코드입니다."),
+
+    //401 UNAUTHORIZED
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "리프레시 토큰이 존재하지 않습니다."),
-    DUPLICATE_MEMBER(HttpStatus.CONFLICT, "이미 가입된 회원입니다."), // (선택) 동시가입 경합 구분용
     TOKEN_BLACKLISTED(HttpStatus.UNAUTHORIZED, "로그아웃된 토큰입니다."), // (선택) 구분 필요 시,
-    TOUR_API_COMMUNICATION_FAILED(HttpStatus.BAD_GATEWAY, "관광공사 API 통신에 실패했습니다."),
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다."),
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
+    UNAUTHENTICATED_MEMBER(HttpStatus.UNAUTHORIZED, "로그인이 필요한 요청입니다."),
+
+    //403 FORBIDDEN
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
+    OWNER_MISMATCH(HttpStatus.FORBIDDEN, "작성자만 수정 또는 삭제할 수 있습니다."),
 
     //404 NOT FOUND
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 회원을 찾을 수 없습니다."),
@@ -43,13 +46,17 @@ public enum ErrorCode {
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 댓글을 찾을 수 없습니다."),
     PARENT_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "부모 댓글을 찾을 수 없습니다."),
 
-    OWNER_MISMATCH(HttpStatus.FORBIDDEN, "작성자만 수정 또는 삭제할 수 있습니다."),
-    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
-    UNAUTHENTICATED_MEMBER(HttpStatus.UNAUTHORIZED, "로그인이 필요한 요청입니다."),
+
+    //409 CONFLICT
+    DUPLICATE_MEMBER(HttpStatus.CONFLICT, "이미 가입된 회원입니다."), // (선택) 동시가입 경합 구분용
 
     //500 INTERNAL SERVER ERROR,
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 오류가 발생했습니다."),
-    FILE_UPLOAD_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다.");
+    FILE_UPLOAD_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다."),
+
+    //502 BAD_GATEWAY
+    OAUTH_COMMUNICATION_FAILED(HttpStatus.BAD_GATEWAY, "OAuth 서버 통신에 실패했습니다."),
+    TOUR_API_COMMUNICATION_FAILED(HttpStatus.BAD_GATEWAY, "관광공사 API 통신에 실패했습니다.");
 
     private final HttpStatus status;
     private final String message;
