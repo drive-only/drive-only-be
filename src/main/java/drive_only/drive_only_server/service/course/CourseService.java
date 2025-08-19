@@ -29,13 +29,11 @@ import drive_only.drive_only_server.repository.member.MemberRepository;
 import drive_only.drive_only_server.repository.photo.PhotoRepository;
 import drive_only.drive_only_server.repository.place.PlaceRepository;
 import drive_only.drive_only_server.repository.tag.TagRepository;
+import drive_only.drive_only_server.s3.S3ImageStorageProvider;
 import drive_only.drive_only_server.security.LoginMemberProvider;
 import drive_only.drive_only_server.service.photo.PhotoService;
 import java.time.LocalDate;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -59,13 +57,100 @@ public class CourseService {
     private final MemberRepository memberRepository;
     private final PhotoService photoService;
     private final HiddenCourseRepository hiddenCourseRepository;
+    private final S3ImageStorageProvider s3Provider; // 롤백용
 
     @Transactional
     public CourseCreateResponse createCourseFromMultipart(CourseCreateForm form, List<MultipartFile> photos) {
         Member loginMember = loginMemberProvider.getLoginMember();
-        CourseCreateRequest request = buildCreateRequestFromMultipart(form, photos, loginMember);
-        return createCourse(request);
+
+        // 0) 사전 검증: order와 coursePlaces[*].photoKeys 정합성, 개수 제한 등
+        List<String> order = form.photoKeyOrder() == null ? List.of() : form.photoKeyOrder();
+        prevalidatePhotoMapping(form, order); // ← 추가
+
+        // 1) 업로드
+        Map<String, PhotoService.UploadedPhoto> uploaded =
+                photoService.uploadManyInOrder(order, photos, loginMember.getEmail());
+
+        // 업로드가 끝났다면, 어떤 예외가 나더라도 이 키들로 롤백
+        List<String> rollbackKeys = uploaded.values().stream()
+                .map(PhotoService.UploadedPhoto::getS3Key)
+                .toList();
+
+        try {
+            // 2) 업로드 결과 → 요청 변환 (여기서도 매핑 재확인)
+            CourseCreateRequest request = buildCreateRequestWithUploaded(form, uploaded);
+
+            // 3) 도메인 저장
+            return createCourse(request);
+        } catch (RuntimeException e) {
+            // 매핑/도메인 어느 단계에서든 실패 → 이미 업로드된 객체 전부 삭제
+            s3Provider.deleteQuietly(rollbackKeys);
+            throw e;
+        }
     }
+
+    private CourseCreateRequest buildCreateRequestWithUploaded(
+            CourseCreateForm form,
+            Map<String, PhotoService.UploadedPhoto> uploaded
+    ) {
+        int total = form.coursePlaces()==null ? 0 :
+                form.coursePlaces().stream().mapToInt(cp -> cp.photoKeys()==null?0:cp.photoKeys().size()).sum();
+        if (total > 50) throw new BusinessException(ErrorCode.INVALID_IMAGE_DATA);
+
+        List<CoursePlaceCreateRequest> places = form.coursePlaces().stream()
+                .map(draft -> {
+                    List<String> keys = (draft.photoKeys()==null) ? List.of() : draft.photoKeys();
+                    if (keys.size() > 10) throw new BusinessException(ErrorCode.INVALID_COURSE_PLACE_PHOTOS);
+
+                    List<PhotoRequest> photoDtos = keys.stream()
+                            .map(k -> {
+                                PhotoService.UploadedPhoto up = uploaded.get(k.trim());
+                                if (up == null) throw new BusinessException(ErrorCode.INVALID_PHOTO_MAPPING);
+                                return new PhotoRequest(up.getS3Key(), up.getCdnUrl()); // ★ 둘 다
+                            })
+                            .toList();
+
+                    return new CoursePlaceCreateRequest(
+                            draft.placeId(), draft.content(), photoDtos, draft.sequence());
+                })
+                .toList();
+
+        return new CourseCreateRequest(
+                form.region(), form.subRegion(), form.time(), form.season(),
+                form.theme(), form.areaType(), form.title(),
+                places, form.tags(), form.recommendation(), form.difficulty(), form.isPrivate()
+        );
+    }
+
+    private void prevalidatePhotoMapping(CourseCreateForm form, List<String> order) {
+        // 총 제한(<= 50)
+        int total = form.coursePlaces() == null ? 0 :
+                form.coursePlaces().stream().mapToInt(cp -> cp.photoKeys()==null?0:cp.photoKeys().size()).sum();
+        if (total > 50) throw new BusinessException(ErrorCode.INVALID_IMAGE_DATA);
+
+        // 장소당 제한(<= 10) + 매핑 키 존재 검사
+        Set<String> orderSet = new java.util.HashSet<>();
+        for (String k : (order == null ? List.<String>of() : order)) {
+            orderSet.add(k == null ? "" : k.trim());
+        }
+
+        if (form.coursePlaces() != null) {
+            for (var cp : form.coursePlaces()) {
+                List<String> keys = (cp.photoKeys() == null) ? List.of() : cp.photoKeys();
+                if (keys.size() > 10) {
+                    throw new BusinessException(ErrorCode.INVALID_COURSE_PLACE_PHOTOS);
+                }
+                for (String k : keys) {
+                    String kk = (k == null) ? "" : k.trim();
+                    if (!orderSet.contains(kk)) {
+                        // 매핑 키가 order에 없음 → 업로드 전에 바로 차단
+                        throw new BusinessException(ErrorCode.INVALID_PHOTO_MAPPING);
+                    }
+                }
+            }
+        }
+    }
+
 
     // 목록 조회에서 viewerId 반영
     public PaginatedResponse<CourseSearchResponse> searchCourses(CourseSearchRequest request, int page, int size) {
@@ -98,14 +183,62 @@ public class CourseService {
     @Transactional
     public CoursePlaceUpdateResponse updateCourseFromMultipart(Long courseId, CourseCreateForm form, List<MultipartFile> photos) {
         Member loginMember = loginMemberProvider.getLoginMember();
-        CourseCreateRequest request = buildCreateRequestFromMultipart(form, photos, loginMember);
-        return updateCourse(courseId, request);
+
+        List<String> order = form.photoKeyOrder() == null ? List.of() : form.photoKeyOrder();
+        prevalidatePhotoMapping(form, order);
+
+        // 수정 전 사진 키 수집
+        Course course = findCourse(courseId);
+        validateCourseOwner(course);
+        List<CoursePlace> beforeCps = coursePlaceRepository.findByCourse(course);
+        Set<String> beforeKeys = beforeCps.stream()
+                .flatMap(cp -> cp.getPhotos().stream())
+                .map(Photo::getS3Key)
+                .collect(java.util.stream.Collectors.toSet());
+
+        Map<String, PhotoService.UploadedPhoto> uploaded =
+                photoService.uploadManyInOrder(order, photos, loginMember.getEmail());
+        List<String> rollbackKeys = uploaded.values().stream().map(PhotoService.UploadedPhoto::getS3Key).toList();
+
+        try {
+            CourseCreateRequest request = buildCreateRequestWithUploaded(form, uploaded);
+            CoursePlaceUpdateResponse res = updateCourse(courseId, request);
+
+            // 수정 후 사진 키 수집
+            Course updated = findCourse(courseId);
+            List<CoursePlace> afterCps = coursePlaceRepository.findByCourse(updated);
+            Set<String> afterKeys = afterCps.stream()
+                    .flatMap(cp -> cp.getPhotos().stream())
+                    .map(Photo::getS3Key)
+                    .collect(java.util.stream.Collectors.toSet());
+
+            // 제거된 키 = before - after
+            beforeKeys.removeAll(afterKeys);
+            if (!beforeKeys.isEmpty()) s3Provider.deleteQuietly(beforeKeys);
+
+            return res;
+        } catch (RuntimeException e) {
+            s3Provider.deleteQuietly(rollbackKeys); // 업로드 롤백
+            throw e;
+        }
     }
 
     @Transactional
     public CourseDeleteResponse deleteCourse(Long courseId) {
         Course course = findCourse(courseId);
         validateCourseOwner(course);
+
+        // 삭제 대상 사진 S3 키 수집
+        List<CoursePlace> cps = coursePlaceRepository.findByCourse(course);
+        List<String> keys = cps.stream()
+                .flatMap(cp -> cp.getPhotos().stream())  // CoursePlace.getPhotos() 있다고 가정
+                .map(Photo::getS3Key)
+                .toList();
+
+        // S3 삭제
+        s3Provider.deleteQuietly(keys);
+
+        // DB 삭제
         courseRepository.delete(course);
         return new CourseDeleteResponse(courseId);
     }
@@ -131,59 +264,6 @@ public class CourseService {
                 isLiked ? "게시글에 좋아요를 눌렀습니다." : "게시글의 좋아요를 취소했습니다.",
                 course.getLikeCount(),
                 isLiked
-        );
-    }
-
-    private CourseCreateRequest buildCreateRequestFromMultipart(CourseCreateForm form, List<MultipartFile> files, Member loginMember) {
-        List<String> order = form.photoKeyOrder() == null ? List.of() : form.photoKeyOrder();
-        List<MultipartFile> safeFiles = files == null ? List.of() : files;
-        if (order.size() != safeFiles.size()) {
-            throw new BusinessException(ErrorCode.INVALID_PHOTO_MAPPING);
-        }
-
-        Map<String, String> keyToUrl = new LinkedHashMap<>();
-        for (int i = 0; i < safeFiles.size(); i++) {
-            String key = order.get(i).trim();
-            String url = photoService.uploadFile(safeFiles.get(i), loginMember.getEmail());
-            keyToUrl.put(key, url);
-        }
-        return buildCreateRequestWithUrls(form, keyToUrl);
-    }
-
-    private CourseCreateRequest buildCreateRequestWithUrls(CourseCreateForm form, Map<String, String> keyToUrl) {
-        List<CoursePlaceCreateRequest> places = form.coursePlaces().stream()
-                .map(coursePlaceDraft -> {
-                    List<PhotoRequest> photoUrls = (coursePlaceDraft.photoKeys() == null ? List.<String>of() : coursePlaceDraft.photoKeys())
-                            .stream()
-                            .map(k -> {
-                                String url = keyToUrl.get(k.trim());
-                                if (url == null) throw new BusinessException(ErrorCode.INVALID_PHOTO_MAPPING);
-                                return new PhotoRequest(url);
-                            })
-                            .toList();
-
-                    return new CoursePlaceCreateRequest(
-                            coursePlaceDraft.placeId(),
-                            coursePlaceDraft.content(),
-                            photoUrls,
-                            coursePlaceDraft.sequence()
-                    );
-                })
-                .toList();
-
-        return new CourseCreateRequest(
-                form.region(),
-                form.subRegion(),
-                form.time(),
-                form.season(),
-                form.theme(),
-                form.areaType(),
-                form.title(),
-                places,
-                form.tags(),
-                form.recommendation(),
-                form.difficulty(),
-                form.isPrivate()
         );
     }
 
@@ -234,16 +314,15 @@ public class CourseService {
         return coursePlace;
     }
 
+    // 장소당 10장으로 상향
     private List<Photo> createPhotos(CoursePlaceCreateRequest request) {
-        if (request.photoUrls() == null || request.photoUrls().isEmpty()) {
-            return List.of();
-        }
-        if (request.photoUrls().size() > 5) {
-            throw new BusinessException(ErrorCode.INVALID_COURSE_PLACE_PHOTOS);
-        }
+        if (request.photoUrls() == null || request.photoUrls().isEmpty()) return List.of();
+        if (request.photoUrls().size() > 10) throw new BusinessException(ErrorCode.INVALID_COURSE_PLACE_PHOTOS);
+
         List<Photo> photos = request.photoUrls().stream()
-                .map(photoRequest -> Photo.create(photoRequest.photoUrl()))
+                .map(p -> Photo.create(p.s3Key(), p.photoUrl())) // ★ 변경
                 .toList();
+
         photoRepository.saveAll(photos);
         return photos;
     }
