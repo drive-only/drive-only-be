@@ -89,70 +89,9 @@ public class CourseService {
         }
     }
 
-    private CourseCreateRequest buildCreateRequestWithUploaded(
-            CourseCreateForm form,
-            Map<String, PhotoService.UploadedPhoto> uploaded
-    ) {
-        int total = form.coursePlaces()==null ? 0 :
-                form.coursePlaces().stream().mapToInt(cp -> cp.photoKeys()==null?0:cp.photoKeys().size()).sum();
-        if (total > 50) throw new BusinessException(ErrorCode.INVALID_IMAGE_DATA);
-
-        List<CoursePlaceCreateRequest> places = form.coursePlaces().stream()
-                .map(draft -> {
-                    List<String> keys = (draft.photoKeys()==null) ? List.of() : draft.photoKeys();
-                    if (keys.size() > 10) throw new BusinessException(ErrorCode.INVALID_COURSE_PLACE_PHOTOS);
-
-                    List<PhotoRequest> photoDtos = keys.stream()
-                            .map(k -> {
-                                PhotoService.UploadedPhoto up = uploaded.get(k.trim());
-                                if (up == null) throw new BusinessException(ErrorCode.INVALID_PHOTO_MAPPING);
-                                return new PhotoRequest(up.getS3Key(), up.getCdnUrl()); // ★ 둘 다
-                            })
-                            .toList();
-
-                    return new CoursePlaceCreateRequest(
-                            draft.placeId(), draft.content(), photoDtos, draft.sequence());
-                })
-                .toList();
-
-        return new CourseCreateRequest(
-                form.region(), form.subRegion(), form.time(), form.season(),
-                form.theme(), form.areaType(), form.title(),
-                places, form.tags(), form.recommendation(), form.difficulty(), form.isPrivate()
-        );
-    }
-
-    private void prevalidatePhotoMapping(CourseCreateForm form, List<String> order) {
-        // 총 제한(<= 50)
-        int total = form.coursePlaces() == null ? 0 :
-                form.coursePlaces().stream().mapToInt(cp -> cp.photoKeys()==null?0:cp.photoKeys().size()).sum();
-        if (total > 50) throw new BusinessException(ErrorCode.INVALID_IMAGE_DATA);
-
-        // 장소당 제한(<= 10) + 매핑 키 존재 검사
-        Set<String> orderSet = new java.util.HashSet<>();
-        for (String k : (order == null ? List.<String>of() : order)) {
-            orderSet.add(k == null ? "" : k.trim());
-        }
-
-        if (form.coursePlaces() != null) {
-            for (var cp : form.coursePlaces()) {
-                List<String> keys = (cp.photoKeys() == null) ? List.of() : cp.photoKeys();
-                if (keys.size() > 10) {
-                    throw new BusinessException(ErrorCode.INVALID_COURSE_PLACE_PHOTOS);
-                }
-                for (String k : keys) {
-                    String kk = (k == null) ? "" : k.trim();
-                    if (!orderSet.contains(kk)) {
-                        // 매핑 키가 order에 없음 → 업로드 전에 바로 차단
-                        throw new BusinessException(ErrorCode.INVALID_PHOTO_MAPPING);
-                    }
-                }
-            }
-        }
-    }
-
 
     // 목록 조회에서 viewerId 반영
+
     public PaginatedResponse<CourseSearchResponse> searchCourses(CourseSearchRequest request, int page, int size) {
         validateSearchRequest(request);
         Long viewerId = null;
@@ -167,8 +106,8 @@ public class CourseService {
         Meta meta = Meta.from(courses);
         return new PaginatedResponse<>(responses, meta);
     }
-
     // 상세 조회에서 숨김이면 Not Found 처리
+
     public PaginatedResponse<CourseDetailSearchResponse> searchCourseDetail(Long courseId) {
         Course course = findCourse(courseId);
         Member loginMember = loginMemberProvider.getLoginMemberIfExists();
@@ -179,7 +118,6 @@ public class CourseService {
         CourseDetailSearchResponse response = CourseDetailSearchResponse.from(course, coursePlaces, loginMember);
         return new PaginatedResponse<>(List.of(response), null);
     }
-
     @Transactional
     public CoursePlaceUpdateResponse updateCourseFromMultipart(Long courseId, CourseCreateForm form, List<MultipartFile> photos) {
         Member loginMember = loginMemberProvider.getLoginMember();
@@ -265,6 +203,68 @@ public class CourseService {
                 course.getLikeCount(),
                 isLiked
         );
+    }
+
+    private CourseCreateRequest buildCreateRequestWithUploaded(
+            CourseCreateForm form,
+            Map<String, PhotoService.UploadedPhoto> uploaded
+    ) {
+        int total = form.coursePlaces()==null ? 0 :
+                form.coursePlaces().stream().mapToInt(cp -> cp.photoKeys()==null?0:cp.photoKeys().size()).sum();
+        if (total > 50) throw new BusinessException(ErrorCode.INVALID_IMAGE_DATA);
+
+        List<CoursePlaceCreateRequest> places = form.coursePlaces().stream()
+                .map(draft -> {
+                    List<String> keys = (draft.photoKeys()==null) ? List.of() : draft.photoKeys();
+                    if (keys.size() > 10) throw new BusinessException(ErrorCode.INVALID_COURSE_PLACE_PHOTOS);
+
+                    List<PhotoRequest> photoDtos = keys.stream()
+                            .map(k -> {
+                                PhotoService.UploadedPhoto up = uploaded.get(k.trim());
+                                if (up == null) throw new BusinessException(ErrorCode.INVALID_PHOTO_MAPPING);
+                                return new PhotoRequest(up.getS3Key(), up.getCdnUrl()); // ★ 둘 다
+                            })
+                            .toList();
+
+                    return new CoursePlaceCreateRequest(
+                            draft.placeId(), draft.content(), photoDtos, draft.sequence());
+                })
+                .toList();
+
+        return new CourseCreateRequest(
+                form.region(), form.subRegion(), form.time(), form.season(),
+                form.theme(), form.areaType(), form.title(),
+                places, form.tags(), form.recommendation(), form.difficulty(), form.isPrivate()
+        );
+    }
+
+    private void prevalidatePhotoMapping(CourseCreateForm form, List<String> order) {
+        // 총 제한(<= 50)
+        int total = form.coursePlaces() == null ? 0 :
+                form.coursePlaces().stream().mapToInt(cp -> cp.photoKeys()==null?0:cp.photoKeys().size()).sum();
+        if (total > 50) throw new BusinessException(ErrorCode.INVALID_IMAGE_DATA);
+
+        // 장소당 제한(<= 10) + 매핑 키 존재 검사
+        Set<String> orderSet = new java.util.HashSet<>();
+        for (String k : (order == null ? List.<String>of() : order)) {
+            orderSet.add(k == null ? "" : k.trim());
+        }
+
+        if (form.coursePlaces() != null) {
+            for (var cp : form.coursePlaces()) {
+                List<String> keys = (cp.photoKeys() == null) ? List.of() : cp.photoKeys();
+                if (keys.size() > 10) {
+                    throw new BusinessException(ErrorCode.INVALID_COURSE_PLACE_PHOTOS);
+                }
+                for (String k : keys) {
+                    String kk = (k == null) ? "" : k.trim();
+                    if (!orderSet.contains(kk)) {
+                        // 매핑 키가 order에 없음 → 업로드 전에 바로 차단
+                        throw new BusinessException(ErrorCode.INVALID_PHOTO_MAPPING);
+                    }
+                }
+            }
+        }
     }
 
     private CourseCreateResponse createCourse(CourseCreateRequest request) {
