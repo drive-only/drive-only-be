@@ -14,8 +14,6 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"email", "provider"}))
 public class Member {
-
-    // 규칙 상수 (필요 최소)
     private static final int EMAIL_MAX = 320;
     private static final int NICK_MIN = 2;
     private static final int NICK_MAX = 20;
@@ -49,7 +47,6 @@ public class Member {
     @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<LikedComment> likedComments = new ArrayList<>();
 
-    // --- 정적 팩토리 (Course 스타일) ---
     public static Member createMember(String email, String nickname, String profileImageUrl, ProviderType provider) {
         validateEmail(email);
         validateProvider(provider);
@@ -63,7 +60,6 @@ public class Member {
         return m;
     }
 
-    // --- 수정 메서드 (수정 시에도 검증 호출) ---
     public void updateNickname(String nickname) {
         if (nickname != null) validateNickname(nickname);
         this.nickname = normalizeNullable(nickname);
@@ -78,7 +74,6 @@ public class Member {
         likedComment.setMember(this);
     }
 
-    // --- Validators (정적, 최소 구성) ---
     private static void validateEmail(String email) {
         if (email == null || email.isBlank()
                 || email.length() > EMAIL_MAX
@@ -101,7 +96,6 @@ public class Member {
         }
     }
 
-    // --- 간단 정규화 ---
     private static String normalizeEmail(String email) {
         return email.trim().toLowerCase(Locale.ROOT);
     }

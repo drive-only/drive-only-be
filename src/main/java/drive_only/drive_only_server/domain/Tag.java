@@ -14,15 +14,12 @@ public class Tag {
     @Column(name = "name")
     private String name;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")
     private Course course;
 
     public Tag(String name) {
         this.name = name;
-    }
-
-    public void setCourse(Course course) {
-        this.course = course;
     }
 }
