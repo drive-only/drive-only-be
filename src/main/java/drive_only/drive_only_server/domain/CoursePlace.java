@@ -41,7 +41,7 @@ public class CoursePlace {
     @Column(name = "sequence")
     private int sequence;
 
-    @OneToMany(mappedBy = "coursePlace", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "coursePlace", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Photo> photos = new ArrayList<>();
 
     @Setter
@@ -80,6 +80,9 @@ public class CoursePlace {
     }
 
     private static void validatePhotos(List<Photo> photos) {
+        if (photos == null) {
+            return;
+        }
         if (photos.size() > 5) {
             throw new BusinessException(ErrorCode.INVALID_COURSE_PLACE_PHOTOS);
         }
