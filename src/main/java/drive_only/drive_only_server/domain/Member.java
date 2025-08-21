@@ -15,7 +15,6 @@ import lombok.*;
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"email", "provider"}))
 public class Member {
 
-    // 규칙 상수 (필요 최소)
     private static final int EMAIL_MAX = 320;
     private static final int NICK_MIN = 2;
     private static final int NICK_MAX = 20;
@@ -31,7 +30,7 @@ public class Member {
     private String email;
 
     @Column(name = "nickname")
-    private String nickname; // 선택값이라면 null 허용, 필수면 nullable=false로 변경
+    private String nickname;
 
     @Column(name = "profile_image_url")
     private String profileImageUrl;

@@ -14,10 +14,10 @@ public class Photo {
     private Long id;
 
     @Column(name = "s3_key", nullable = false, length = 512)
-    private String s3Key;   // ★ 추가
+    private String s3Key;
 
     @Column(name = "url", nullable = false, length = 2048)
-    private String url;     // (CloudFront URL 권장)
+    private String url;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "course_place_id", nullable = false)
@@ -45,6 +45,5 @@ public class Photo {
         this.coursePlace = cp;
     }
 
-    // 마이그용 임시 세터 (마이그 끝나면 제거)
     public void setS3KeyForMigrate(String s3Key) { this.s3Key = s3Key; }
 }

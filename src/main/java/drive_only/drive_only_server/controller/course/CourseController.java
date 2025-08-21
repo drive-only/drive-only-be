@@ -175,7 +175,7 @@ public class CourseController {
         SuccessCode sc = result.created()
                 ? SuccessCode.SUCCESS_REPORT_COURSE_CREATED
                 : SuccessCode.SUCCESS_REPORT_COURSE_ALREADY;
-        return ApiResultSupport.ok(sc, result); // 상태코드는 sc.getStatus()로 자동 적용
+        return ApiResultSupport.ok(sc, result);
     }
 
     @Operation(summary = "코스(게시글) 신고(숨김) 해제", description = "신고자 본인 화면에서 숨긴 게시글을 다시 보이도록 합니다.")

@@ -11,7 +11,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-@Profile("migrate") // migrate 프로필로만 실행
+@Profile("migrate")
 public class BackfillPhotoS3Key implements CommandLineRunner {
     private final PhotoRepository photoRepository;
 
@@ -22,9 +22,9 @@ public class BackfillPhotoS3Key implements CommandLineRunner {
             if (p.getS3Key() != null && !p.getS3Key().isBlank()) continue;
             String url = p.getUrl();
             if (url == null) continue;
-            String s3Key = extractKey(url); // 도메인 이후 path 추출
+            String s3Key = extractKey(url);
             if (s3Key != null) {
-                p.setS3KeyForMigrate(s3Key); // 엔티티에 setter 한시 추가
+                p.setS3KeyForMigrate(s3Key);
             }
         }
         photoRepository.saveAll(photos);

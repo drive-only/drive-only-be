@@ -32,10 +32,9 @@ public class LogoutController {
 
     @Operation(summary = "로그아웃", description = "로그아웃 요청")
     @ApiErrorCodeExamples({
-            ErrorCode.INVALID_TOKEN,          // 토큰 형식/유효성 실패
-            ErrorCode.UNAUTHENTICATED_MEMBER, // 인증 불가 시
+            ErrorCode.INVALID_TOKEN,
+            ErrorCode.UNAUTHENTICATED_MEMBER,
             ErrorCode.INTERNAL_SERVER_ERROR
-            // 이미 로그아웃된 경우 403을 쓰려면 ErrorCode에 별도 항목 추가(예: ALREADY_LOGGED_OUT)
     })
     @PostMapping("/api/logout")
     public ResponseEntity<ApiResult<Void>> logout(
