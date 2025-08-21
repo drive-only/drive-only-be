@@ -36,12 +36,12 @@ public class Category {
                                           String season, String theme, String areaType) {
         validateRequiredFields(region, season, areaType);
         Category category = new Category();
-        category.region    = normalizeNullable(region);
+        category.region = normalizeNullable(region);
         category.subRegion = normalizeNullable(subRegion);
-        category.time      = normalizeNullable(time);
-        category.season    = normalizeNullable(season);
-        category.theme     = normalizeNullable(theme);
-        category.areaType  = normalizeNullable(areaType);
+        category.time = normalizeNullable(time);
+        category.season = normalizeNullable(season);
+        category.theme = normalizeNullable(theme);
+        category.areaType = normalizeNullable(areaType);
         return category;
     }
 

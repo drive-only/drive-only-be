@@ -99,6 +99,7 @@ public class Member {
     private static String normalizeEmail(String email) {
         return email.trim().toLowerCase(Locale.ROOT);
     }
+
     private static String normalizeNullable(String s) {
         return (s == null) ? null : s.trim();
     }

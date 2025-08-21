@@ -19,7 +19,6 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.BatchSize;
 
 @Entity
 @Getter
@@ -57,7 +56,7 @@ public class Comment {
     private List<Comment> childComments = new ArrayList<>();
 
     @OneToMany(mappedBy = "comment", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<LikedComment> likes = new ArrayList<>();
+    private List<LikedComment> likedComments = new ArrayList<>();
 
     public static Comment createComment(String content, Member loginMember, Course course, Comment parentComment) {
         validateContent(content);
