@@ -57,7 +57,7 @@ public class CourseService {
     private final MemberRepository memberRepository;
     private final PhotoService photoService;
     private final HiddenCourseRepository hiddenCourseRepository;
-    private final S3ImageStorageProvider s3Provider; // 롤백용
+    private final S3ImageStorageProvider s3Provider;
 
     @Transactional
     public CourseCreateResponse createCourseFromMultipart(CourseCreateForm form, List<MultipartFile> photos) {
@@ -183,6 +183,28 @@ public class CourseService {
         );
     }
 
+    @Transactional
+    public ReportResponse reportCourse(Long courseId) {
+        Course course = findCourse(courseId);
+        Member member = loginMemberProvider.getLoginMember();
+
+        boolean exists = hiddenCourseRepository.existsByCourseAndMember(course, member);
+        if (!exists) {
+            hiddenCourseRepository.save(new HiddenCourse(member, course));
+            return new ReportResponse("게시글을 신고하여 숨김 처리했습니다.", true, true);
+        }
+        return new ReportResponse("이미 숨김 처리된 게시글입니다.", true, false);
+    }
+
+    @Transactional
+    public ReportResponse unreportCourse(Long courseId) {
+        Course course = findCourse(courseId);
+        Member member = loginMemberProvider.getLoginMember();
+
+        hiddenCourseRepository.deleteByCourseAndMember(course, member);
+        return new ReportResponse("게시글 숨김을 해제했습니다.", false, false);
+    }
+
     private CourseCreateRequest buildCreateRequestWithUploaded(
             CourseCreateForm form,
             Map<String, PhotoService.UploadedPhoto> uploaded
@@ -217,15 +239,13 @@ public class CourseService {
     }
 
     private void prevalidatePhotoMapping(CourseCreateForm form, List<String> order) {
-        // 총 제한(<= 50)
         int total = form.coursePlaces() == null ? 0 :
                 form.coursePlaces().stream().mapToInt(cp -> cp.photoKeys()==null?0:cp.photoKeys().size()).sum();
         if (total > 50) throw new BusinessException(ErrorCode.INVALID_IMAGE_DATA);
 
-        // 장소당 제한(<= 10) + 매핑 키 존재 검사
         Set<String> orderSet = new java.util.HashSet<>();
         for (String k : (order == null ? List.<String>of() : order)) {
-            orderSet.add(k == null ? "" : k.trim());
+            orderSet.add(k.trim());
         }
 
         if (form.coursePlaces() != null) {
@@ -237,7 +257,6 @@ public class CourseService {
                 for (String k : keys) {
                     String kk = (k == null) ? "" : k.trim();
                     if (!orderSet.contains(kk)) {
-                        // 매핑 키가 order에 없음 → 업로드 전에 바로 차단
                         throw new BusinessException(ErrorCode.INVALID_PHOTO_MAPPING);
                     }
                 }
@@ -280,19 +299,17 @@ public class CourseService {
 
     private CoursePlace createCoursePlace(CoursePlaceCreateRequest request, Place place) {
         List<Photo> photos = createPhotos(request);
-        CoursePlace coursePlace = new CoursePlace(
+        CoursePlace coursePlace = CoursePlace.createCoursePlace(
                 place.getName(),
                 getType(place.getContentTypeId()),
                 request.content(),
                 photos,
                 request.sequence(),
-                place
-        );
+                place);
         coursePlaceRepository.save(coursePlace);
         return coursePlace;
     }
 
-    // 장소당 10장으로 상향
     private List<Photo> createPhotos(CoursePlaceCreateRequest request) {
         if (request.photoUrls() == null || request.photoUrls().isEmpty()) return List.of();
         if (request.photoUrls().size() > 10) throw new BusinessException(ErrorCode.INVALID_COURSE_PLACE_PHOTOS);
@@ -378,29 +395,5 @@ public class CourseService {
                 || isNotBlank(request.season())
                 || isNotBlank(request.theme())
                 || isNotBlank(request.areaType());
-    }
-
-    // 신고(숨김) 등록
-    @Transactional
-    public ReportResponse reportCourse(Long courseId) {
-        Course course = findCourse(courseId);
-        Member member = loginMemberProvider.getLoginMember();
-
-        boolean exists = hiddenCourseRepository.existsByCourseAndMember(course, member);
-        if (!exists) {
-            hiddenCourseRepository.save(new HiddenCourse(member, course));
-            return new ReportResponse("게시글을 신고하여 숨김 처리했습니다.", true, true); // 201
-        }
-        return new ReportResponse("이미 숨김 처리된 게시글입니다.", true, false);       // 200
-    }
-
-    // 신고(숨김) 해제 (선택)
-    @Transactional
-    public ReportResponse unreportCourse(Long courseId) {
-        Course course = findCourse(courseId);
-        Member member = loginMemberProvider.getLoginMember();
-
-        hiddenCourseRepository.deleteByCourseAndMember(course, member); // 없으면 no-op
-        return new ReportResponse("게시글 숨김을 해제했습니다.", false, false);          // 200
     }
 }
