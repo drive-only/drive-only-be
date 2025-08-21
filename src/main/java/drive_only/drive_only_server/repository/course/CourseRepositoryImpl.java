@@ -133,16 +133,25 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
         return areaType != null ? course.category.areaType.eq(areaType) : null;
     }
 
-    private OrderSpecifier<?> getSortMethod(CourseSearchRequest request) {
+    private OrderSpecifier<?>[] getSortMethod(CourseSearchRequest request) {
         String sort = request.sort();
 
         if (sort == null || sort.equals("latest")) {
-            return course.createdDate.desc();
+            return new OrderSpecifier<?>[]{
+                    course.createdDate.desc(),
+                    course.id.desc()
+            };
         }
         if (sort.equals("likeCount")) {
-            return course.likeCount.desc();
+            return new OrderSpecifier<?>[]{
+                    course.likeCount.desc(),
+                    course.id.desc()
+            };
         }
 
-        return course.createdDate.desc();
+        return new OrderSpecifier<?>[]{
+                course.createdDate.desc(),
+                course.id.desc()
+        };
     }
 }
