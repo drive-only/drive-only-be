@@ -19,6 +19,7 @@ public class Photo {
     @Column(name = "url", nullable = false, length = 2048)
     private String url;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "course_place_id", nullable = false)
     private CoursePlace coursePlace;
@@ -40,10 +41,7 @@ public class Photo {
         return new Photo(k, u);
     }
 
-    public void setCoursePlace(CoursePlace cp) {
-        if (cp == null) throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
-        this.coursePlace = cp;
+    public void setS3KeyForMigrate(String s3Key) {
+        this.s3Key = s3Key;
     }
-
-    public void setS3KeyForMigrate(String s3Key) { this.s3Key = s3Key; }
 }

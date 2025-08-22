@@ -18,6 +18,7 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -40,9 +41,10 @@ public class CoursePlace {
     @Column(name = "sequence")
     private int sequence;
 
-    @OneToMany(mappedBy = "coursePlace", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "coursePlace", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Photo> photos = new ArrayList<>();
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")
     private Course course;
@@ -51,43 +53,42 @@ public class CoursePlace {
     @JoinColumn(name = "place_id")
     private Place place;
 
-    public CoursePlace(String placeName, String placeType, String content, List<Photo> photos, int sequence, Place place) {
+    public static CoursePlace createCoursePlace(String placeName, String placeType, String content, List<Photo> photos, int sequence, Place place) {
         validateContent(content);
         validatePhotos(photos);
-
-        this.placeName = placeName;
-        this.placeType = placeType;
-        this.content = content;
+        CoursePlace coursePlace = new CoursePlace();
+        coursePlace.placeName = placeName;
+        coursePlace.placeType = placeType;
+        coursePlace.content = content;
         if (!photos.isEmpty()) {
             for (Photo photo : photos) {
-                addPhoto(photo);
+                coursePlace.addPhoto(photo);
             }
         }
-        this.sequence = sequence;
-        this.place = place;
+        coursePlace.sequence = sequence;
+        coursePlace.place = place;
+        return coursePlace;
     }
 
-    private void validateContent(String content) {
+    private static void validateContent(String content) {
         if (content == null) {
             content = "";
         }
         if (content.length() > 500) {
             throw new BusinessException(ErrorCode.INVALID_COURSE_PLACE_CONTENT);
         }
-        this.content = content;
     }
 
-    private void validatePhotos(List<Photo> photos) {
+    private static void validatePhotos(List<Photo> photos) {
+        if (photos == null) {
+            return;
+        }
         if (photos.size() > 5) {
             throw new BusinessException(ErrorCode.INVALID_COURSE_PLACE_PHOTOS);
         }
     }
 
-    public void setCourse(Course course) {
-        this.course = course;
-    }
-
-    public void addPhoto(Photo photo) {
+    private void addPhoto(Photo photo) {
         this.photos.add(photo);
         photo.setCoursePlace(this);
     }

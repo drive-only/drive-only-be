@@ -35,15 +35,13 @@ public class Category {
     public static Category createCategory(String region, String subRegion, String time,
                                           String season, String theme, String areaType) {
         validateRequiredFields(region, season, areaType);
-
         Category category = new Category();
-        // 최소 정규화: 공백 제거
-        category.region    = normalizeNullable(region);
+        category.region = normalizeNullable(region);
         category.subRegion = normalizeNullable(subRegion);
-        category.time      = normalizeNullable(time);
-        category.season    = normalizeNullable(season);
-        category.theme     = normalizeNullable(theme);
-        category.areaType  = normalizeNullable(areaType);
+        category.time = normalizeNullable(time);
+        category.season = normalizeNullable(season);
+        category.theme = normalizeNullable(theme);
+        category.areaType = normalizeNullable(areaType);
         return category;
     }
 

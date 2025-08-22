@@ -1,9 +1,18 @@
 package drive_only.drive_only_server.domain;
 
-import drive_only.drive_only_server.exception.custom.BusinessException;
-import drive_only.drive_only_server.exception.errorcode.ErrorCode;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -22,18 +31,13 @@ public class LikedCourse {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
     public LikedCourse(Member member, Course course) {
-        if (member == null) throw new BusinessException(ErrorCode.UNAUTHENTICATED_MEMBER);
-        if (course == null) throw new BusinessException(ErrorCode.COURSE_NOT_FOUND);
         this.member = member;
-        this.course = course;
-    }
-
-    public void setCourse(Course course) {
         this.course = course;
     }
 }

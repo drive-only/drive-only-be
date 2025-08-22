@@ -64,6 +64,7 @@ public class Course {
     private Category category;
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE)
+    @Getter(AccessLevel.NONE)
     private List<LikedCourse> likedCourses = new ArrayList<>();
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE, orphanRemoval = true)
@@ -73,6 +74,7 @@ public class Course {
     private List<Tag> tags = new ArrayList<>();
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Getter(AccessLevel.NONE)
     private List<Comment> comments = new ArrayList<>();
 
     public static Course createCourse(String title, LocalDate createdDate, Double recommendation, Double difficulty, int viewCount,
@@ -82,7 +84,6 @@ public class Course {
         validateRecommendation(recommendation);
         validateDifficulty(difficulty);
         validateCoursePlaces(coursePlaces);
-
         Course course = new Course();
         course.title = title;
         course.createdDate = createdDate;
@@ -92,10 +93,14 @@ public class Course {
         course.likeCount = likeCount;
         course.commentCount = commentCount;
         course.isReported = isReported;
-        course.setMember(member);
-        course.setCategory(category);
-        coursePlaces.forEach(course::addCoursePlace);
-        tags.forEach(course::addTag);
+        course.member = member;
+        course.category = category;
+        for (CoursePlace coursePlace : coursePlaces) {
+            course.addCoursePlace(coursePlace);
+        }
+        for (Tag tag : tags) {
+            course.addTag(tag);
+        }
         return course;
     }
 
@@ -142,25 +147,17 @@ public class Course {
     }
 
     public void addCoursePlace(CoursePlace coursePlace) {
-        coursePlaces.add(coursePlace);
+        this.coursePlaces.add(coursePlace);
         coursePlace.setCourse(this);
     }
 
     public void addTag(Tag tag) {
-        tags.add(tag);
+        this.tags.add(tag);
         tag.setCourse(this);
     }
 
     public boolean isWrittenBy(Member loginMember) {
         return this.member.getId().equals(loginMember.getId());
-    }
-
-    public void setMember(Member member) {
-        this.member = member;
-    }
-
-    public void setCategory(Category category) {
-        this.category = category;
     }
 
     public void increaseLikeCount() {

@@ -58,7 +58,6 @@ public class CommentService {
         return new CommentCreateResponse(comment.getId());
     }
 
-    // 부모 댓글 페이지 + 자식 필터 적용
     public PaginatedResponse<CommentSearchResponse> searchComments(Long courseId, int page, int size) {
         if (!courseRepository.existsById(courseId)) {
             throw new BusinessException(ErrorCode.COURSE_NOT_FOUND);
@@ -116,6 +115,28 @@ public class CommentService {
         }
     }
 
+    @Transactional
+    public ReportResponse reportComment(Long commentId) {
+        Comment comment = findComment(commentId);
+        Member member = loginMemberProvider.getLoginMember();
+
+        boolean exists = hiddenCommentRepository.existsByCommentAndMember(comment, member);
+        if (!exists) {
+            hiddenCommentRepository.save(new HiddenComment(member, comment));
+            return new ReportResponse("댓글을 신고하여 숨김 처리했습니다.", true, true); // 201
+        }
+        return new ReportResponse("이미 숨김 처리된 댓글입니다.", true, false);       // 200
+    }
+
+    @Transactional
+    public ReportResponse unreportComment(Long commentId) {
+        Comment comment = findComment(commentId);
+        Member member = loginMemberProvider.getLoginMember();
+
+        hiddenCommentRepository.deleteByCommentAndMember(comment, member); // 없으면 no-op
+        return new ReportResponse("댓글 숨김을 해제했습니다.", false, false);          // 200
+    }
+
     private Course findCourse(Long courseId) {
         return courseRepository.findById(courseId).orElseThrow(CourseNotFoundException::new);
     }
@@ -133,29 +154,5 @@ public class CommentService {
         if (!comment.isWrittenBy(loginMember)) {
             throw new OwnerMismatchException();
         }
-    }
-
-    // 신고(숨김) 등록
-    @Transactional
-    public ReportResponse reportComment(Long commentId) {
-        Comment comment = findComment(commentId);
-        Member member = loginMemberProvider.getLoginMember();
-
-        boolean exists = hiddenCommentRepository.existsByCommentAndMember(comment, member);
-        if (!exists) {
-            hiddenCommentRepository.save(new HiddenComment(member, comment));
-            return new ReportResponse("댓글을 신고하여 숨김 처리했습니다.", true, true); // 201
-        }
-        return new ReportResponse("이미 숨김 처리된 댓글입니다.", true, false);       // 200
-    }
-
-    // 신고(숨김) 해제 (선택)
-    @Transactional
-    public ReportResponse unreportComment(Long commentId) {
-        Comment comment = findComment(commentId);
-        Member member = loginMemberProvider.getLoginMember();
-
-        hiddenCommentRepository.deleteByCommentAndMember(comment, member); // 없으면 no-op
-        return new ReportResponse("댓글 숨김을 해제했습니다.", false, false);          // 200
     }
 }
