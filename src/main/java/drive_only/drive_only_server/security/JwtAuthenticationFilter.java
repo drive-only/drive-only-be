@@ -46,6 +46,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                         path.equals("/api/categories") || path.startsWith("/api/categories/")
                         ));
 
+        if (isPermitAll) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         String token = resolveToken(request);
 
         if (token != null && !token.isBlank()) {
