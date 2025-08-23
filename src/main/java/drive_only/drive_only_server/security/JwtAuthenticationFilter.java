@@ -10,19 +10,12 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.server.PathContainer;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.util.pattern.PathPattern;
-import org.springframework.web.util.pattern.PathPatternParser;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -30,76 +23,69 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
-
     private final JwtTokenProvider jwtTokenProvider;
     private final LogoutService logoutService;
-
-    private static final PathPatternParser PPP = new PathPatternParser();
-
-    private static final PathPattern LOGIN     = PPP.parse("/api/login");
-    private static final PathPattern AUTH_ALL  = PPP.parse("/api/auth/**");
-    private static final PathPattern SWAGGER   = PPP.parse("/swagger-ui/**");
-    private static final PathPattern DOCS      = PPP.parse("/v3/api-docs/**");
-    private static final PathPattern COURSES   = PPP.parse("/api/courses/**");
-    private static final PathPattern PLACES    = PPP.parse("/api/places/**");
-    private static final PathPattern CATEGORIES= PPP.parse("/api/categories");
-
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-
-        log.info("JWT-FILTER path='{}', servletPath='{}', method='{}', query='{}'",
-                request.getRequestURI(), request.getServletPath(), request.getMethod(), request.getQueryString());
-
-        final String method = request.getMethod();
-        final String path = request.getServletPath();
-
-        if ("OPTIONS".equalsIgnoreCase(method)) return true;
-
-        PathContainer pc = PathContainer.parsePath(path);
-
-        if (LOGIN.matches(pc)) return true;
-        if (AUTH_ALL.matches(pc)) return true;
-        if (SWAGGER.matches(pc)) return true;
-        if (DOCS.matches(pc)) return true;
-
-        if (HttpMethod.GET.matches(method)) {
-            if (COURSES.matches(pc)) return true;
-            if (PLACES.matches(pc)) return true;
-            if (CATEGORIES.matches(pc)) return true;
-        }
-
-        return false;
-    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
 
+        final String path = request.getRequestURI();
+        final String method = request.getMethod();
+
+        boolean isPermitAll =
+                "OPTIONS".equalsIgnoreCase(method) ||
+                        path.startsWith("/api/login") ||
+                        path.startsWith("/api/auth/") ||
+                        path.startsWith("/swagger-ui/") ||
+                        path.startsWith("/v3/api-docs/") ||
+                        ("GET".equals(method) && (
+                                path.equals("/api/courses") || path.startsWith("/api/courses/") ||
+                                        path.equals("/api/places")  || path.startsWith("/api/places/")  ||
+                                        path.equals("/api/categories") || path.startsWith("/api/categories/")
+                        ));
+
+        if (isPermitAll) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         String token = resolveToken(request);
 
-        if (token == null || token.isBlank()) {
-            SecurityContextHolder.clearContext();
-            chain.doFilter(request, response);
-            return;
-        }
+        if (token != null && !token.isBlank()) {
+            if (logoutService.isBlacklisted(token)) {
+                if (!isPermitAll) {
+                    request.setAttribute("ERROR_CODE", ErrorCode.TOKEN_BLACKLISTED);
+                    throw new org.springframework.security.core.AuthenticationException("blacklisted") {};
+                }
+                SecurityContextHolder.clearContext();
+                chain.doFilter(request, response);
+                return;
+            }
 
-        if (logoutService.isBlacklisted(token)) {
-            request.setAttribute("ERROR_CODE", ErrorCode.TOKEN_BLACKLISTED);
-            throw new org.springframework.security.core.AuthenticationException("blacklisted") {};
-        }
-
-        JwtValidationStatus status = jwtTokenProvider.getStatus(token);
-        if (status == JwtValidationStatus.VALID) {
-            setAuthentication(token, request);
-            chain.doFilter(request, response);
-            return;
+            JwtValidationStatus status = jwtTokenProvider.getStatus(token);
+            if (status == JwtValidationStatus.VALID) {
+                setAuthentication(token, request);
+                chain.doFilter(request, response);
+                return;
+            } else {
+                if (!isPermitAll) {
+                    request.setAttribute("ERROR_CODE",
+                            status == JwtValidationStatus.EXPIRED ? ErrorCode.TOKEN_EXPIRED : ErrorCode.INVALID_TOKEN);
+                    throw new org.springframework.security.core.AuthenticationException("invalid/expired") {};
+                }
+                SecurityContextHolder.clearContext();
+            }
         } else {
-            request.setAttribute("ERROR_CODE",
-                    status == JwtValidationStatus.EXPIRED ? ErrorCode.TOKEN_EXPIRED : ErrorCode.INVALID_TOKEN);
-            throw new org.springframework.security.core.AuthenticationException("invalid/expired") {};
+            if (!isPermitAll) {
+                request.setAttribute("ERROR_CODE", ErrorCode.UNAUTHENTICATED_MEMBER);
+                throw new org.springframework.security.core.AuthenticationException("missing token") {};
+            }
+            SecurityContextHolder.clearContext();
         }
+
+        chain.doFilter(request, response);
     }
 
     private String resolveToken(HttpServletRequest request) {
