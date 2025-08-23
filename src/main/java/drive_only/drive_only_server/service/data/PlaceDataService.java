@@ -109,7 +109,7 @@ public class PlaceDataService {
                 getRegion(place.lDongRegnCd()), getSubRegion(place.lDongRegnCd(), place.lDongSignguCd()),
                 place.firstimage2(),
                 getUseTime(contentTypeId, placeDetail), getRestDate(contentTypeId, placeDetail),
-                place.tel(), Double.parseDouble(place.mapx()), Double.parseDouble(place.mapy())
+                place.tel(), Double.parseDouble(place.mapy()), Double.parseDouble(place.mapx())
         );
     }
 
@@ -120,7 +120,7 @@ public class PlaceDataService {
                 place.title(), place.addr1() + " " + place.addr2(),
                 getRegion(place.lDongRegnCd()), getSubRegion(place.lDongRegnCd(), place.lDongSignguCd()),
                 place.firstimage2(), place.tel(),
-                Double.parseDouble(place.mapx()), Double.parseDouble(place.mapy())
+                Double.parseDouble(place.mapy()), Double.parseDouble(place.mapx())
         );
 
         existingPlace.updateDetailInfo(
