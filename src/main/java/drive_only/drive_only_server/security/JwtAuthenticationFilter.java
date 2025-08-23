@@ -79,25 +79,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = resolveToken(request);
 
-        if (token != null && !token.isBlank()) {
-            if (logoutService.isBlacklisted(token)) {
-                request.setAttribute("ERROR_CODE", ErrorCode.TOKEN_BLACKLISTED);
-                throw new org.springframework.security.core.AuthenticationException("blacklisted") {};
-            }
+        if (token == null || token.isBlank()) {
+            SecurityContextHolder.clearContext();
+            chain.doFilter(request, response);
+            return;
+        }
 
-            JwtValidationStatus status = jwtTokenProvider.getStatus(token);
-            if (status == JwtValidationStatus.VALID) {
-                setAuthentication(token, request);
-                chain.doFilter(request, response);
-                return;
-            } else {
-                request.setAttribute("ERROR_CODE",
-                        status == JwtValidationStatus.EXPIRED ? ErrorCode.TOKEN_EXPIRED : ErrorCode.INVALID_TOKEN);
-                throw new org.springframework.security.core.AuthenticationException("invalid/expired") {};
-            }
+        if (logoutService.isBlacklisted(token)) {
+            request.setAttribute("ERROR_CODE", ErrorCode.TOKEN_BLACKLISTED);
+            throw new org.springframework.security.core.AuthenticationException("blacklisted") {};
+        }
+
+        JwtValidationStatus status = jwtTokenProvider.getStatus(token);
+        if (status == JwtValidationStatus.VALID) {
+            setAuthentication(token, request);
+            chain.doFilter(request, response);
+            return;
         } else {
-            request.setAttribute("ERROR_CODE", ErrorCode.UNAUTHENTICATED_MEMBER);
-            throw new org.springframework.security.core.AuthenticationException("missing token") {};
+            request.setAttribute("ERROR_CODE",
+                    status == JwtValidationStatus.EXPIRED ? ErrorCode.TOKEN_EXPIRED : ErrorCode.INVALID_TOKEN);
+            throw new org.springframework.security.core.AuthenticationException("invalid/expired") {};
         }
     }
 
