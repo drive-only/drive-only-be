@@ -2,6 +2,7 @@ package drive_only.drive_only_server.dto.comment.search;
 
 import drive_only.drive_only_server.domain.Comment;
 import drive_only.drive_only_server.domain.Member;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -11,7 +12,7 @@ public record CommentSearchResponse(
         String profileImageUrl,
         String nickname,
         String content,
-        LocalDateTime createdDate,
+        LocalDate createdDate,
         int likeCount,
         Boolean isMine,
         Boolean isLiked,

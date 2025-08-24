@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +33,7 @@ public class Comment {
     private String content;
 
     @Column(name = "created_date")
-    private LocalDateTime createdDate;
+    private LocalDate createdDate;
 
     @Column(name = "like_count")
     private int likeCount;
@@ -66,7 +67,7 @@ public class Comment {
         comment.member = loginMember;
         comment.course = course;
         comment.parentComment = parentComment;
-        comment.createdDate = LocalDateTime.now();
+        comment.createdDate = LocalDate.now();
         comment.likeCount = 0;
         comment.isDeleted = false;
         return comment;
@@ -76,7 +77,7 @@ public class Comment {
         validateContent(request.content());
 
         this.content = request.content();
-        this.createdDate = LocalDateTime.now();
+        this.createdDate = LocalDate.now();
     }
 
     private static void validateContent(String content) {
