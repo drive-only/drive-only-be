@@ -117,8 +117,8 @@ public class PlaceService {
     }
 
     private NearbyPlacesResponse createNearbyPlacesResponse(CoursePlace coursePlace, String type, int numOfRows) {
-        Double mapX = coursePlace.getPlace().getLat();
-        Double mapY = coursePlace.getPlace().getLng();
+        Double mapX = coursePlace.getPlace().getLng();
+        Double mapY = coursePlace.getPlace().getLat();
         String selfContentId = String.valueOf(coursePlace.getPlace().getContentId());
 
         List<Integer> contentTypeIds = getContentTypeIds(type);
