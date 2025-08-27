@@ -88,6 +88,9 @@ public class Place {
     }
 
     public boolean isSaved(Member loginMember) {
+        if (loginMember == null) {
+            return false;
+        }
         return loginMember.getSavedPlaces().stream()
                 .anyMatch(savedPlace -> savedPlace.getPlace().getId().equals(this.id));
     }
