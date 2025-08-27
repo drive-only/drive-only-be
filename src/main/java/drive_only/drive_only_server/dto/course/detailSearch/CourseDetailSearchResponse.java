@@ -38,7 +38,7 @@ public record CourseDetailSearchResponse(
                 course.getCreatedDate(),
                 CategoryResponse.from(course),
                 createTagResponse(course),
-                createCoursePlaceSearchResponse(coursePlaces),
+                createCoursePlaceSearchResponse(coursePlaces, loginMember),
                 course.getRecommendation(),
                 course.getDifficulty(),
                 course.getLikeCount(),
@@ -54,9 +54,9 @@ public record CourseDetailSearchResponse(
                 .toList();
     }
 
-    private static List<CoursePlaceSearchResponse> createCoursePlaceSearchResponse(List<CoursePlace> coursePlaces) {
+    private static List<CoursePlaceSearchResponse> createCoursePlaceSearchResponse(List<CoursePlace> coursePlaces, Member loginMember) {
         return coursePlaces.stream()
-                .map(CoursePlaceSearchResponse::from)
+                .map(coursePlace -> CoursePlaceSearchResponse.from(coursePlace, loginMember))
                 .toList();
     }
 }

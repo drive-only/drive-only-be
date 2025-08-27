@@ -3,6 +3,9 @@ package drive_only.drive_only_server.controller.member;
 import drive_only.drive_only_server.dto.common.ApiResult;
 import drive_only.drive_only_server.dto.common.ApiResultSupport;
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
+import drive_only.drive_only_server.dto.place.myPlace.DeleteSavedPlaceResponse;
+import drive_only.drive_only_server.dto.place.myPlace.SavePlaceResponse;
+import drive_only.drive_only_server.dto.place.search.SavedPlaceSearchResponse;
 import drive_only.drive_only_server.exception.annotation.ApiErrorCodeExamples;
 import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 
@@ -165,5 +168,45 @@ public class MemberController {
     ) {
         MyCourseListResponse result = memberService.getMyCourses(lastId, size);
         return ApiResultSupport.ok(SuccessCode.SUCCESS_GET_MY_COURSES, result);
+    }
+
+    @Operation(summary = "저장한 장소 리스트 조회", description = "사용자가 저장했던 장소들을 조회")
+    @ApiErrorCodeExamples({
+            ErrorCode.PLACE_NOT_FOUND,
+            ErrorCode.INVALID_TOKEN,
+            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.INTERNAL_SERVER_ERROR
+    })
+    @GetMapping("/api/members/me/saved-places")
+    public ResponseEntity<ApiResult<PaginatedResponse<SavedPlaceSearchResponse>>> getSavedPlaces() {
+        PaginatedResponse<SavedPlaceSearchResponse> result = memberService.searchSavedPlaces();
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_GET_SAVED_PLACES, result);
+    }
+
+    @Operation(summary = "장소 저장", description = "사용자가 저장하고 싶은 장소 등록")
+    @ApiErrorCodeExamples({
+            ErrorCode.PLACE_NOT_FOUND,
+            ErrorCode.INVALID_TOKEN,
+            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.INTERNAL_SERVER_ERROR
+    })
+    @PostMapping("/api/members/me/{placeId}")
+    public ResponseEntity<ApiResult<SavePlaceResponse>> savePlace(@PathVariable Long placeId) {
+        SavePlaceResponse result = memberService.savePlace(placeId);
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_SAVE_PLACE, result);
+    }
+
+    @Operation(summary = "저장한 장소 삭제", description = "사용자가 저장했던 장소를 삭제")
+    @ApiErrorCodeExamples({
+            ErrorCode.PLACE_NOT_FOUND,
+            ErrorCode.SAVED_PLACE_NOT_FOUND,
+            ErrorCode.INVALID_TOKEN,
+            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.INTERNAL_SERVER_ERROR
+    })
+    @DeleteMapping("/api/members/me/saved-places/{savedPlaceId}")
+    public ResponseEntity<ApiResult<DeleteSavedPlaceResponse>> deleteSavedPlace(@PathVariable Long savedPlaceId) {
+        DeleteSavedPlaceResponse result = memberService.deleteSavedPlace(savedPlaceId);
+        return ApiResultSupport.ok(SuccessCode.SUCCESS_DELETE_SAVED_PLACE, result);
     }
 }
