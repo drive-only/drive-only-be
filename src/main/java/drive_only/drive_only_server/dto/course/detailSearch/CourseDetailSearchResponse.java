@@ -27,8 +27,10 @@ public record CourseDetailSearchResponse(
 ) {
     public static CourseDetailSearchResponse from(Course course, List<CoursePlace> coursePlaces, Member loginMember) {
         boolean isMine = false;
+        boolean isLiked = false;
         if (loginMember != null) {
             isMine = course.isWrittenBy(loginMember);
+            isLiked = course.isLikedBy(loginMember);
         }
         return new CourseDetailSearchResponse(
                 course.getId(),
@@ -44,7 +46,7 @@ public record CourseDetailSearchResponse(
                 course.getLikeCount(),
                 course.getViewCount(),
                 isMine,
-                course.isLiked()
+                isLiked
         );
     }
 
