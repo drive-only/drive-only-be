@@ -97,7 +97,7 @@ public class CourseService {
     }
 
     public PaginatedResponse<CourseDetailSearchResponse> searchCourseDetail(Long courseId) {
-        Course course = findCourse(courseId);
+        Course course = findCourseWithMember(courseId);
         Member loginMember = loginMemberProvider.getLoginMemberIfExists();
         if (loginMember != null && hiddenCourseRepository.existsByCourseAndMember(course, loginMember)) {
             throw new CourseNotFoundException();
@@ -355,6 +355,10 @@ public class CourseService {
 
     private Course findCourse(Long courseId) {
         return courseRepository.findById(courseId).orElseThrow(CourseNotFoundException::new);
+    }
+
+    private Course findCourseWithMember(Long courseId) {
+        return courseRepository.findWithMemberById(courseId).orElseThrow(CourseNotFoundException::new);
     }
 
     private void validateCourseOwner(Course course) {
