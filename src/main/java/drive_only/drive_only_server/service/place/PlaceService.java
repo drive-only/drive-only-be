@@ -41,8 +41,6 @@ public class PlaceService {
     private final TourApiClient tourApiClient;
     private final PlaceRepository placeRepository;
     private final CourseRepository courseRepository;
-    private final SavedPlaceRepository savedPlaceRepository;
-    private final LoginMemberProvider loginMemberProvider;
 
     public PaginatedResponse<PlaceSearchResponse> searchPlaces(PlaceSearchRequest request, int page, int size) {
         validateSearchRequest(request);
@@ -72,37 +70,6 @@ public class PlaceService {
         }
 
         return new PaginatedResponse<>(results, null);
-    }
-
-    public PaginatedResponse<SavedPlaceSearchResponse> searchSavedPlaces() {
-        Member member = loginMemberProvider.getLoginMember();
-        List<SavedPlace> savedPlaces = savedPlaceRepository.findByMember(member);
-        List<SavedPlaceSearchResponse> results = savedPlaces.stream()
-                .map(savedPlace -> {
-                    Place place = savedPlace.getPlace();
-                    return SavedPlaceSearchResponse.from(place, savedPlace.getId());
-                })
-                .toList();
-        return new PaginatedResponse<>(results, null);
-    }
-
-    @Transactional
-    public SavePlaceResponse savePlace(Long placeId) {
-        Member member = loginMemberProvider.getLoginMember();
-        Place place = findPlaceById(placeId);
-        SavedPlace savedPlace = savedPlaceRepository.save(new SavedPlace(member, place));
-        return new SavePlaceResponse(savedPlace.getId());
-    }
-
-    @Transactional
-    public DeleteSavedPlaceResponse deleteSavedPlace(Long savedPlaceId) {
-        Member member = loginMemberProvider.getLoginMember();
-        SavedPlace savedPlace = member.getSavedPlaces().stream()
-                .filter(sp -> sp.getId().equals(savedPlaceId))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("저장되지 않은 장소입니다."));
-        savedPlaceRepository.delete(savedPlace);
-        return new DeleteSavedPlaceResponse(savedPlace.getId());
     }
 
     private List<Integer> getDistribution(int coursePlaceCount) {
