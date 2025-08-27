@@ -4,23 +4,19 @@ import drive_only.drive_only_server.domain.Course;
 import drive_only.drive_only_server.domain.CoursePlace;
 import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.domain.Place;
-import drive_only.drive_only_server.domain.SavedPlace;
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
 import drive_only.drive_only_server.dto.meta.Meta;
-import drive_only.drive_only_server.dto.place.myPlace.DeleteSavedPlaceResponse;
-import drive_only.drive_only_server.dto.place.myPlace.SavePlaceResponse;
+import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlaceSearchResponse;
 import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlaceTourApiResponse;
 import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlaceTourApiResponse.Item;
 import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlacesResponse;
 import drive_only.drive_only_server.dto.place.search.PlaceSearchRequest;
 import drive_only.drive_only_server.dto.place.search.PlaceSearchResponse;
-import drive_only.drive_only_server.dto.place.search.SavedPlaceSearchResponse;
 import drive_only.drive_only_server.exception.custom.BusinessException;
 import drive_only.drive_only_server.exception.custom.CourseNotFoundException;
 import drive_only.drive_only_server.exception.custom.PlaceNotFoundException;
 import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import drive_only.drive_only_server.repository.course.CourseRepository;
-import drive_only.drive_only_server.repository.course.SavedPlaceRepository;
 import drive_only.drive_only_server.repository.place.PlaceRepository;
 import drive_only.drive_only_server.security.LoginMemberProvider;
 import drive_only.drive_only_server.service.client.TourApiClient;
@@ -38,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class PlaceService {
+    private final LoginMemberProvider loginMemberProvider;
     private final TourApiClient tourApiClient;
     private final PlaceRepository placeRepository;
     private final CourseRepository courseRepository;
@@ -115,7 +112,7 @@ public class PlaceService {
         if (finalItems.size() > numOfRows) {
             finalItems = finalItems.subList(0, numOfRows);
         }
-        List<PlaceSearchResponse> searchResponses = createPlaceSearchResponses(finalItems);
+        List<NearbyPlaceSearchResponse> searchResponses = createNearbyPlaceSearchResponses(finalItems);
         return NearbyPlacesResponse.from(coursePlace, searchResponses);
     }
 
@@ -127,11 +124,12 @@ public class PlaceService {
         };
     }
 
-    private List<PlaceSearchResponse> createPlaceSearchResponses(List<Item> nearbyPlaces) {
+    private List<NearbyPlaceSearchResponse> createNearbyPlaceSearchResponses(List<Item> nearbyPlaces) {
         return nearbyPlaces.stream()
                 .map(nearbyPlace -> {
                     Place place = findPlaceByContentId(nearbyPlace);
-                    return PlaceSearchResponse.from(place);
+                    Member loginMember = loginMemberProvider.getLoginMemberIfExists();
+                    return NearbyPlaceSearchResponse.from(place, loginMember);
                 })
                 .toList();
     }

@@ -86,4 +86,9 @@ public class Place {
         this.useTime = useTime;
         this.restDate = restDate;
     }
+
+    public boolean isSaved(Member loginMember) {
+        return loginMember.getSavedPlaces().stream()
+                .anyMatch(savedPlace -> savedPlace.getPlace().getId().equals(this.id));
+    }
 }

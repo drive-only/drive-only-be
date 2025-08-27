@@ -1,6 +1,7 @@
 package drive_only.drive_only_server.dto.coursePlace.search;
 
 import drive_only.drive_only_server.domain.CoursePlace;
+import drive_only.drive_only_server.domain.Member;
 import drive_only.drive_only_server.dto.photo.PhotoResponse;
 import java.util.List;
 
@@ -14,9 +15,10 @@ public record CoursePlaceSearchResponse(
         List<PhotoResponse> photoUrls,
         double lat,
         double lng,
-        int sequence
+        int sequence,
+        boolean isSavedPlace
 ) {
-    public static CoursePlaceSearchResponse from(CoursePlace coursePlace) {
+    public static CoursePlaceSearchResponse from(CoursePlace coursePlace, Member loginMember) {
         return new CoursePlaceSearchResponse(
                 coursePlace.getId(),
                 coursePlace.getPlace().getId(),
@@ -27,7 +29,8 @@ public record CoursePlaceSearchResponse(
                 createPhotoResponse(coursePlace),
                 coursePlace.getPlace().getLat(),
                 coursePlace.getPlace().getLng(),
-                coursePlace.getSequence()
+                coursePlace.getSequence(),
+                coursePlace.getPlace().isSaved(loginMember)
         );
     }
 
