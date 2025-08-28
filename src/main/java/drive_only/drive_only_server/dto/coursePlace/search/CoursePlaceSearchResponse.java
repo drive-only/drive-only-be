@@ -16,7 +16,8 @@ public record CoursePlaceSearchResponse(
         double lat,
         double lng,
         int sequence,
-        boolean isSavedPlace
+        boolean isSavedPlace,
+        Long savedPlaceId
 ) {
     public static CoursePlaceSearchResponse from(CoursePlace coursePlace, Member loginMember) {
         return new CoursePlaceSearchResponse(
@@ -30,7 +31,8 @@ public record CoursePlaceSearchResponse(
                 coursePlace.getPlace().getLat(),
                 coursePlace.getPlace().getLng(),
                 coursePlace.getSequence(),
-                coursePlace.getPlace().isSaved(loginMember)
+                coursePlace.getPlace().isSavedFrom(loginMember),
+                loginMember.getSavedPlaceId(coursePlace.getPlace().getId())
         );
     }
 

@@ -74,6 +74,19 @@ public class Member {
         likedComment.setMember(this);
     }
 
+    public Long getSavedPlaceId(Long placeId) {
+        if (savedPlaces == null) {
+            return null;
+        }
+        SavedPlace savedPlace = savedPlaces.stream()
+                .filter(sp -> sp.isSamePlace(placeId))
+                .findAny().orElse(null);
+        if (savedPlace == null) {
+            return null;
+        }
+        return savedPlace.getId();
+    }
+
     private static void validateEmail(String email) {
         if (email == null || email.isBlank()
                 || email.length() > EMAIL_MAX

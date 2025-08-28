@@ -87,7 +87,7 @@ public class Place {
         this.restDate = restDate;
     }
 
-    public boolean isSaved(Member loginMember) {
+    public boolean isSavedFrom(Member loginMember) {
         if (loginMember == null) {
             return false;
         }

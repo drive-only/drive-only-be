@@ -25,6 +25,10 @@ public class SavedPlace {
         setPlace(place);
     }
 
+    public boolean isSamePlace(Long placeId) {
+        return this.place.getId().equals(placeId);
+    }
+
     private void setMember(Member member) {
         this.member = member;
         if (!member.getSavedPlaces().contains(this)) {

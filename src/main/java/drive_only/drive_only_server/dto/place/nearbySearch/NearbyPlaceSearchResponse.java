@@ -28,7 +28,7 @@ public record NearbyPlaceSearchResponse(
                 place.getPhoneNum(),
                 place.getLat(),
                 place.getLng(),
-                place.isSaved(loginMember)
+                place.isSavedFrom(loginMember)
         );
     }
 
