@@ -11,6 +11,7 @@ import java.util.List;
 
 public record CourseDetailSearchResponse(
         Long courseId,
+        Long memberId,
         String title,
         String profileImageUrl,
         String nickname,
@@ -34,6 +35,7 @@ public record CourseDetailSearchResponse(
         }
         return new CourseDetailSearchResponse(
                 course.getId(),
+                course.getMember().getId(),
                 course.getTitle(),
                 course.getMember().getProfileImageUrl(),
                 course.getMember().getNickname(),
