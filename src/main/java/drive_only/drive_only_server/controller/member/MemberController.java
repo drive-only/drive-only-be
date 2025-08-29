@@ -76,6 +76,7 @@ public class MemberController {
 
     @Operation(summary = "회원 정보 수정", description = "로그인한 사용자의 닉네임, 프로필 이미지를 수정합니다.")
     @ApiErrorCodeExamples({
+            ErrorCode.INVALID_NICKNAME,
             ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
             ErrorCode.ACCESS_TOKEN_EXPIRED,
             ErrorCode.ACCESS_TOKEN_INVALID,
@@ -183,6 +184,7 @@ public class MemberController {
 
     @Operation(summary = "저장한 장소 리스트 조회", description = "사용자가 저장했던 장소들을 조회")
     @ApiErrorCodeExamples({
+            ErrorCode.PLACE_NOT_FOUND,
             ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
             ErrorCode.ACCESS_TOKEN_EXPIRED,
             ErrorCode.ACCESS_TOKEN_INVALID,
@@ -197,6 +199,7 @@ public class MemberController {
 
     @Operation(summary = "장소 저장", description = "사용자가 저장하고 싶은 장소 등록")
     @ApiErrorCodeExamples({
+            ErrorCode.PLACE_NOT_FOUND,
             ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
             ErrorCode.ACCESS_TOKEN_EXPIRED,
             ErrorCode.ACCESS_TOKEN_INVALID,
@@ -211,6 +214,8 @@ public class MemberController {
 
     @Operation(summary = "저장한 장소 삭제", description = "사용자가 저장했던 장소를 삭제")
     @ApiErrorCodeExamples({
+            ErrorCode.PLACE_NOT_FOUND,
+            ErrorCode.SAVED_PLACE_NOT_FOUND,
             ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
             ErrorCode.ACCESS_TOKEN_EXPIRED,
             ErrorCode.ACCESS_TOKEN_INVALID,
