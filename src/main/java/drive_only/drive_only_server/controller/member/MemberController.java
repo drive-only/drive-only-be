@@ -3,6 +3,8 @@ package drive_only.drive_only_server.controller.member;
 import drive_only.drive_only_server.dto.common.ApiResult;
 import drive_only.drive_only_server.dto.common.ApiResultSupport;
 import drive_only.drive_only_server.dto.common.PaginatedResponse;
+import drive_only.drive_only_server.dto.member.MyProfileResponse;
+import drive_only.drive_only_server.dto.place.list.SavedPlaceListResponse;
 import drive_only.drive_only_server.dto.place.myPlace.DeleteSavedPlaceResponse;
 import drive_only.drive_only_server.dto.place.myPlace.SavePlaceResponse;
 import drive_only.drive_only_server.dto.place.search.SavedPlaceSearchResponse;
@@ -52,8 +54,8 @@ public class MemberController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/members/me")
-    public ResponseEntity<ApiResult<PaginatedResponse<MemberResponse>>> getMyProfile() {
-        PaginatedResponse<MemberResponse> result = memberService.getMyProfile();
+    public ResponseEntity<ApiResult<MyProfileResponse>> getMyProfile() {
+        MyProfileResponse result = memberService.getMyProfile();
         return ApiResultSupport.ok(SuccessCode.SUCCESS_GET_MY_PROFILE, result);
     }
 
@@ -69,8 +71,8 @@ public class MemberController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/members/{id}")
-    public ResponseEntity<ApiResult<PaginatedResponse<OtherMemberResponse>>> getOtherMemberProfile(@PathVariable Long id) {
-        PaginatedResponse<OtherMemberResponse> result = memberService.findOtherMember(id);
+    public ResponseEntity<ApiResult<OtherMemberResponse>> getOtherMemberProfile(@PathVariable Long id) {
+        OtherMemberResponse result = memberService.findOtherMember(id);
         return ApiResultSupport.ok(SuccessCode.SUCCESS_GET_OTHER_MEMBER, result);
     }
 
@@ -85,10 +87,8 @@ public class MemberController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PatchMapping("/api/members/me")
-    public ResponseEntity<ApiResult<PaginatedResponse<MemberResponse>>> updateMyProfile(
-            @RequestBody MemberUpdateRequest request
-    ) {
-        PaginatedResponse<MemberResponse> result = memberService.updateMember(request);
+    public ResponseEntity<ApiResult<MemberResponse>> updateMyProfile(@RequestBody MemberUpdateRequest request) {
+        MemberResponse result = memberService.updateMember(request);
         return ApiResultSupport.ok(SuccessCode.SUCCESS_UPDATE_MEMBER, result);
     }
 
@@ -150,7 +150,7 @@ public class MemberController {
         );
     }
 
-    @Operation(summary = "좋아요한 코스 조회", description = "회원이 좋아요한 드라이브 코스를 최신순으로 조회")
+    @Operation(summary = "좋아요 한 코스 조회", description = "회원이 좋아요한 드라이브 코스를 최신순으로 조회")
     @ApiErrorCodeExamples({
             ErrorCode.MEMBER_NOT_FOUND,
             ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
@@ -195,8 +195,11 @@ public class MemberController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/members/me/saved-places")
-    public ResponseEntity<ApiResult<PaginatedResponse<SavedPlaceSearchResponse>>> getSavedPlaces() {
-        PaginatedResponse<SavedPlaceSearchResponse> result = memberService.searchSavedPlaces();
+    public ResponseEntity<ApiResult<SavedPlaceListResponse>> getSavedPlaces(
+            @RequestParam(required = false) Long lastId,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        SavedPlaceListResponse result = memberService.searchSavedPlaces(lastId, size);
         return ApiResultSupport.ok(SuccessCode.SUCCESS_GET_SAVED_PLACES, result);
     }
 
