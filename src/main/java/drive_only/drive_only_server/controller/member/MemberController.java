@@ -94,6 +94,7 @@ public class MemberController {
 
     @Operation(summary = "회원 탈퇴", description = "현재 로그인한 회원 탈퇴")
     @ApiErrorCodeExamples({
+            ErrorCode.MEMBER_NOT_FOUND,
             ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
             ErrorCode.ACCESS_TOKEN_EXPIRED,
             ErrorCode.ACCESS_TOKEN_INVALID,
@@ -151,6 +152,7 @@ public class MemberController {
 
     @Operation(summary = "좋아요한 코스 조회", description = "회원이 좋아요한 드라이브 코스를 최신순으로 조회")
     @ApiErrorCodeExamples({
+            ErrorCode.MEMBER_NOT_FOUND,
             ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
             ErrorCode.ACCESS_TOKEN_EXPIRED,
             ErrorCode.ACCESS_TOKEN_INVALID,
