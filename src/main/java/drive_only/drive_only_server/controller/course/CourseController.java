@@ -77,6 +77,7 @@ public class CourseController {
 
     @Operation(summary = "코스(게시글) 등록", description = "새로운 드라이브 코스(게시글)를 등록")
     @ApiErrorCodeExamples({
+            // 400 유효성
             ErrorCode.INVALID_CATEGORY_REGION,
             ErrorCode.INVALID_CATEGORY_SEASON,
             ErrorCode.INVALID_CATEGORY_AREA_TYPE,
@@ -86,7 +87,14 @@ public class CourseController {
             ErrorCode.INVALID_COURSE_PLACE_CONTENT,
             ErrorCode.INVALID_COURSE_PLACE_PHOTOS,
             ErrorCode.COURSE_PLACES_REQUIRED,
-            ErrorCode.INVALID_TOKEN,
+
+            // 401 Access 관련
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
+
+            // 500
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PostMapping(value = "/api/courses", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -100,7 +108,10 @@ public class CourseController {
 
     @Operation(summary = "코스(게시글) 수정", description = "courseId를 이용해 기존 드라이브 코스(게시글)의 정보를 수정")
     @ApiErrorCodeExamples({
+            // 404
             ErrorCode.COURSE_NOT_FOUND,
+
+            // 400 유효성
             ErrorCode.INVALID_CATEGORY_REGION,
             ErrorCode.INVALID_CATEGORY_SEASON,
             ErrorCode.INVALID_CATEGORY_AREA_TYPE,
@@ -110,8 +121,17 @@ public class CourseController {
             ErrorCode.INVALID_COURSE_PLACE_CONTENT,
             ErrorCode.INVALID_COURSE_PLACE_PHOTOS,
             ErrorCode.COURSE_PLACES_REQUIRED,
+
+            // 403 소유자 권한
             ErrorCode.OWNER_MISMATCH,
-            ErrorCode.INVALID_TOKEN,
+
+            // 401 Access 관련
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
+
+            // 500
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PutMapping(value = "/api/courses/{courseId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -126,11 +146,22 @@ public class CourseController {
 
     @Operation(summary = "코스(게시글) 삭제", description = "courseId를 이용해 드라이브 코스(게시글)를 삭제")
     @ApiErrorCodeExamples({
+            // 404
             ErrorCode.COURSE_NOT_FOUND,
+
+            // 403 소유자 권한
             ErrorCode.OWNER_MISMATCH,
-            ErrorCode.INVALID_TOKEN,
+
+            // 401 Access 관련
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
+
+            // 500
             ErrorCode.INTERNAL_SERVER_ERROR
     })
+
     @DeleteMapping("/api/courses/{courseId}")
     public ResponseEntity<ApiResult<CourseDeleteResponse>> deleteCourse(@PathVariable Long courseId) {
         CourseDeleteResponse result = courseService.deleteCourse(courseId);
@@ -139,10 +170,18 @@ public class CourseController {
 
     @Operation(summary = "코스(게시글) 좋아요 전송", description = "특정 코스에 대해 좋아요 또는 좋아요 취소 요청을 처리합니다.")
     @ApiErrorCodeExamples({
+            // 404
             ErrorCode.COURSE_NOT_FOUND,
-            ErrorCode.UNAUTHENTICATED_MEMBER,
-            ErrorCode.INVALID_TOKEN,
+
+            // 401 Access 관련
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
+
             ErrorCode.ACCESS_DENIED,
+
+            // 500
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PostMapping("/api/courses/{courseId}/like")
@@ -163,10 +202,16 @@ public class CourseController {
 
     @Operation(summary = "코스(게시글) 신고(숨김)", description = "해당 게시글을 신고하여 신고자 본인 화면에서만 숨깁니다.")
     @ApiErrorCodeExamples({
+            // 404
             ErrorCode.COURSE_NOT_FOUND,
-            ErrorCode.UNAUTHENTICATED_MEMBER,
-            ErrorCode.INVALID_TOKEN,
-            ErrorCode.ACCESS_DENIED,
+
+            // 401 Access 관련
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
+
+            // 500
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PostMapping("/api/courses/{courseId}/report")
@@ -180,10 +225,16 @@ public class CourseController {
 
     @Operation(summary = "코스(게시글) 신고(숨김) 해제", description = "신고자 본인 화면에서 숨긴 게시글을 다시 보이도록 합니다.")
     @ApiErrorCodeExamples({
+            // 404
             ErrorCode.COURSE_NOT_FOUND,
-            ErrorCode.UNAUTHENTICATED_MEMBER,
-            ErrorCode.INVALID_TOKEN,
-            ErrorCode.ACCESS_DENIED,
+
+            // 401 Access 관련
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
+
+            // 500
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @DeleteMapping("/api/courses/{courseId}/report")

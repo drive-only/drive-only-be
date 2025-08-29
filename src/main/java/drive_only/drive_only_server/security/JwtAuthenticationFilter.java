@@ -52,7 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (token != null && !token.isBlank()) {
             if (logoutService.isBlacklisted(token)) {
                 if (!isPermitAll) {
-                    request.setAttribute("ERROR_CODE", ErrorCode.TOKEN_BLACKLISTED);
+                    request.setAttribute("ERROR_CODE", ErrorCode.ACCESS_TOKEN_BLACKLISTED);
                     restAuthenticationEntryPoint.commence(
                             request, response,
                             new org.springframework.security.authentication.InsufficientAuthenticationException("blacklisted")
@@ -71,8 +71,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             } else {
                 if (!isPermitAll) {
-                    request.setAttribute("ERROR_CODE",
-                            status == JwtValidationStatus.EXPIRED ? ErrorCode.TOKEN_EXPIRED : ErrorCode.INVALID_TOKEN);
+                    if (status == JwtValidationStatus.EXPIRED) {
+                        request.setAttribute("ERROR_CODE", ErrorCode.ACCESS_TOKEN_EXPIRED);
+                    } else {
+                        request.setAttribute("ERROR_CODE", ErrorCode.ACCESS_TOKEN_INVALID);
+                    }
                     restAuthenticationEntryPoint.commence(
                             request, response,
                             new org.springframework.security.authentication.InsufficientAuthenticationException("invalid/expired")
@@ -111,7 +114,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 
-    private void setAuthentication(String token, HttpServletRequest request) {
+    private void setAuthentication(String token, HttpServletRequest request) throws IOException {
         final String email = jwtTokenProvider.getEmail(token);
         final String providerStr = jwtTokenProvider.getProvider(token);
 
@@ -119,8 +122,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             provider = ProviderType.valueOf(String.valueOf(providerStr).toUpperCase());
         } catch (RuntimeException e) {
-            request.setAttribute("ERROR_CODE", ErrorCode.INVALID_TOKEN);
-            throw new org.springframework.security.core.AuthenticationException("provider parse fail", e) {};
+            request.setAttribute("ERROR_CODE", ErrorCode.ACCESS_TOKEN_INVALID);
+            restAuthenticationEntryPoint.commence(
+                    request, (HttpServletResponse) request.getAttribute("HTTP_RESPONSE"),
+                    new org.springframework.security.authentication.InsufficientAuthenticationException("provider parse fail", e)
+            );
+            return;
         }
 
         var principal = new CustomUserPrincipal(email, provider);
