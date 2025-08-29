@@ -53,12 +53,16 @@ public class TokenRefreshController {
     public ResponseEntity<ApiResult<Void>> refreshAccessToken(
             @CookieValue(value = "refresh-token", required = false) String refreshToken
     ) {
-        // 1) 쿠키 미전달/형식/서명 오류
-        if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
+        // 1) 쿠키 미전달 → REFRESH_TOKEN_EMPTY_ERROR
+        if (refreshToken == null) {
+            throw new BusinessException(ErrorCode.REFRESH_TOKEN_EMPTY_ERROR);
+        }
+
+        // 2) 쿠키는 왔지만 형식/서명 오류
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
             throw new BusinessException(ErrorCode.INVALID_TOKEN);
         }
 
-        // 2) 저장된 토큰과 일치 검증
         String email = jwtTokenProvider.getEmail(refreshToken);
         String savedToken = refreshTokenService.getRefreshToken(email);
         if (savedToken == null || !savedToken.equals(refreshToken)) {

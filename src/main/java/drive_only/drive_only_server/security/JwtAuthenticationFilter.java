@@ -25,6 +25,7 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final LogoutService logoutService;
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -52,7 +53,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (logoutService.isBlacklisted(token)) {
                 if (!isPermitAll) {
                     request.setAttribute("ERROR_CODE", ErrorCode.TOKEN_BLACKLISTED);
-                    throw new org.springframework.security.core.AuthenticationException("blacklisted") {};
+                    restAuthenticationEntryPoint.commence(
+                            request, response,
+                            new org.springframework.security.authentication.InsufficientAuthenticationException("blacklisted")
+                    );
+                    return;
                 }
                 SecurityContextHolder.clearContext();
                 chain.doFilter(request, response);
@@ -68,14 +73,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (!isPermitAll) {
                     request.setAttribute("ERROR_CODE",
                             status == JwtValidationStatus.EXPIRED ? ErrorCode.TOKEN_EXPIRED : ErrorCode.INVALID_TOKEN);
-                    throw new org.springframework.security.core.AuthenticationException("invalid/expired") {};
+                    restAuthenticationEntryPoint.commence(
+                            request, response,
+                            new org.springframework.security.authentication.InsufficientAuthenticationException("invalid/expired")
+                    );
+                    return;
                 }
                 SecurityContextHolder.clearContext();
             }
         } else {
             if (!isPermitAll) {
-                request.setAttribute("ERROR_CODE", ErrorCode.UNAUTHENTICATED_MEMBER);
-                throw new org.springframework.security.core.AuthenticationException("missing token") {};
+                request.setAttribute("ERROR_CODE", ErrorCode.ACCESS_TOKEN_EMPTY_ERROR);
+                restAuthenticationEntryPoint.commence(
+                        request, response,
+                        new org.springframework.security.authentication.AuthenticationCredentialsNotFoundException("missing token")
+                );
+                return; // [ADDED]
             }
             SecurityContextHolder.clearContext();
         }

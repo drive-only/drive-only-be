@@ -35,6 +35,8 @@ public enum ErrorCode {
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다."),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
     UNAUTHENTICATED_MEMBER(HttpStatus.UNAUTHORIZED, "로그인이 필요한 요청입니다."),
+    ACCESS_TOKEN_EMPTY_ERROR(HttpStatus.UNAUTHORIZED, "액세스 토큰이 비어 있습니다."),
+    REFRESH_TOKEN_EMPTY_ERROR(HttpStatus.UNAUTHORIZED, "리프레시 토큰이 비어 있습니다."),
 
     //403 FORBIDDEN
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
