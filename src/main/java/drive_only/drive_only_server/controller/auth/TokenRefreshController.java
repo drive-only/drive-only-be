@@ -45,7 +45,10 @@ public class TokenRefreshController {
     )
     @ApiErrorCodeExamples({
             ErrorCode.INVALID_TOKEN,
+            ErrorCode.REFRESH_TOKEN_EMPTY_ERROR,
+            ErrorCode.REFRESH_TOKEN_EXPIRED,
             ErrorCode.REFRESH_TOKEN_NOT_FOUND,
+            ErrorCode.REFRESH_TOKEN_MISMATCH,
             ErrorCode.MEMBER_NOT_FOUND,
             ErrorCode.INTERNAL_SERVER_ERROR
     })
@@ -53,27 +56,39 @@ public class TokenRefreshController {
     public ResponseEntity<ApiResult<Void>> refreshAccessToken(
             @CookieValue(value = "refresh-token", required = false) String refreshToken
     ) {
-        // 1) 쿠키 미전달/형식/서명 오류
-        if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
+        // 1) 쿠키 없음
+        if (refreshToken == null) {
+            throw new BusinessException(ErrorCode.REFRESH_TOKEN_EMPTY_ERROR);
+        }
+
+        // 2)
+        JwtTokenProvider.JwtValidationStatus status = jwtTokenProvider.getStatus(refreshToken);
+        if (status == JwtTokenProvider.JwtValidationStatus.EXPIRED) {
+            throw new BusinessException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+        }
+        if (status == JwtTokenProvider.JwtValidationStatus.INVALID) {
             throw new BusinessException(ErrorCode.INVALID_TOKEN);
         }
 
-        // 2) 저장된 토큰과 일치 검증
+        // 3) 저장된 토큰과 불일치
         String email = jwtTokenProvider.getEmail(refreshToken);
         String savedToken = refreshTokenService.getRefreshToken(email);
-        if (savedToken == null || !savedToken.equals(refreshToken)) {
-            throw new RefreshTokenNotFoundException();
+        if (savedToken == null) {
+            throw new BusinessException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
+        }
+        if (!savedToken.equals(refreshToken)) {
+            throw new BusinessException(ErrorCode.REFRESH_TOKEN_MISMATCH);
         }
 
-        // 3) 회원/프로바이더 로드 (없으면 MemberNotFoundException)
+        // 4) 회원/프로바이더 로드 (없으면 MemberNotFoundException)
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
         ProviderType provider = member.getProvider();
 
-        // 4) 새 access token 발급
+        // 5) 새 access token 발급
         String newAccessToken = jwtTokenProvider.createAccessToken(email, provider);
 
-        // 5) Set-Cookie 로 내려줌
+        // 6) Set-Cookie 로 내려줌
         ResponseCookie accessTokenCookie = ResponseCookie.from("access-token", newAccessToken)
                 .httpOnly(true)
                 .secure(true)

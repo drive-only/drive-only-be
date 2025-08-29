@@ -25,6 +25,7 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final LogoutService logoutService;
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -51,8 +52,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (token != null && !token.isBlank()) {
             if (logoutService.isBlacklisted(token)) {
                 if (!isPermitAll) {
-                    request.setAttribute("ERROR_CODE", ErrorCode.TOKEN_BLACKLISTED);
-                    throw new org.springframework.security.core.AuthenticationException("blacklisted") {};
+                    request.setAttribute("ERROR_CODE", ErrorCode.ACCESS_TOKEN_BLACKLISTED);
+                    restAuthenticationEntryPoint.commence(
+                            request, response,
+                            new org.springframework.security.authentication.InsufficientAuthenticationException("blacklisted")
+                    );
+                    return;
                 }
                 SecurityContextHolder.clearContext();
                 chain.doFilter(request, response);
@@ -66,16 +71,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             } else {
                 if (!isPermitAll) {
-                    request.setAttribute("ERROR_CODE",
-                            status == JwtValidationStatus.EXPIRED ? ErrorCode.TOKEN_EXPIRED : ErrorCode.INVALID_TOKEN);
-                    throw new org.springframework.security.core.AuthenticationException("invalid/expired") {};
+                    if (status == JwtValidationStatus.EXPIRED) {
+                        request.setAttribute("ERROR_CODE", ErrorCode.ACCESS_TOKEN_EXPIRED);
+                    } else {
+                        request.setAttribute("ERROR_CODE", ErrorCode.ACCESS_TOKEN_INVALID);
+                    }
+                    restAuthenticationEntryPoint.commence(
+                            request, response,
+                            new org.springframework.security.authentication.InsufficientAuthenticationException("invalid/expired")
+                    );
+                    return;
                 }
                 SecurityContextHolder.clearContext();
             }
         } else {
             if (!isPermitAll) {
-                request.setAttribute("ERROR_CODE", ErrorCode.UNAUTHENTICATED_MEMBER);
-                throw new org.springframework.security.core.AuthenticationException("missing token") {};
+                request.setAttribute("ERROR_CODE", ErrorCode.ACCESS_TOKEN_EMPTY_ERROR);
+                restAuthenticationEntryPoint.commence(
+                        request, response,
+                        new org.springframework.security.authentication.AuthenticationCredentialsNotFoundException("missing token")
+                );
+                return; // [ADDED]
             }
             SecurityContextHolder.clearContext();
         }
@@ -98,7 +114,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 
-    private void setAuthentication(String token, HttpServletRequest request) {
+    private void setAuthentication(String token, HttpServletRequest request) throws IOException {
         final String email = jwtTokenProvider.getEmail(token);
         final String providerStr = jwtTokenProvider.getProvider(token);
 
@@ -106,8 +122,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             provider = ProviderType.valueOf(String.valueOf(providerStr).toUpperCase());
         } catch (RuntimeException e) {
-            request.setAttribute("ERROR_CODE", ErrorCode.INVALID_TOKEN);
-            throw new org.springframework.security.core.AuthenticationException("provider parse fail", e) {};
+            request.setAttribute("ERROR_CODE", ErrorCode.ACCESS_TOKEN_INVALID);
+            restAuthenticationEntryPoint.commence(
+                    request, (HttpServletResponse) request.getAttribute("HTTP_RESPONSE"),
+                    new org.springframework.security.authentication.InsufficientAuthenticationException("provider parse fail", e)
+            );
+            return;
         }
 
         var principal = new CustomUserPrincipal(email, provider);

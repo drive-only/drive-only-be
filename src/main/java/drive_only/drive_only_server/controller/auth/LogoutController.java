@@ -32,8 +32,13 @@ public class LogoutController {
 
     @Operation(summary = "로그아웃", description = "로그아웃 요청")
     @ApiErrorCodeExamples({
-            ErrorCode.INVALID_TOKEN,
-            ErrorCode.UNAUTHENTICATED_MEMBER,
+            // 401 Access
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
+
+            // 500
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PostMapping("/api/logout")

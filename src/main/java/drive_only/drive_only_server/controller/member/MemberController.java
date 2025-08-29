@@ -44,8 +44,11 @@ public class MemberController {
 
     @Operation(summary = "마이페이지", description = "마이페이지 조회")
     @ApiErrorCodeExamples({
-            ErrorCode.UNAUTHENTICATED_MEMBER,
-            ErrorCode.INVALID_TOKEN,
+            // 401 Access
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/members/me")
@@ -57,8 +60,12 @@ public class MemberController {
     @Operation(summary = "다른 회원 정보 조회", description = "회원 ID로 다른 회원 정보 조회")
     @ApiErrorCodeExamples({
             ErrorCode.MEMBER_NOT_FOUND,
-            ErrorCode.UNAUTHENTICATED_MEMBER,
-            ErrorCode.INVALID_TOKEN,
+
+            // 401 Access
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/members/{id}")
@@ -71,8 +78,10 @@ public class MemberController {
     @ApiErrorCodeExamples({
             ErrorCode.INVALID_NICKNAME,
             ErrorCode.MEMBER_NOT_FOUND,
-            ErrorCode.UNAUTHENTICATED_MEMBER,
-            ErrorCode.INVALID_TOKEN,
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PatchMapping("/api/members/me")
@@ -86,8 +95,10 @@ public class MemberController {
     @Operation(summary = "회원 탈퇴", description = "현재 로그인한 회원 탈퇴")
     @ApiErrorCodeExamples({
             ErrorCode.MEMBER_NOT_FOUND,
-            ErrorCode.UNAUTHENTICATED_MEMBER,
-            ErrorCode.INVALID_TOKEN,
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @DeleteMapping("/api/members/me")
@@ -142,8 +153,10 @@ public class MemberController {
     @Operation(summary = "좋아요한 코스 조회", description = "회원이 좋아요한 드라이브 코스를 최신순으로 조회")
     @ApiErrorCodeExamples({
             ErrorCode.MEMBER_NOT_FOUND,
-            ErrorCode.UNAUTHENTICATED_MEMBER,
-            ErrorCode.INVALID_TOKEN,
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/members/me/likedCourses")
@@ -157,8 +170,10 @@ public class MemberController {
 
     @Operation(summary = "작성한 코스 조회", description = "인증된 사용자의 작성 코스를 커서 기반으로 조회")
     @ApiErrorCodeExamples({
-            ErrorCode.UNAUTHENTICATED_MEMBER,
-            ErrorCode.INVALID_TOKEN,
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/members/me/courses")
@@ -173,8 +188,10 @@ public class MemberController {
     @Operation(summary = "저장한 장소 리스트 조회", description = "사용자가 저장했던 장소들을 조회")
     @ApiErrorCodeExamples({
             ErrorCode.PLACE_NOT_FOUND,
-            ErrorCode.INVALID_TOKEN,
-            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @GetMapping("/api/members/me/saved-places")
@@ -186,8 +203,10 @@ public class MemberController {
     @Operation(summary = "장소 저장", description = "사용자가 저장하고 싶은 장소 등록")
     @ApiErrorCodeExamples({
             ErrorCode.PLACE_NOT_FOUND,
-            ErrorCode.INVALID_TOKEN,
-            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PostMapping("/api/members/me/{placeId}")
@@ -200,8 +219,10 @@ public class MemberController {
     @ApiErrorCodeExamples({
             ErrorCode.PLACE_NOT_FOUND,
             ErrorCode.SAVED_PLACE_NOT_FOUND,
-            ErrorCode.INVALID_TOKEN,
-            ErrorCode.UNAUTHENTICATED_MEMBER,
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @DeleteMapping("/api/members/me/saved-places/{savedPlaceId}")

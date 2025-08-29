@@ -61,8 +61,12 @@ public class CommentController {
     @Operation(summary = "댓글 및 대댓글 등록", description = "새로운 댓글 또는 대댓글을 등록")
     @ApiErrorCodeExamples({
             ErrorCode.INVALID_COMMENT_CONTENT,
-            ErrorCode.UNAUTHENTICATED_MEMBER,
-            ErrorCode.INVALID_TOKEN,
+
+            // 401 Access
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PostMapping("/api/courses/{courseId}/comments")
@@ -78,9 +82,13 @@ public class CommentController {
     @ApiErrorCodeExamples({
             ErrorCode.COMMENT_NOT_FOUND,
             ErrorCode.INVALID_COMMENT_CONTENT,
-            ErrorCode.OWNER_MISMATCH,
-            ErrorCode.UNAUTHENTICATED_MEMBER,
-            ErrorCode.INVALID_TOKEN,
+            ErrorCode.OWNER_MISMATCH, // 403 소유자 검증
+
+            // 401 Access
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PatchMapping("/api/comments/{commentId}")
@@ -96,8 +104,12 @@ public class CommentController {
     @ApiErrorCodeExamples({
             ErrorCode.COMMENT_NOT_FOUND,
             ErrorCode.OWNER_MISMATCH,
-            ErrorCode.UNAUTHENTICATED_MEMBER,
-            ErrorCode.INVALID_TOKEN,
+
+            // 401 Access
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @DeleteMapping("/api/comments/{commentId}")
@@ -109,8 +121,13 @@ public class CommentController {
     @Operation(summary = "댓글 및 대댓글 좋아요 전송", description = "특정 댓글 또는 대댓글에 대해 좋아요 또는 좋아요 취소 요청을 처리합니다.")
     @ApiErrorCodeExamples({
             ErrorCode.COMMENT_NOT_FOUND,
-            ErrorCode.UNAUTHENTICATED_MEMBER,
-            ErrorCode.INVALID_TOKEN,
+            // 401 Access
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
+
+            // 권한 모델이 있다면
             ErrorCode.ACCESS_DENIED,
             ErrorCode.INTERNAL_SERVER_ERROR
     })
@@ -133,9 +150,12 @@ public class CommentController {
     @Operation(summary = "댓글/대댓글 신고(숨김)", description = "해당 댓글을 신고하여 신고자 본인 화면에서만 숨깁니다.")
     @ApiErrorCodeExamples({
             ErrorCode.COMMENT_NOT_FOUND,
-            ErrorCode.UNAUTHENTICATED_MEMBER,
-            ErrorCode.INVALID_TOKEN,
-            ErrorCode.ACCESS_DENIED,
+
+            // 401 Access
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PostMapping("/api/comments/{commentId}/report")
@@ -150,9 +170,12 @@ public class CommentController {
     @Operation(summary = "댓글/대댓글 신고(숨김) 해제", description = "신고자 본인 화면에서 숨긴 댓글을 다시 보이도록 합니다.")
     @ApiErrorCodeExamples({
             ErrorCode.COMMENT_NOT_FOUND,
-            ErrorCode.UNAUTHENTICATED_MEMBER,
-            ErrorCode.INVALID_TOKEN,
-            ErrorCode.ACCESS_DENIED,
+
+            // 401 Access
+            ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
+            ErrorCode.ACCESS_TOKEN_EXPIRED,
+            ErrorCode.ACCESS_TOKEN_INVALID,
+            ErrorCode.ACCESS_TOKEN_BLACKLISTED,
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @DeleteMapping("/api/comments/{commentId}/report")
