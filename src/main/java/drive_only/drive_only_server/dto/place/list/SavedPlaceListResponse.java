@@ -5,12 +5,12 @@ import java.util.List;
 
 
 public record SavedPlaceListResponse(
-        List<SavedPlaceSearchResponse> items,
+        List<SavedPlaceSearchResponse> data,
         Long lastId,
         int size,
         boolean hasNext
 ) {
-    public static SavedPlaceListResponse from(List<SavedPlaceSearchResponse> items, Long lastId, int size, boolean hasNext) {
-        return new SavedPlaceListResponse(items, lastId, size, hasNext);
+    public static SavedPlaceListResponse from(List<SavedPlaceSearchResponse> data, Long lastId, int size, boolean hasNext) {
+        return new SavedPlaceListResponse(data, lastId, size, hasNext);
     }
 }
