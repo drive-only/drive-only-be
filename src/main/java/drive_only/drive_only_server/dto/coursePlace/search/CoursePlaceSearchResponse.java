@@ -32,7 +32,7 @@ public record CoursePlaceSearchResponse(
                 coursePlace.getPlace().getLng(),
                 coursePlace.getSequence(),
                 coursePlace.getPlace().isSavedFrom(loginMember),
-                loginMember.getSavedPlaceId(coursePlace.getPlace().getId())
+                getSavedPlaceId(coursePlace, loginMember)
         );
     }
 
@@ -40,5 +40,13 @@ public record CoursePlaceSearchResponse(
         return coursePlace.getPhotos().stream()
                 .map(photo -> new PhotoResponse(photo.getId(), photo.getUrl()))
                 .toList();
+    }
+
+    private static Long getSavedPlaceId(CoursePlace coursePlace, Member loginMember) {
+        Long savedPlaceId = null;
+        if (loginMember != null) {
+            savedPlaceId = loginMember.getSavedPlaceId(coursePlace.getPlace().getId());
+        }
+        return savedPlaceId;
     }
 }

@@ -27,6 +27,7 @@ public class LikedCourse {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
@@ -39,5 +40,6 @@ public class LikedCourse {
     public LikedCourse(Member member, Course course) {
         this.member = member;
         this.course = course;
+        member.addLikedCourse(this);
     }
 }

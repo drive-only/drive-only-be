@@ -160,10 +160,6 @@ public class Course {
         return this.member.getId().equals(loginMember.getId());
     }
 
-    public boolean isLikedBy(Member loginMember) {
-        return this.member.getId().equals(loginMember.getId());
-    }
-
     public void increaseLikeCount() {
         this.likeCount++;
     }

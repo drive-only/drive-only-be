@@ -27,12 +27,6 @@ public record CourseDetailSearchResponse(
         Boolean isLiked
 ) {
     public static CourseDetailSearchResponse from(Course course, List<CoursePlace> coursePlaces, Member loginMember) {
-        boolean isMine = false;
-        boolean isLiked = false;
-        if (loginMember != null) {
-            isMine = course.isWrittenBy(loginMember);
-            isLiked = course.isLikedBy(loginMember);
-        }
         return new CourseDetailSearchResponse(
                 course.getId(),
                 course.getMember().getId(),
@@ -47,9 +41,26 @@ public record CourseDetailSearchResponse(
                 course.getDifficulty(),
                 course.getLikeCount(),
                 course.getViewCount(),
-                isMine,
-                isLiked
+                isMine(course, loginMember),
+                isLiked(course, loginMember)
         );
+    }
+
+    private static boolean isMine(Course course, Member loginMember) {
+        boolean isMine = false;
+        if (loginMember != null) {
+            isMine = course.isWrittenBy(loginMember);
+        }
+        return isMine;
+    }
+
+    private static boolean isLiked(Course course, Member loginMember) {
+        boolean isLiked = false;
+        if (loginMember != null) {
+            isLiked = loginMember.getLikedCourses().stream()
+                    .anyMatch(lc -> lc.getCourse().getId().equals(course.getId()));
+        }
+        return isLiked;
     }
 
     private static List<TagResponse> createTagResponse(Course course) {

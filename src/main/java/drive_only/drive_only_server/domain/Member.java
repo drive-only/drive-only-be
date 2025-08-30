@@ -47,6 +47,9 @@ public class Member {
     @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<LikedComment> likedComments = new ArrayList<>();
 
+    @OneToMany(mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<LikedCourse> likedCourses = new ArrayList<>();
+
     public static Member createMember(String email, String nickname, String profileImageUrl, ProviderType provider) {
         validateEmail(email);
         validateProvider(provider);
@@ -67,6 +70,11 @@ public class Member {
 
     public void updateProfileImageUrl(String profileImageUrl) {
         this.profileImageUrl = normalizeNullable(profileImageUrl);
+    }
+
+    public void addLikedCourse(LikedCourse likedCourse) {
+        this.getLikedCourses().add(likedCourse);
+        likedCourse.setMember(this);
     }
 
     public void addLikedComment(LikedComment likedComment) {

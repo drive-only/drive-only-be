@@ -20,17 +20,6 @@ public record CommentSearchResponse(
         List<CommentSearchResponse> replies
 ) {
     public static CommentSearchResponse from(Comment comment, Member loginMember) {
-        boolean isMine = loginMember != null && comment.isWrittenBy(loginMember);
-        boolean isLiked = false;
-        if (loginMember != null) {
-            isLiked = loginMember.getLikedComments().stream()
-                    .anyMatch(lc -> lc.getComment().getId().equals(comment.getId()));
-        }
-
-        List<CommentSearchResponse> replies = comment.getChildComments().stream()
-                .map(child -> CommentSearchResponse.from(child, loginMember))
-                .toList();
-
         return new CommentSearchResponse(
                 comment.getId(),
                 comment.getMember().getId(),
@@ -39,14 +28,13 @@ public record CommentSearchResponse(
                 comment.getContent(),
                 comment.getCreatedDate(),
                 comment.getLikeCount(),
-                isMine,
-                isLiked,
+                isMine(comment, loginMember),
+                isLiked(comment, loginMember),
                 comment.isDeleted(),
-                replies
+                getReplies(comment, loginMember)
         );
     }
 
-    // 신고자가 숨긴 대댓글을 제외하는 버전
     public static CommentSearchResponse fromFiltered(Comment comment, Member loginMember, java.util.Set<Long> hiddenIds) {
         boolean isMine = comment.getMember().equals(loginMember);
         boolean isLiked = loginMember.getLikedComments().stream()
@@ -70,5 +58,24 @@ public record CommentSearchResponse(
                 comment.isDeleted(),
                 replies
         );
+    }
+
+    private static boolean isMine(Comment comment, Member loginMember) {
+        return loginMember != null && comment.isWrittenBy(loginMember);
+    }
+
+    private static boolean isLiked(Comment comment, Member loginMember) {
+        boolean isLiked = false;
+        if (loginMember != null) {
+            isLiked = loginMember.getLikedComments().stream()
+                    .anyMatch(lc -> lc.getComment().getId().equals(comment.getId()));
+        }
+        return isLiked;
+    }
+
+    private static List<CommentSearchResponse> getReplies(Comment comment, Member loginMember) {
+        return comment.getChildComments().stream()
+                .map(child -> CommentSearchResponse.from(child, loginMember))
+                .toList();
     }
 }
