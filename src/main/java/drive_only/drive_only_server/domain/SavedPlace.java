@@ -1,5 +1,7 @@
 package drive_only.drive_only_server.domain;
 
+import drive_only.drive_only_server.exception.custom.BusinessException;
+import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,6 +23,7 @@ public class SavedPlace {
     private Place place;
 
     public SavedPlace(Member member, Place place) {
+        validateExistingPlace(member, place);
         setMember(member);
         setPlace(place);
     }
@@ -38,5 +41,13 @@ public class SavedPlace {
 
     private void setPlace(Place place) {
         this.place = place;
+    }
+
+    private void validateExistingPlace(Member member, Place place) {
+        boolean isAlreadyExistedPlace = member.getSavedPlaces().stream()
+                .anyMatch(sp -> sp.isSamePlace(place.getId()));
+        if (isAlreadyExistedPlace) {
+            throw new BusinessException(ErrorCode.ALREADY_EXISTED_PLACE);
+        }
     }
 }

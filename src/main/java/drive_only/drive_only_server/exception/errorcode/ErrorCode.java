@@ -27,6 +27,7 @@ public enum ErrorCode {
     INVALID_IMAGE_DATA(HttpStatus.BAD_REQUEST, "잘못된 이미지 데이터입니다."),
     INVALID_PHOTO_MAPPING(HttpStatus.BAD_REQUEST, "photo 매핑이 유요하지 않습니다."),
     INVALID_OAUTH_CODE(HttpStatus.BAD_REQUEST, "유효하지 않은 인가 코드입니다."),
+    ALREADY_EXISTED_PLACE(HttpStatus.BAD_REQUEST, "이미 저장된 장소입니다."),
 
     //401 UNAUTHORIZED
     DUPLICATE_MEMBER(HttpStatus.CONFLICT, "이미 가입된 회원입니다."), // (선택) 동시가입 경합 구분용
