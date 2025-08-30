@@ -13,8 +13,10 @@ import drive_only.drive_only_server.dto.likedCourse.list.LikedCourseListResponse
 import drive_only.drive_only_server.dto.likedCourse.search.LikedCourseSearchResponse;
 import drive_only.drive_only_server.dto.member.MemberResponse;
 import drive_only.drive_only_server.dto.member.MemberUpdateRequest;
+import drive_only.drive_only_server.dto.member.MyProfileResponse;
 import drive_only.drive_only_server.dto.member.OtherMemberResponse;
 import drive_only.drive_only_server.dto.oauth.OAuthUserInfo;
+import drive_only.drive_only_server.dto.place.list.SavedPlaceListResponse;
 import drive_only.drive_only_server.dto.place.myPlace.DeleteSavedPlaceResponse;
 import drive_only.drive_only_server.dto.place.myPlace.SavePlaceResponse;
 import drive_only.drive_only_server.dto.place.search.SavedPlaceSearchResponse;
@@ -36,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -48,50 +51,38 @@ public class MemberService {
     private final SavedPlaceRepository savedPlaceRepository;
     private final PlaceRepository placeRepository;
 
-    public PaginatedResponse<MemberResponse> getMyProfile() {
+    public MyProfileResponse getMyProfile() {
         Member member = loginMemberProvider.getLoginMember();
-        MemberResponse response = new MemberResponse(
+        return new MyProfileResponse(
                 member.getId(),
                 member.getEmail(),
                 member.getNickname(),
                 member.getProfileImageUrl(),
                 member.getProvider()
         );
-        return new PaginatedResponse<>(List.of(response), null);
     }
 
-    public PaginatedResponse<OtherMemberResponse> findOtherMember(Long id) {
+    public OtherMemberResponse findOtherMember(Long id) {
         Member member = findById(id);
-        OtherMemberResponse response = new OtherMemberResponse(
+        return new OtherMemberResponse(
                 member.getId(),
                 member.getNickname(),
                 member.getProfileImageUrl()
         );
-        return new PaginatedResponse<>(List.of(response), null);
     }
 
     @Transactional
-    public PaginatedResponse<MemberResponse> updateMember(MemberUpdateRequest request) {
-        String email = loginMemberProvider.getLoginMember().getEmail();
-        ProviderType provider = loginMemberProvider.getLoginMember().getProvider();
-        Member member = memberRepository.findByEmailAndProvider(normalizeEmail(email), provider)
+    public MemberResponse updateMember(MemberUpdateRequest request) {
+        Member login = loginMemberProvider.getLoginMember();
+        Member member = memberRepository.findByEmailAndProvider(normalizeEmail(login.getEmail()), login.getProvider())
                 .orElseThrow(MemberNotFoundException::new);
 
-        if (request.getNickname() != null) {
-            member.updateNickname(request.getNickname());
-        }
-        if (request.getProfileImageUrl() != null) {
-            member.updateProfileImageUrl(request.getProfileImageUrl());
-        }
 
-        MemberResponse response = new MemberResponse(
-                member.getId(),
-                member.getEmail(),
-                member.getNickname(),
-                member.getProfileImageUrl(),
-                member.getProvider()
-        );
-        return new PaginatedResponse<>(List.of(response), null);
+        if (request.getNickname() != null) member.updateNickname(request.getNickname());
+        if (request.getProfileImageUrl() != null) member.updateProfileImageUrl(request.getProfileImageUrl());
+
+
+        return new MemberResponse(member.getId(), member.getEmail(), member.getNickname(), member.getProfileImageUrl(), member.getProvider());
     }
 
     @Transactional
@@ -148,16 +139,20 @@ public class MemberService {
         return MyCourseListResponse.from(responseList, newLastId, size, hasNext);
     }
 
-    public PaginatedResponse<SavedPlaceSearchResponse> searchSavedPlaces() {
+    public SavedPlaceListResponse searchSavedPlaces(Long lastId, int size) {
         Member member = loginMemberProvider.getLoginMember();
-        List<SavedPlace> savedPlaces = savedPlaceRepository.findByMember(member);
-        List<SavedPlaceSearchResponse> results = savedPlaces.stream()
-                .map(savedPlace -> {
-                    Place place = savedPlace.getPlace();
-                    return SavedPlaceSearchResponse.from(place, savedPlace.getId());
-                })
+        List<SavedPlace> rows = savedPlaceRepository.findSavedPlacesByMember(member.getId(), lastId, size + 1);
+
+        boolean hasNext = rows.size() > size;
+        if (hasNext) rows = rows.subList(0, size);
+
+        var items = rows.stream()
+                .map(sp -> SavedPlaceSearchResponse.from(sp.getPlace(), sp.getId()))
                 .toList();
-        return new PaginatedResponse<>(results, null);
+
+        Long newLastId = items.isEmpty() ? null : items.get(items.size() - 1).savedPlaceId();
+
+        return SavedPlaceListResponse.from(items, newLastId, size, hasNext);
     }
 
     @Transactional
