@@ -96,8 +96,10 @@ public class CourseService {
         return new PaginatedResponse<>(responses, meta);
     }
 
+    @Transactional
     public PaginatedResponse<CourseDetailSearchResponse> searchCourseDetail(Long courseId) {
         Course course = findCourseWithMember(courseId);
+        course.increaseViewCount();
         Member loginMember = loginMemberProvider.getLoginMemberIfExists();
         if (loginMember != null && hiddenCourseRepository.existsByCourseAndMember(course, loginMember)) {
             throw new CourseNotFoundException();
@@ -205,10 +207,7 @@ public class CourseService {
         return new ReportResponse("게시글 숨김을 해제했습니다.", false, false);
     }
 
-    private CourseCreateRequest buildCreateRequestWithUploaded(
-            CourseCreateForm form,
-            Map<String, PhotoService.UploadedPhoto> uploaded
-    ) {
+    private CourseCreateRequest buildCreateRequestWithUploaded(CourseCreateForm form, Map<String, PhotoService.UploadedPhoto> uploaded) {
         int total = form.coursePlaces()==null ? 0 :
                 form.coursePlaces().stream().mapToInt(cp -> cp.photoKeys()==null?0:cp.photoKeys().size()).sum();
         if (total > 50) throw new BusinessException(ErrorCode.INVALID_IMAGE_DATA);
@@ -271,7 +270,7 @@ public class CourseService {
         List<Tag> tags = getTags(request);
         Course course = Course.createCourse(
                 request.title(), LocalDate.now(), request.recommendation(), request.difficulty(),
-                0, 0, 0, false,
+                0, 0, 0, false, request.isPrivate(),
                 loginMember, category, coursePlaces, tags
         );
         courseRepository.save(course);

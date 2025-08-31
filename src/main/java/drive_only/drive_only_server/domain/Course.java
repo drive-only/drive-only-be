@@ -52,8 +52,8 @@ public class Course {
     @Column(name = "is_reported")
     private boolean isReported;
 
-    @Column(name = "is_liked")
-    private boolean isLiked;
+    @Column(name = "is_private")
+    private boolean isPrivate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
@@ -78,7 +78,7 @@ public class Course {
     private List<Comment> comments = new ArrayList<>();
 
     public static Course createCourse(String title, LocalDate createdDate, Double recommendation, Double difficulty, int viewCount,
-                                      int likeCount, int commentCount, boolean isReported, Member member, Category category,
+                                      int likeCount, int commentCount, boolean isReported, boolean isPrivate, Member member, Category category,
                                       List<CoursePlace> coursePlaces, List<Tag> tags) {
         validateTitle(title);
         validateRecommendation(recommendation);
@@ -93,6 +93,7 @@ public class Course {
         course.likeCount = likeCount;
         course.commentCount = commentCount;
         course.isReported = isReported;
+        course.isPrivate = isPrivate;
         course.member = member;
         course.category = category;
         for (CoursePlace coursePlace : coursePlaces) {
@@ -114,6 +115,7 @@ public class Course {
         this.recommendation = request.recommendation();
         this.difficulty = request.difficulty();
         this.category = newCategory;
+        this.isPrivate = request.isPrivate();
 
         this.coursePlaces.clear();
         newCoursePlaces.forEach(this::addCoursePlace);
@@ -166,5 +168,9 @@ public class Course {
 
     public void decreaseLikeCount() {
         this.likeCount = Math.max(0, this.likeCount - 1);
+    }
+
+    public void increaseViewCount() {
+        this.viewCount++;
     }
 }

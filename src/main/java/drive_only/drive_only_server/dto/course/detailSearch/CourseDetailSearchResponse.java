@@ -24,7 +24,8 @@ public record CourseDetailSearchResponse(
         int likeCount,
         int viewCount,
         Boolean isMine,
-        Boolean isLiked
+        Boolean isLiked,
+        Boolean isPrivate
 ) {
     public static CourseDetailSearchResponse from(Course course, List<CoursePlace> coursePlaces, Member loginMember) {
         return new CourseDetailSearchResponse(
@@ -42,7 +43,8 @@ public record CourseDetailSearchResponse(
                 course.getLikeCount(),
                 course.getViewCount(),
                 isMine(course, loginMember),
-                isLiked(course, loginMember)
+                isLiked(course, loginMember),
+                course.isPrivate()
         );
     }
 
