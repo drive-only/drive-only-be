@@ -33,7 +33,7 @@ public class Comment {
     private String content;
 
     @Column(name = "created_date")
-    private LocalDate createdDate;
+    private LocalDateTime createdDate;
 
     @Column(name = "like_count")
     private int likeCount;
@@ -67,7 +67,7 @@ public class Comment {
         comment.member = loginMember;
         comment.course = course;
         comment.parentComment = parentComment;
-        comment.createdDate = LocalDate.now();
+        comment.createdDate = LocalDateTime.now();
         comment.likeCount = 0;
         comment.isDeleted = false;
         return comment;
@@ -77,7 +77,7 @@ public class Comment {
         validateContent(request.content());
 
         this.content = request.content();
-        this.createdDate = LocalDate.now();
+        this.createdDate = LocalDateTime.now();
     }
 
     private static void validateContent(String content) {

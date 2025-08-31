@@ -1,5 +1,6 @@
 package drive_only.drive_only_server.dto.comment.search;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import drive_only.drive_only_server.domain.Comment;
 import drive_only.drive_only_server.domain.Member;
 import java.time.LocalDate;
@@ -12,7 +13,8 @@ public record CommentSearchResponse(
         String profileImageUrl,
         String nickname,
         String content,
-        LocalDate createdDate,
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+        LocalDateTime createdDate,
         int likeCount,
         Boolean isMine,
         Boolean isLiked,
