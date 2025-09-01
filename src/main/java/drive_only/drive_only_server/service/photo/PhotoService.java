@@ -1,7 +1,5 @@
 package drive_only.drive_only_server.service.photo;
 
-import drive_only.drive_only_server.exception.errorcode.ErrorCode;
-import drive_only.drive_only_server.exception.custom.BusinessException;
 import drive_only.drive_only_server.s3.S3ImageStorageProvider;
 import lombok.*;
 import org.springframework.stereotype.Service;
