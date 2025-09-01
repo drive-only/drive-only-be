@@ -30,6 +30,7 @@ import drive_only.drive_only_server.repository.course.SavedPlaceRepository;
 import drive_only.drive_only_server.repository.member.MemberRepository;
 import drive_only.drive_only_server.repository.place.PlaceRepository;
 import drive_only.drive_only_server.security.LoginMemberProvider;
+import drive_only.drive_only_server.service.photo.PhotoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
@@ -50,6 +51,7 @@ public class MemberService {
     private final CourseRepository courseRepository;
     private final SavedPlaceRepository savedPlaceRepository;
     private final PlaceRepository placeRepository;
+    private final PhotoService photoService;
 
     public MyProfileResponse getMyProfile() {
         Member member = loginMemberProvider.getLoginMember();
@@ -79,8 +81,10 @@ public class MemberService {
 
 
         if (request.getNickname() != null) member.updateNickname(request.getNickname());
-        if (request.getProfileImageUrl() != null) member.updateProfileImageUrl(request.getProfileImageUrl());
-
+        if (request.getProfileImageUrl() != null) {
+            String finalUrl = photoService.promoteIfTemp(request.getProfileImageUrl(), member.getId());
+            member.updateProfileImageUrl(finalUrl);
+        }
 
         return new MemberResponse(member.getId(), member.getEmail(), member.getNickname(), member.getProfileImageUrl(), member.getProvider());
     }

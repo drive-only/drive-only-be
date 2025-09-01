@@ -1,7 +1,5 @@
 package drive_only.drive_only_server.service.photo;
 
-import drive_only.drive_only_server.exception.errorcode.ErrorCode;
-import drive_only.drive_only_server.exception.custom.BusinessException;
 import drive_only.drive_only_server.s3.S3ImageStorageProvider;
 import lombok.*;
 import org.springframework.stereotype.Service;
@@ -31,11 +29,11 @@ public class PhotoService {
         return mapped;
     }
 
-    // 호환용 구 메서드 비활성(선택)
-    public String uploadFile(MultipartFile file, String email) {
-        throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+    public String uploadTemp(MultipartFile file, String ownerEmail) {
+        return s3.uploadTemp(file, ownerEmail).getCdnUrl();
     }
-    public String uploadImage(String imageData, String email) {
-        throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+
+    public String promoteIfTemp(String urlOrKey, Long memberId) {
+        return s3.promoteTempToProfile(urlOrKey, memberId).getCdnUrl();
     }
 }

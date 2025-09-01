@@ -1,6 +1,8 @@
 package drive_only.drive_only_server.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 
@@ -28,6 +30,10 @@ public class S3ImageStorageProvider {
 
     @Value("${cdn.domain:}")        // 조회용(없으면 S3 URL 반환)
     private String cdnDomain;
+
+    private static final String TEMP_PREFIX = "temp";
+    private static final String PROFILE_PREFIX = "profiles";
+    private static final Set<String> ALLOWED_EXT = Set.of("jpg","png","webp","gif");
 
     // === 결과 객체 ===
     @Getter
@@ -179,6 +185,64 @@ public class S3ImageStorageProvider {
         } catch (Exception ignore) {}
     }
 
+    /** 임시 업로드: temp/{yyyy/MM/dd}/{uuid}.{ext} */
+    public UploadResult uploadTemp(MultipartFile file, String ownerEmail) {
+        if (file == null || file.isEmpty()) throw new BusinessException(ErrorCode.INVALID_IMAGE_DATA);
+
+        String ext = resolveExt(file.getOriginalFilename(), file.getContentType());
+        validateExt(ext);
+
+        String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        String key = "%s/%s/%s.%s".formatted(TEMP_PREFIX, date, uuid(), ext);
+
+        ObjectMetadata meta = new ObjectMetadata();
+        meta.setContentLength(safeSize(file.getSize()));
+        meta.setContentType(contentTypeFor(ext));
+        meta.setCacheControl(defaultCacheControl());
+
+        try (InputStream in = file.getInputStream()) {
+            amazonS3.putObject(bucketName, key, in, meta);
+            return new UploadResult(key, publicUrl(key), meta.getContentLength(), meta.getContentType());
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.FILE_UPLOAD_FAIL);
+        }
+    }
+
+    /**
+     * temp URL(또는 key)을 받아서 profiles/{memberId}/{yyyy/MM/dd}/{uuid}.{ext}로 승격
+     * - copy → (옵션) temp 삭제
+     * - 최종 CDN URL 반환
+     */
+    public UploadResult promoteTempToProfile(String tempUrlOrKey, Long memberId) {
+        String tempKey = keyFromUrl(tempUrlOrKey);
+        if (!isTempKey(tempKey)) {
+            // 이미 영구 경로이거나 외부 URL이면 그대로 래핑해서 반환
+            return new UploadResult(tempKey, urlOrPassthrough(tempUrlOrKey, tempKey), -1, guessContentTypeFromKey(tempKey));
+        }
+
+        String ext = guessExt(tempKey);
+        String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        String destKey = "%s/%d/%s/%s.%s".formatted(PROFILE_PREFIX, memberId, date, uuid(), ext);
+
+        try {
+            // 메타 복사 + 캐시 정책
+            ObjectMetadata srcMeta = amazonS3.getObjectMetadata(bucketName, tempKey);
+            CopyObjectRequest copyReq = new CopyObjectRequest(bucketName, tempKey, bucketName, destKey)
+                    .withNewObjectMetadata(cloneMetaWithCache(srcMeta));
+            amazonS3.copyObject(copyReq);
+
+            // (옵션) 원본 삭제
+            amazonS3.deleteObject(bucketName, tempKey);
+
+            String cdn = publicUrl(destKey);
+            return new UploadResult(destKey, cdn,
+                    Optional.ofNullable(srcMeta.getContentLength()).orElse(0L),
+                    Optional.ofNullable(srcMeta.getContentType()).orElse(guessContentTypeFromKey(destKey)));
+        } catch (AmazonS3Exception e) {
+            throw new BusinessException(ErrorCode.FILE_UPLOAD_FAIL);
+        }
+    }
+
     // === 내부 유틸 ===
     private String publicUrl(String key) {
         if (cdnDomain != null && !cdnDomain.isBlank()) {
@@ -194,6 +258,86 @@ public class S3ImageStorageProvider {
         String ext = (i>0) ? lower.substring(i+1) : "jpg";
         if ("jpeg".equals(ext)) ext = "jpg";
         return switch (ext) { case "jpg","png","webp","gif" -> ext; default -> "jpg"; };
+    }
+
+    private String urlOrPassthrough(String urlOrKey, String key) {
+        if (urlOrKey != null && (urlOrKey.startsWith("http://") || urlOrKey.startsWith("https://"))) {
+            return urlOrKey;
+        }
+        return publicUrl(key);
+    }
+
+    private String resolveExt(String originalFilename, String contentType) {
+        String ext = guessExt(originalFilename);
+        if (ext == null || ext.isBlank() || !ALLOWED_EXT.contains(ext)) {
+            if (contentType != null && contentType.startsWith("image/")) {
+                ext = contentType.substring("image/".length()).toLowerCase(Locale.ROOT);
+                if ("jpeg".equals(ext)) ext = "jpg";
+            }
+        }
+        return (ext == null || !ALLOWED_EXT.contains(ext)) ? "jpg" : ext;
+    }
+
+    private void validateExt(String ext) {
+        if (!ALLOWED_EXT.contains(ext)) throw new BusinessException(ErrorCode.INVALID_IMAGE_DATA);
+    }
+
+    private String contentTypeFor(String ext) {
+        return switch (ext) {
+            case "jpg" -> "image/jpeg";
+            case "png" -> "image/png";
+            case "webp" -> "image/webp";
+            case "gif" -> "image/gif";
+            default -> "application/octet-stream";
+        };
+    }
+
+    private String defaultCacheControl() {
+        // 7일 캐시(원하는 정책으로 조정)
+        return "public, max-age=604800, immutable";
+    }
+
+    private String sanitizeOwner(String ownerEmail) {
+        return (ownerEmail == null || ownerEmail.isBlank())
+                ? "anonymous"
+                : ownerEmail.replaceAll("[^a-zA-Z0-9_.-]", "_");
+    }
+
+    private String uuid() { return UUID.randomUUID().toString().replace("-", ""); }
+
+    private long safeSize(long size) {
+        if (size <= 0) return 1; // 일부 드라이버가 size 0 보고시 에러 방지
+        return size;
+    }
+
+    private boolean isTempKey(String key) {
+        return key != null && (key.startsWith(TEMP_PREFIX + "/") || key.contains("/" + TEMP_PREFIX + "/"));
+    }
+
+    /** http(s)://cdn/.../key 또는 key 자체를 받아서 S3 key 추출 */
+    private String keyFromUrl(String urlOrKey) {
+        if (urlOrKey == null || urlOrKey.isBlank()) return "";
+        if (urlOrKey.startsWith("http://") || urlOrKey.startsWith("https://")) {
+            int idx = urlOrKey.indexOf('/', urlOrKey.indexOf("//") + 2);
+            if (idx >= 0 && idx + 1 < urlOrKey.length()) {
+                return urlOrKey.substring(idx + 1);
+            }
+            return ""; // 도메인만 온 경우
+        }
+        return urlOrKey;
+    }
+
+    private ObjectMetadata cloneMetaWithCache(ObjectMetadata src) {
+        ObjectMetadata meta = new ObjectMetadata();
+        meta.setContentType(src.getContentType());
+        meta.setCacheControl(defaultCacheControl());
+        meta.setContentLength(Optional.ofNullable(src.getContentLength()).orElse(0L));
+        // 필요하면 ContentDisposition/Encoding/ETag 등도 복사
+        return meta;
+    }
+
+    private String guessContentTypeFromKey(String key) {
+        return contentTypeFor(guessExt(key));
     }
 }
 
