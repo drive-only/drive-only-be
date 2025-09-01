@@ -31,11 +31,11 @@ public class PhotoService {
         return mapped;
     }
 
-    // 호환용 구 메서드 비활성(선택)
-    public String uploadFile(MultipartFile file, String email) {
-        throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+    public String uploadTemp(MultipartFile file, String ownerEmail) {
+        return s3.uploadTemp(file, ownerEmail).getCdnUrl();
     }
-    public String uploadImage(String imageData, String email) {
-        throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+
+    public String promoteIfTemp(String urlOrKey, Long memberId) {
+        return s3.promoteTempToProfile(urlOrKey, memberId).getCdnUrl();
     }
 }

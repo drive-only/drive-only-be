@@ -47,6 +47,7 @@ public enum SuccessCode {
     SUCCESS_LOGIN(HttpStatus.OK, "로그인에 성공했습니다."),
     SUCCESS_LOGOUT(HttpStatus.OK, "로그아웃이 완료되었습니다."),
     SUCCESS_PROTECTED(HttpStatus.OK, "보호 리소스 접근 성공"),
+    SUCCESS_UPLOAD_TEMP_IMAGE(HttpStatus.CREATED, "임시 이미지 업로드 성공"),
 
     // Category
     SUCCESS_GET_CATEGORIES(HttpStatus.OK, "지역/시군구 목록을 불러오는 데 성공했습니다.");
