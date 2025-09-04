@@ -5,20 +5,24 @@ import drive_only.drive_only_server.exception.custom.BusinessException;
 import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 
 import drive_only.drive_only_server.domain.Member;
+import drive_only.drive_only_server.dto.auth.LoginResponse;
 import drive_only.drive_only_server.dto.auth.SocialLoginRequest;
 import drive_only.drive_only_server.dto.oauth.OAuthUserInfo;
 import drive_only.drive_only_server.security.JwtTokenProvider;
 import drive_only.drive_only_server.service.member.MemberService;
 import drive_only.drive_only_server.service.auth.RefreshTokenService;
 import drive_only.drive_only_server.service.oauth.OAuth2UserInfoService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import drive_only.drive_only_server.dto.common.ApiResult;
 import drive_only.drive_only_server.dto.common.ApiResultSupport;
 import drive_only.drive_only_server.success.SuccessCode;
@@ -46,7 +50,7 @@ public class AuthController {
             ErrorCode.INTERNAL_SERVER_ERROR
     })
     @PostMapping("/api/login")
-    public ResponseEntity<ApiResult<Void>> socialLogin(@RequestBody SocialLoginRequest request) {
+    public ResponseEntity<ApiResult<LoginResponse>> socialLogin(@RequestBody SocialLoginRequest request) {
         OAuthUserInfo userInfo;
 
         if ("KAKAO".equalsIgnoreCase(request.getProvider())) {
@@ -87,10 +91,14 @@ public class AuthController {
                 .sameSite("None")
                 .build();
 
+        LoginResponse body = LoginResponse.builder()
+                .profileImageUrl(member.getProfileImageUrl())
+                .build();
+
         // 5. 응답
         return ApiResultSupport.okWithCookies(
                 SuccessCode.SUCCESS_LOGIN,
-                null,
+                body,
                 accessCookie,
                 refreshCookie
         );
