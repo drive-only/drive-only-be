@@ -60,6 +60,9 @@ public enum ErrorCode {
     PARENT_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "부모 댓글을 찾을 수 없습니다."),
     SAVED_PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "저장되지 않은 장소입니다."),
 
+    //409 CONFLICT
+    DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "이미 사용 중인 닉네임입니다."),
+
     //500 INTERNAL SERVER ERROR,
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 오류가 발생했습니다."),
     FILE_UPLOAD_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다."),

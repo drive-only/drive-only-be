@@ -79,6 +79,13 @@ public class MemberService {
         Member member = memberRepository.findByEmailAndProvider(normalizeEmail(login.getEmail()), login.getProvider())
                 .orElseThrow(MemberNotFoundException::new);
 
+        if (request.getNickname() != null) {
+            String newNickname = request.getNickname().trim();
+            if (memberRepository.existsByNicknameAndIdNot(newNickname, member.getId())) {
+                throw new BusinessException(ErrorCode.DUPLICATE_NICKNAME);
+            }
+            member.updateNickname(newNickname);
+        }
 
         if (request.getNickname() != null) member.updateNickname(request.getNickname());
         if (request.getProfileImageUrl() != null) {

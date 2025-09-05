@@ -79,6 +79,7 @@ public class MemberController {
     @Operation(summary = "회원 정보 수정", description = "로그인한 사용자의 닉네임, 프로필 이미지를 수정합니다.")
     @ApiErrorCodeExamples({
             ErrorCode.INVALID_NICKNAME,
+            ErrorCode.DUPLICATE_NICKNAME,
             ErrorCode.MEMBER_NOT_FOUND,
             ErrorCode.ACCESS_TOKEN_EMPTY_ERROR,
             ErrorCode.ACCESS_TOKEN_EXPIRED,
