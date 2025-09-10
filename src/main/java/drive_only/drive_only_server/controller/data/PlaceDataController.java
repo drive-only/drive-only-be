@@ -1,0 +1,27 @@
+package drive_only.drive_only_server.controller.data;
+
+import drive_only.drive_only_server.service.data.PlaceDataService;
+import io.swagger.v3.oas.annotations.Hidden;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequiredArgsConstructor
+@Hidden
+public class PlaceDataController {
+    private final PlaceDataService placeDataService;
+
+    @PostMapping("/api/init/places")
+    public ResponseEntity<Void> initPlaceData() {
+        placeDataService.importAllPlaces();
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/api/sync/places")
+    public ResponseEntity<Void> syncPlacesData() {
+        placeDataService.syncAllPlaces();
+        return ResponseEntity.ok().build();
+    }
+}

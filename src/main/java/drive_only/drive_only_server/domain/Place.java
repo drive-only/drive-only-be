@@ -1,0 +1,97 @@
+package drive_only.drive_only_server.domain;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Place {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "content_id")
+    private int contentId;
+
+    @Column(name = "content_type_id")
+    private int contentTypeId;
+
+    @Column(name = "name")
+    private String name;
+
+    @Column(name = "address")
+    private String address;
+
+    @Column(name = "region")
+    private String region;
+
+    @Column(name = "sub_region")
+    private String subRegion;
+
+    @Column(name = "thumbnail_url")
+    private String thumbNailUrl;
+
+    @Column(name = "use_time")
+    private String useTime;
+
+    @Column(name = "rest_date")
+    private String restDate;
+
+    @Column(name = "phone_num")
+    private String phoneNum;
+
+    @Column(name = "lat")
+    private Double lat;
+
+    @Column(name = "lng")
+    private Double lng;
+
+    public Place(int contentId, int contentTypeId,
+                 String name, String address, String region, String subRegion,
+                 String thumbNailUrl, String useTime, String restDate,
+                 String phoneNum, Double lat, Double lng) {
+        this.contentId = contentId;
+        this.contentTypeId = contentTypeId;
+        this.name = name;
+        this.address = address;
+        this.region = region;
+        this.subRegion = subRegion;
+        this.thumbNailUrl = thumbNailUrl;
+        this.useTime = useTime;
+        this.restDate = restDate;
+        this.phoneNum = phoneNum;
+        this.lat = lat;
+        this.lng = lng;
+    }
+
+    public void updateBasicInfo(String name, String address, String region, String subRegion, String thumbNailUrl, String phoneNum, double lat, double lng) {
+        this.name = name;
+        this.address = address;
+        this.region = region;
+        this.subRegion = subRegion;
+        this.thumbNailUrl = thumbNailUrl;
+        this.phoneNum = phoneNum;
+        this.lat = lat;
+        this.lng = lng;
+    }
+
+    public void updateDetailInfo(String useTime, String restDate) {
+        this.useTime = useTime;
+        this.restDate = restDate;
+    }
+
+    public boolean isSavedFrom(Member loginMember) {
+        if (loginMember == null) {
+            return false;
+        }
+        return loginMember.getSavedPlaces().stream()
+                .anyMatch(savedPlace -> savedPlace.getPlace().getId().equals(this.id));
+    }
+}

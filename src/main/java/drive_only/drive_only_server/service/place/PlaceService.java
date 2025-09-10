@@ -1,0 +1,154 @@
+package drive_only.drive_only_server.service.place;
+
+import drive_only.drive_only_server.domain.Course;
+import drive_only.drive_only_server.domain.CoursePlace;
+import drive_only.drive_only_server.domain.Member;
+import drive_only.drive_only_server.domain.Place;
+import drive_only.drive_only_server.dto.common.PaginatedResponse;
+import drive_only.drive_only_server.dto.meta.Meta;
+import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlaceSearchResponse;
+import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlaceTourApiResponse;
+import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlaceTourApiResponse.Item;
+import drive_only.drive_only_server.dto.place.nearbySearch.NearbyPlacesResponse;
+import drive_only.drive_only_server.dto.place.search.PlaceSearchRequest;
+import drive_only.drive_only_server.dto.place.search.PlaceSearchResponse;
+import drive_only.drive_only_server.exception.custom.BusinessException;
+import drive_only.drive_only_server.exception.custom.CourseNotFoundException;
+import drive_only.drive_only_server.exception.custom.PlaceNotFoundException;
+import drive_only.drive_only_server.exception.errorcode.ErrorCode;
+import drive_only.drive_only_server.repository.course.CourseRepository;
+import drive_only.drive_only_server.repository.place.PlaceRepository;
+import drive_only.drive_only_server.security.LoginMemberProvider;
+import drive_only.drive_only_server.service.client.TourApiClient;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
+public class PlaceService {
+    private final LoginMemberProvider loginMemberProvider;
+    private final TourApiClient tourApiClient;
+    private final PlaceRepository placeRepository;
+    private final CourseRepository courseRepository;
+
+    public PaginatedResponse<PlaceSearchResponse> searchPlaces(PlaceSearchRequest request, int page, int size) {
+        validateSearchRequest(request);
+        Page<Place> places = placeRepository.searchPlaces(request, PageRequest.of(page, size));
+        List<PlaceSearchResponse> responses = places.stream()
+                .map(PlaceSearchResponse::from)
+                .toList();
+        Meta meta = Meta.from(places);
+        return new PaginatedResponse<>(responses, meta);
+    }
+
+    public PaginatedResponse<PlaceSearchResponse> searchPlaceDetail(Long placeId) {
+        Place place = findPlaceById(placeId);
+        PlaceSearchResponse response = PlaceSearchResponse.from(place);
+        return new PaginatedResponse<>(List.of(response), null);
+    }
+
+    public PaginatedResponse<NearbyPlacesResponse> searchNearbyPlaces(Long courseId, String type) {
+        Course course = findCourse(courseId);
+        List<CoursePlace> coursePlaces = course.getCoursePlaces();
+        int coursePlaceCount = coursePlaces.size();
+        List<Integer> distribution = getDistribution(coursePlaceCount);
+        List<NearbyPlacesResponse> results = new ArrayList<>();
+
+        for (int i = 0; i < coursePlaceCount; i++) {
+            results.add(createNearbyPlacesResponse(coursePlaces.get(i), type, distribution.get(i)));
+        }
+
+        return new PaginatedResponse<>(results, null);
+    }
+
+    private List<Integer> getDistribution(int coursePlaceCount) {
+        return switch (coursePlaceCount) {
+            case 1 -> List.of(5);
+            case 2 -> List.of(3, 2);
+            case 3 -> List.of(2, 2, 1);
+            case 4 -> List.of(2, 1, 1, 1);
+            case 5 -> List.of(1, 1, 1, 1, 1);
+            default -> throw new IllegalArgumentException("코스는 1개 이상 5개 이하이어야 합니다. 코스 개수: " + coursePlaceCount);
+        };
+    }
+
+    private NearbyPlacesResponse createNearbyPlacesResponse(CoursePlace coursePlace, String type, int numOfRows) {
+        Double mapX = coursePlace.getPlace().getLng();
+        Double mapY = coursePlace.getPlace().getLat();
+        String selfContentId = String.valueOf(coursePlace.getPlace().getContentId());
+
+        List<Integer> contentTypeIds = getContentTypeIds(type);
+        Map<String, NearbyPlaceTourApiResponse.Item> unique = new LinkedHashMap<>();
+
+        for (int contentTypeId : contentTypeIds) {
+            int remaining = numOfRows - unique.size();
+            if (remaining <= 0) {
+                break;
+            }
+            List<NearbyPlaceTourApiResponse.Item> nearbyPlaces = tourApiClient.fetchNearbyPlaces(contentTypeId, mapX, mapY, remaining);
+            if (nearbyPlaces == null) {
+                continue;
+            }
+            for (Item nearbyPlace : nearbyPlaces) {
+                if (selfContentId.equals(nearbyPlace.contentid())) {
+                    continue;
+                }
+                unique.putIfAbsent(nearbyPlace.contentid(), nearbyPlace);
+                if (unique.size() >= numOfRows) {
+                    break;
+                }
+            }
+        }
+
+        List<NearbyPlaceTourApiResponse.Item> finalItems = new ArrayList<>(unique.values());
+        if (finalItems.size() > numOfRows) {
+            finalItems = finalItems.subList(0, numOfRows);
+        }
+        List<NearbyPlaceSearchResponse> searchResponses = createNearbyPlaceSearchResponses(finalItems);
+        return NearbyPlacesResponse.from(coursePlace, searchResponses);
+    }
+
+    private List<Integer> getContentTypeIds(String type) {
+        return switch (type) {
+            case "tourist-spot" -> List.of(12, 14, 38);
+            case "restaurant" -> List.of(39);
+            default -> throw new IllegalArgumentException("지원하지 않는 장소 타입입니다.");
+        };
+    }
+
+    private List<NearbyPlaceSearchResponse> createNearbyPlaceSearchResponses(List<Item> nearbyPlaces) {
+        return nearbyPlaces.stream()
+                .map(nearbyPlace -> {
+                    Place place = findPlaceByContentId(nearbyPlace);
+                    Member loginMember = loginMemberProvider.getLoginMemberIfExists();
+                    return NearbyPlaceSearchResponse.from(place, loginMember);
+                })
+                .toList();
+    }
+
+    private Course findCourse(Long courseId) {
+        return courseRepository.findById(courseId).orElseThrow(CourseNotFoundException::new);
+    }
+
+    private Place findPlaceByContentId(Item place) {
+        return placeRepository.findByContentId(Integer.parseInt(place.contentid())).orElseThrow(PlaceNotFoundException::new);
+    }
+
+    private Place findPlaceById(Long placeId) {
+        return placeRepository.findById(placeId).orElseThrow(PlaceNotFoundException::new);
+    }
+
+    private void validateSearchRequest(PlaceSearchRequest request) {
+        if (request.region() == null && request.subRegion() == null && request.keyword() == null) {
+            throw new BusinessException(ErrorCode.KEYWORD_REQUIRED);
+        }
+    }
+}
