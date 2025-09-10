@@ -3,7 +3,7 @@ name: Deploy To EC2
 on:
   push:
     branches:
-      - develop
+      - main
   workflow_dispatch:
 
 jobs:
@@ -23,7 +23,7 @@ jobs:
           script: |
             cd /home/ubuntu/drive-only-be
             rm -rf src/main/resources/application.yml
-            git pull origin develop
+            git pull origin main
             echo "$APPLICATION_PROPERTIES" > src/main/resources/application.yml
             ./gradlew clean build
             sudo fuser -k -n tcp 8080 || true  
