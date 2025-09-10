@@ -9,5 +9,4 @@ public class DriveOnlyServerApplication {
     public static void main(String[] args) {
         SpringApplication.run(DriveOnlyServerApplication.class, args);
     }
-    //1
 }
