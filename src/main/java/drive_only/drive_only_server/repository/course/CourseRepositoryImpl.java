@@ -107,7 +107,7 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
     }
 
     private BooleanExpression tagContains(String tagName) {
-        return tag.name.trim().contains(tagName);
+        return tagName != null ? tag.name.trim().contains(tagName) : null;
     }
 
     private BooleanExpression placeEq(Long placeId) {
