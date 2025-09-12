@@ -87,7 +87,6 @@ public class MemberService {
             member.updateNickname(newNickname);
         }
 
-        if (request.getNickname() != null) member.updateNickname(request.getNickname());
         if (request.getProfileImageUrl() != null) {
             String finalUrl = photoService.promoteIfTemp(request.getProfileImageUrl(), member.getId());
             member.updateProfileImageUrl(finalUrl);
