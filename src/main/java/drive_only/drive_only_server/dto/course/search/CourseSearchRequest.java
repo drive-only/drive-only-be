@@ -2,6 +2,7 @@ package drive_only.drive_only_server.dto.course.search;
 
 public record CourseSearchRequest(
         String keyword,
+        String tag,
         Long placeId,
         Long memberId,
         String region,

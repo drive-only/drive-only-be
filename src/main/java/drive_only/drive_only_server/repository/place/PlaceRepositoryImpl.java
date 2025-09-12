@@ -61,7 +61,7 @@ public class PlaceRepositoryImpl implements PlaceRepositoryCustom {
     }
 
     private BooleanExpression keywordContains(String keyword) {
-        return keyword != null ? place.name.contains(keyword) : null;
+        return keyword != null ? place.name.trim().contains(keyword) : null;
     }
 
     private BooleanExpression regionEq(String region) {

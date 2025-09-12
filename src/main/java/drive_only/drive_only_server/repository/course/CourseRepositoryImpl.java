@@ -6,8 +6,10 @@ import static drive_only.drive_only_server.domain.QMember.member;
 import static drive_only.drive_only_server.domain.QCoursePlace.coursePlace;
 import static drive_only.drive_only_server.domain.QPlace.place;
 import static drive_only.drive_only_server.domain.QHiddenCourse.hiddenCourse;
+import static drive_only.drive_only_server.domain.QTag.tag;
 
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -39,8 +41,10 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
                 .join(course.category, category).fetchJoin()
                 .join(course.coursePlaces, coursePlace)
                 .join(coursePlace.place, place)
+                .join(course.tags, tag)
                 .where(
                         keywordContains(request.keyword()),
+                        tagContains(request.tag()),
                         placeEq(request.placeId()),
                         memberEq(request.memberId()),
                         regionEq(request.region()),
@@ -64,6 +68,7 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
                 .join(course.category, category)
                 .join(course.coursePlaces, coursePlace)
                 .join(coursePlace.place, place)
+                .join(course.tags, tag)
                 .where(
                         keywordContains(request.keyword()),
                         placeEq(request.placeId()),
@@ -99,6 +104,10 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
 
     private BooleanExpression keywordContains(String keyword) {
         return keyword != null ? course.title.contains(keyword) : null;
+    }
+
+    private BooleanExpression tagContains(String tagName) {
+        return tag.name.trim().contains(tagName);
     }
 
     private BooleanExpression placeEq(Long placeId) {
