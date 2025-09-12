@@ -21,44 +21,10 @@ jobs:
           envs: APPLICATION_PROPERTIES
           script_stop: true # 아래 script 중 실패하는 명령이 하나라도 있으면 실패로 처리
           script: |
-            set -Eeuo pipefail
-
             cd /home/ubuntu/drive-only-be
-
-            echo "[1/7] Git 동기화"
-            git fetch --all --prune
-            git reset --hard origin/main
-
-            echo "[2/7] application.yml 주입"
-            mkdir -p src/main/resources
-            printf "%s" "$APPLICATION_PROPERTIES" > src/main/resources/application.yml
-
-            echo "[3/7] 기존 Gradle/앱 프로세스 정리"
-            ./gradlew --stop || true
-            # 실행 중인 앱(자바) 있으면 종료
-            pids=$(pgrep -f 'java .*\.jar' || true)
-            if [ -n "$pids" ]; then
-              kill -TERM $pids || true
-              sleep 3
-              kill -9 $pids || true
-            fi
-            # build 폴더를 확실히 제거
-            rm -rf build
-
-            echo "[4/7] 빌드"
-            ./gradlew clean build -x test --no-daemon
-
-            echo "[5/7] 최신 JAR 선택"
-            JAR=$(ls -t build/libs/*SNAPSHOT.jar | head -n1)
-            if [ ! -f "$JAR" ]; then
-              echo "SNAPSHOT JAR를 찾지 못했습니다"; exit 1
-            fi
-
-            echo "[6/7] 포트 정리 후 실행"
-            sudo fuser -k -n tcp 8080 || true
-            mkdir -p logs
-            ts=$(date +%Y%m%d-%H%M%S)
-            nohup java -jar "$JAR" > "logs/app-$ts.log" 2>&1 &
-
-            echo "[7/7] 실행 확인"
-            pgrep -a java || true
+            rm -rf src/main/resources/application.yml
+            git pull origin main
+            echo "$APPLICATION_PROPERTIES" > src/main/resources/application.yml
+            ./gradlew clean build -x test
+            sudo fuser -k -n tcp 8080 || true  
+            nohup java -jar build/libs/*SNAPSHOT.jar > ./output.log 2>&1 &
