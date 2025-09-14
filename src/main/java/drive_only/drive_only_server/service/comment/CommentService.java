@@ -94,7 +94,6 @@ public class CommentService {
     public CommentDeleteResponse deleteComment(Long commentId) {
         Comment comment = findComment(commentId);
         validateCommentOwner(comment);
-        comment.clearChildComments();
         commentRepository.delete(comment);
         return new CommentDeleteResponse(comment.getId());
     }
