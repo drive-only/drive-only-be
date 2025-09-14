@@ -95,7 +95,7 @@ public class CommentService {
         Comment comment = findComment(commentId);
         validateCommentOwner(comment);
 
-        if (comment.getParentComment() == null) {
+        if (comment.getParentComment() == null && comment.getChildComments() != null) {
             comment.softDelete();
         } else {
             commentRepository.delete(comment);
