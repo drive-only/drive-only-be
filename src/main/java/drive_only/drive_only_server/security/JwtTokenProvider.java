@@ -91,4 +91,12 @@ public class JwtTokenProvider {
     public long getAccessTokenExpiration() {
         return ACCESS_TOKEN_EXPIRATION;
     }
+
+    public String getEmailAllowExpired(String token) {
+        try {
+            return getEmail(token);
+        } catch (ExpiredJwtException e) {
+            return e.getClaims().getSubject(); // 만료여도 subject 추출
+        }
+    }
 }

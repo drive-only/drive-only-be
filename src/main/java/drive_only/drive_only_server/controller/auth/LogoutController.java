@@ -4,6 +4,7 @@ import drive_only.drive_only_server.exception.annotation.ApiErrorCodeExamples;
 import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 
 import drive_only.drive_only_server.security.JwtTokenProvider;
+import drive_only.drive_only_server.security.JwtTokenProvider.JwtValidationStatus;
 import drive_only.drive_only_server.service.auth.LogoutService;
 import drive_only.drive_only_server.service.auth.RefreshTokenService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,46 +47,30 @@ public class LogoutController {
             @CookieValue(value = "access-token", required = false) String accessToken,
             @CookieValue(value = "refresh-token", required = false) String refreshToken
     ) {
-        // 1. access token 유효성 검사 및 블랙리스트 등록
-        if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
-            Date expiration = jwtTokenProvider.getExpirationDate(accessToken);
-            long now = System.currentTimeMillis();
-            long remainingMillis = expiration.getTime() - now;
-
-            if (remainingMillis > 0) {
-                logoutService.blacklistToken(accessToken, remainingMillis);
+        // 1) 액세스 토큰은 유효하면 블랙리스트, 만료면 스킵(선택)
+        if (accessToken != null) {
+            JwtValidationStatus st = jwtTokenProvider.getStatus(accessToken);
+            if (st == JwtValidationStatus.VALID) {
+                long remain = jwtTokenProvider.getExpirationDate(accessToken).getTime() - System.currentTimeMillis();
+                if (remain > 0) logoutService.blacklistToken(accessToken, remain);
             }
         }
 
-        // 2. refresh token 삭제
-        if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
-            String email = jwtTokenProvider.getEmail(refreshToken);
-            refreshTokenService.deleteRefreshToken(email);
+        // 2) 리프레시 토큰은 만료여도 이메일만 뽑아서 서버 저장소에서 제거 시도
+        if (refreshToken != null) {
+            String email = jwtTokenProvider.getEmailAllowExpired(refreshToken);
+            if (email != null) refreshTokenService.deleteRefreshToken(email);
         }
 
-        // 3. 쿠키 삭제
-        ResponseCookie deleteAccessTokenCookie = ResponseCookie.from("access-token", "")
-                .httpOnly(true)
-                .secure(true)
-                .domain("drive-only.com")
-                .path("/")
-                .maxAge(0)
-                .sameSite("None")
-                .build();
+        // 3) 쿠키 삭제(로그인 때와 '속성 100% 동일'하게)
+        ResponseCookie clearAccess = ResponseCookie.from("access-token", "")
+                .httpOnly(true).secure(true).domain("drive-only.com").path("/")
+                .sameSite("None").maxAge(0).build();
 
-        ResponseCookie deleteRefreshTokenCookie = ResponseCookie.from("refresh-token", "")
-                .httpOnly(true)
-                .secure(true)
-                .domain("drive-only.com")
-                .path("/")
-                .maxAge(0)
-                .sameSite("None")
-                .build();
+        ResponseCookie clearRefresh = ResponseCookie.from("refresh-token", "")
+                .httpOnly(true).secure(true).domain("drive-only.com").path("/")
+                .sameSite("None").maxAge(0).build();
 
-        return ApiResultSupport.okWithCookies(
-                SuccessCode.SUCCESS_LOGOUT,
-                null,
-                deleteAccessTokenCookie, deleteRefreshTokenCookie
-        );
+        return ApiResultSupport.okWithCookies(SuccessCode.SUCCESS_LOGOUT, null, clearAccess, clearRefresh);
     }
 }
