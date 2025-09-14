@@ -86,6 +86,11 @@ public class Comment {
         }
     }
 
+    public void softDelete() {
+        this.isDeleted = true;
+        this.content = "삭제된 댓글입니다.";
+    }
+
     public void addChildComment(Comment child) {
         this.childComments.add(child);
         child.parentComment = this;
