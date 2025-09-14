@@ -93,8 +93,9 @@ public class CommentService {
     @Transactional
     public CommentDeleteResponse deleteComment(Long commentId) {
         Comment comment = findComment(commentId);
-        validateCommentOwner(comment);
-        commentRepository.delete(comment);
+        if (validateCommentOwner(comment)) {
+            commentRepository.delete(comment);
+        }
         return new CommentDeleteResponse(comment.getId());
     }
 
@@ -148,10 +149,11 @@ public class CommentService {
         return commentRepository.findById(parentCommentId).orElseThrow(ParentCommentNotFoundException::new);
     }
 
-    private void validateCommentOwner(Comment comment) {
+    private boolean validateCommentOwner(Comment comment) {
         Member loginMember = loginMemberProvider.getLoginMember();
         if (!comment.isWrittenBy(loginMember)) {
             throw new OwnerMismatchException();
         }
+        return true;
     }
 }

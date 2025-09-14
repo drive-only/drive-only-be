@@ -91,10 +91,6 @@ public class Comment {
         child.parentComment = this;
     }
 
-    public void clearChildComments() {
-        this.childComments.clear();
-    }
-
     public boolean isWrittenBy(Member loginMember) {
         return this.member.getId().equals(loginMember.getId());
     }
