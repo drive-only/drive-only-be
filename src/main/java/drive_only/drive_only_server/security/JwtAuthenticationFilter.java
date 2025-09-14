@@ -38,6 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         boolean isPermitAll =
                 "OPTIONS".equalsIgnoreCase(method) ||
                         path.startsWith("/api/login") ||
+                        path.startsWith("/api/logout") ||
                         path.startsWith("/api/auth/") ||
                         path.startsWith("/swagger-ui/") ||
                         path.startsWith("/v3/api-docs/") ||
