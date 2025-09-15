@@ -39,7 +39,7 @@ public class PhotoController {
     })
     @PostMapping(path= "/api/photos", consumes= MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResult<Map<String,String>>> uploadTemp(
-            @RequestPart("file") MultipartFile file,
+            @RequestPart("image") MultipartFile file,
             @AuthenticationPrincipal CustomUserPrincipal user
     ){
         if (user == null) throw new BusinessException(ErrorCode.UNAUTHENTICATED_MEMBER);
