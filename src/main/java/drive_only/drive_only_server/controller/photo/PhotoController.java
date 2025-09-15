@@ -26,7 +26,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Tag(name = "사진", description = "사진 업로드 API")
 public class PhotoController {
-
     private final PhotoService photoService;
 
     @Operation(summary = "multipart 업로드", description = "multipart/form-data 파일 업로드 후 temp 경로에 저장, URL 반환")
