@@ -33,7 +33,6 @@ import java.time.Duration;
 @RequiredArgsConstructor
 @Tag(name = "로그인", description = "로그인 관련 API")
 public class AuthController {
-
     private final OAuth2UserInfoService oAuth2UserInfoService;
     private final MemberService memberService;
     private final JwtTokenProvider jwtTokenProvider;
