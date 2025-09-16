@@ -41,7 +41,7 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
                 .join(course.category, category).fetchJoin()
                 .join(course.coursePlaces, coursePlace)
                 .join(coursePlace.place, place)
-                .join(course.tags, tag)
+                .leftJoin(course.tags, tag)
                 .where(
                         keywordContains(request.keyword()),
                         tagContains(request.tag()),
@@ -68,7 +68,7 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
                 .join(course.category, category)
                 .join(course.coursePlaces, coursePlace)
                 .join(coursePlace.place, place)
-                .join(course.tags, tag)
+                .leftJoin(course.tags, tag)
                 .where(
                         keywordContains(request.keyword()),
                         placeEq(request.placeId()),
