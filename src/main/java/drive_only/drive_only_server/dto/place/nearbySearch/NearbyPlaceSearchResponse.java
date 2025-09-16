@@ -14,7 +14,8 @@ public record NearbyPlaceSearchResponse(
         String phoneNum,
         Double lat,
         Double lng,
-        boolean isSavedPlace
+        boolean isSavedPlace,
+        Long savedPlaceId
 ) {
     public static NearbyPlaceSearchResponse from(Place place, Member loginMember) {
         return new NearbyPlaceSearchResponse(
@@ -28,7 +29,8 @@ public record NearbyPlaceSearchResponse(
                 place.getPhoneNum(),
                 place.getLat(),
                 place.getLng(),
-                place.isSavedFrom(loginMember)
+                place.isSavedFrom(loginMember),
+                loginMember.getSavedPlaceId(place.getId())
         );
     }
 
