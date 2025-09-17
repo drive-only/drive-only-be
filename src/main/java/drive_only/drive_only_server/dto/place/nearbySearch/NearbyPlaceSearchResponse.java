@@ -30,8 +30,15 @@ public record NearbyPlaceSearchResponse(
                 place.getLat(),
                 place.getLng(),
                 place.isSavedFrom(loginMember),
-                loginMember.getSavedPlaceId(place.getId())
+                getSavedPlaceId(place, loginMember)
         );
+    }
+
+    private static Long getSavedPlaceId(Place place, Member loginMember) {
+        if (loginMember == null) {
+            return null;
+        }
+        return loginMember.getSavedPlaceId(place.getId());
     }
 
     private static String getType(int contentTypeId) {
