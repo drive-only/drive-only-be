@@ -87,9 +87,11 @@ public class MemberService {
             member.updateNickname(newNickname);
         }
 
-        if (request.getProfileImageUrl() != null) {
+        if (request.getProfileImageUrl() != null && !request.getProfileImageUrl().isBlank()) {
             String finalUrl = photoService.promoteIfTemp(request.getProfileImageUrl(), member.getId());
             member.updateProfileImageUrl(finalUrl);
+        } else {
+            member.updateProfileImageUrl(null); // 또는 Member.DEFAULT_PROFILE_IMAGE_URL
         }
 
         return new MemberResponse(member.getId(), member.getEmail(), member.getNickname(), member.getProfileImageUrl(), member.getProvider());
