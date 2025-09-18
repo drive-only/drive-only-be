@@ -103,11 +103,11 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
     }
 
     private BooleanExpression keywordContains(String keyword) {
-        return keyword != null ? course.title.contains(keyword) : null;
+        return keyword != null ? course.title.trim().contains(keyword.trim()) : null;
     }
 
     private BooleanExpression tagContains(String tagName) {
-        return tagName != null ? tag.name.trim().contains(tagName) : null;
+        return tagName != null ? tag.name.trim().contains(tagName.trim()) : null;
     }
 
     private BooleanExpression placeEq(Long placeId) {
@@ -119,27 +119,27 @@ public class CourseRepositoryImpl implements CourseRepositoryCustom {
     }
 
     private BooleanExpression regionEq(String region) {
-        return region != null ? course.category.region.eq(region) : null;
+        return region != null ? course.category.region.trim().eq(region.trim()) : null;
     }
 
     private BooleanExpression subRegionEq(String subRegion) {
-        return subRegion != null ? course.category.subRegion.eq(subRegion) : null;
+        return subRegion != null ? course.category.subRegion.trim().eq(subRegion.trim()) : null;
     }
 
     private BooleanExpression timeEq(String time) {
-        return time != null ? course.category.time.eq(time) : null;
+        return time != null ? course.category.time.trim().eq(time.trim()) : null;
     }
 
     private BooleanExpression seasonEq(String season) {
-        return season != null ? course.category.season.eq(season) : null;
+        return season != null ? course.category.season.trim().eq(season.trim()) : null;
     }
 
     private BooleanExpression themeEq(String theme) {
-        return theme != null ? course.category.theme.eq(theme) : null;
+        return theme != null ? course.category.theme.trim().eq(theme.trim()) : null;
     }
 
     private BooleanExpression areaTypeEq(String areaType) {
-        return areaType != null ? course.category.areaType.eq(areaType) : null;
+        return areaType != null ? course.category.areaType.trim().eq(areaType.trim()) : null;
     }
 
     private OrderSpecifier<?>[] getSortMethod(CourseSearchRequest request) {
