@@ -57,12 +57,10 @@ public class TokenRefreshController {
     public ResponseEntity<ApiResult<Void>> refreshAccessToken(
             @CookieValue(value = "refresh-token", required = false) String refreshToken
     ) {
-        // 1) 쿠키 없음
         if (refreshToken == null) {
             throw new BusinessException(ErrorCode.REFRESH_TOKEN_EMPTY_ERROR);
         }
 
-        // 2)
         JwtTokenProvider.JwtValidationStatus status = jwtTokenProvider.getStatus(refreshToken);
         if (status == JwtTokenProvider.JwtValidationStatus.EXPIRED) {
             throw new BusinessException(ErrorCode.REFRESH_TOKEN_EXPIRED);
@@ -71,7 +69,6 @@ public class TokenRefreshController {
             throw new BusinessException(ErrorCode.INVALID_TOKEN);
         }
 
-        // 3) 저장된 토큰과 불일치
         String email = jwtTokenProvider.getEmail(refreshToken);
         String savedToken = refreshTokenService.getRefreshToken(email);
         if (savedToken == null) {
@@ -81,16 +78,13 @@ public class TokenRefreshController {
             throw new BusinessException(ErrorCode.REFRESH_TOKEN_MISMATCH);
         }
 
-        // 4) 회원/프로바이더 로드 (없으면 MemberNotFoundException)
         String providerName = jwtTokenProvider.getProvider(refreshToken);
         Member member = memberRepository.findByEmailAndProvider(email, ProviderType.valueOf(providerName))
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
         ProviderType provider = member.getProvider();
 
-        // 5) 새 access token 발급
         String newAccessToken = jwtTokenProvider.createAccessToken(email, provider);
 
-        // 6) Set-Cookie 로 내려줌
         ResponseCookie accessTokenCookie = ResponseCookie.from("access-token", newAccessToken)
                 .httpOnly(true)
                 .secure(true)
