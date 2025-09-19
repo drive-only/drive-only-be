@@ -60,17 +60,13 @@ public class AuthController {
             throw new BusinessException(ErrorCode.INVALID_PROVIDER);
         }
 
-        // 1. 회원 등록 or 로그인
         Member member = memberService.registerOrLogin(userInfo);
 
-        // 2. access & refresh token 생성
         String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(), member.getProvider());
         String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail(), member.getProvider());
 
-        // 3. refresh token Redis 저장
         refreshTokenService.saveRefreshToken(member.getEmail(), refreshToken, refreshTokenExpiration);
 
-        // 4. 쿠키 설정 (access + refresh)
         ResponseCookie accessCookie = ResponseCookie.from("access-token", accessToken)
                 .httpOnly(true)
                 .secure(true)
@@ -93,7 +89,6 @@ public class AuthController {
                 .profileImageUrl(member.getProfileImageUrl())
                 .build();
 
-        // 5. 응답
         return ApiResultSupport.okWithCookies(
                 SuccessCode.SUCCESS_LOGIN,
                 body,
