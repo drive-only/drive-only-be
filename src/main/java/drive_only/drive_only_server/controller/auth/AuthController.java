@@ -57,7 +57,6 @@ public class AuthController {
         } else if ("NAVER".equalsIgnoreCase(request.getProvider())) {
             userInfo = oAuth2UserInfoService.naverLogin(request.getCode()); // 내부에서 예외 표준화
         } else {
-            // 일관된 에러 포맷
             throw new BusinessException(ErrorCode.INVALID_PROVIDER);
         }
 
