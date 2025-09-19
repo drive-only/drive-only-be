@@ -72,7 +72,6 @@ public class TokenRefreshController {
 
         // 3) 저장된 토큰과 불일치
         String email = jwtTokenProvider.getEmail(refreshToken);
-        String userProvider = jwtTokenProvider.getProvider(refreshToken);
         String savedToken = refreshTokenService.getRefreshToken(email);
         if (savedToken == null) {
             throw new BusinessException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
@@ -82,7 +81,16 @@ public class TokenRefreshController {
         }
 
         // 4) 회원/프로바이더 로드 (없으면 MemberNotFoundException)
-        Member member = memberRepository.findByEmailAndProvider(email, ProviderType.valueOf(userProvider))
+        String providerName = jwtTokenProvider.getProvider(refreshToken);
+        ProviderType providerType = null;
+        if (providerName != null && !providerName.isBlank() && !"null".equalsIgnoreCase(providerName)) {
+            try {
+                providerType = ProviderType.valueOf(providerName);
+            } catch (IllegalArgumentException ignored) {
+
+            }
+        }
+        Member member = memberRepository.findByEmailAndProvider(email, providerType)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
         ProviderType provider = member.getProvider();
 
