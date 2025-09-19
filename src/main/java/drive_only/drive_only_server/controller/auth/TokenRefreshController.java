@@ -94,7 +94,6 @@ public class TokenRefreshController {
                 .sameSite("None")
                 .build();
 
-        // 성공 시에도 JSON(ApiResult) + Set-Cookie 같이 반환
         return ApiResultSupport.okWithCookies(
                 SuccessCode.SUCCESS_REFRESH_ACCESS_TOKEN,
                 null,                // 최소 변경: result 필요 없으면 null
