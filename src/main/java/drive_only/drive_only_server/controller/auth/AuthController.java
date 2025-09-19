@@ -66,7 +66,7 @@ public class AuthController {
 
         // 2. access & refresh token 생성
         String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(), member.getProvider());
-        String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail());
+        String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail(), member.getProvider());
 
         // 3. refresh token Redis 저장
         refreshTokenService.saveRefreshToken(member.getEmail(), refreshToken, refreshTokenExpiration);
