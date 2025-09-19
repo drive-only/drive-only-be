@@ -8,6 +8,7 @@ import drive_only.drive_only_server.exception.custom.RefreshTokenNotFoundExcepti
 import drive_only.drive_only_server.exception.errorcode.ErrorCode;
 import drive_only.drive_only_server.repository.member.MemberRepository;
 import drive_only.drive_only_server.security.JwtTokenProvider;
+import drive_only.drive_only_server.security.LoginMemberProvider;
 import drive_only.drive_only_server.service.auth.RefreshTokenService;
 import drive_only.drive_only_server.service.member.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -82,15 +83,7 @@ public class TokenRefreshController {
 
         // 4) 회원/프로바이더 로드 (없으면 MemberNotFoundException)
         String providerName = jwtTokenProvider.getProvider(refreshToken);
-        ProviderType providerType = null;
-        if (providerName != null && !providerName.isBlank() && !"null".equalsIgnoreCase(providerName)) {
-            try {
-                providerType = ProviderType.valueOf(providerName);
-            } catch (IllegalArgumentException ignored) {
-
-            }
-        }
-        Member member = memberRepository.findByEmailAndProvider(email, providerType)
+        Member member = memberRepository.findByEmailAndProvider(email, ProviderType.valueOf(providerName))
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
         ProviderType provider = member.getProvider();
 
