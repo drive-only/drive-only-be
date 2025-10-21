@@ -30,6 +30,7 @@ public enum ErrorCode {
     ALREADY_EXISTED_PLACE(HttpStatus.BAD_REQUEST, "이미 저장된 장소입니다."),
 
     //401 UNAUTHORIZED
+    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 일치하지 않습니다."),
     DUPLICATE_MEMBER(HttpStatus.CONFLICT, "이미 가입된 회원입니다."), // (선택) 동시가입 경합 구분용
     TOKEN_BLACKLISTED(HttpStatus.UNAUTHORIZED, "로그아웃된 토큰입니다."), // (선택) 구분 필요 시,
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다."),
