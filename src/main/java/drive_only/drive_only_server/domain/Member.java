@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 import lombok.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Entity
 @Getter
@@ -38,6 +39,9 @@ public class Member {
     @Column(name = "provider", nullable = false)
     private ProviderType provider;
 
+    @Column(name = "password")
+    private String password;
+
     @OneToMany(mappedBy = "member", orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
@@ -60,6 +64,18 @@ public class Member {
         m.nickname = normalizeNullable(nickname);
         m.profileImageUrl = normalizeNullable(profileImageUrl);
         m.provider = provider;
+        return m;
+    }
+
+    public static Member createAdminMember(String email, String nickname, String password, PasswordEncoder passwordEncoder) {
+        validateEmail(email);
+        if (nickname != null) validateNickname(nickname);
+
+        Member m = new Member();
+        m.email = normalizeEmail(email);
+        m.nickname = normalizeNullable(nickname);
+        m.password = passwordEncoder.encode(password);
+        m.provider = ProviderType.LOCAL;
         return m;
     }
 

@@ -14,6 +14,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import drive_only.drive_only_server.security.RestAccessDeniedHandler;
 import drive_only.drive_only_server.security.RestAuthenticationEntryPoint;
 import org.springframework.security.config.Customizer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 @EnableWebSecurity
@@ -31,7 +34,7 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/login", "/api/logout", "/swagger-ui/**", "/v3/api-docs/**", "/api/auth/**").permitAll()
+                        .requestMatchers("/api/login", "/api/admin/login", "/api/logout", "/swagger-ui/**", "/v3/api-docs/**", "/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/courses/**", "/api/places/**", "/api/categories").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -41,5 +44,10 @@ public class SecurityConfig {
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }
