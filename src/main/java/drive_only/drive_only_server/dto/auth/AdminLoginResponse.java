@@ -6,6 +6,5 @@ import lombok.Getter;
 @Getter
 @Builder
 public class AdminLoginResponse {
-    // 필요시 운영자 정보 추가 (예: nickname)
-    // private String nickname;
+    private String nickname;
 }
